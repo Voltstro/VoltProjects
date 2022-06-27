@@ -9,6 +9,8 @@ public struct VoltProject
     public Uri GitUrl { get; set; }
     public string GitBranch { get; set; }
     
+    public bool GitUseLatestTag { get; set; }
+    
     public string DocsPath { get; set; }
     public string DocsBuildDist { get; set; }
 }

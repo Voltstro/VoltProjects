@@ -45,10 +45,41 @@ public class SiteCacheManager
             if (!Directory.Exists(fullProjectDirectory))
                 Directory.CreateDirectory(fullProjectDirectory);
             
+            //Get our destination folder
+            string destinationDir =
+                Path.GetFullPath($"{AppContext.BaseDirectory}/{_config.SitesServingDir}/{project.Name}");
+            
             //Clone repo
             _logger.LogInformation("Updating site cache {ProjectName}...", project.Name);
             _git.CloneRepo(project.GitUrl.ToString(), project.GitBranch, fullProjectDirectory);
+
+            //Set to latest tag
+            if (project.GitUseLatestTag)
+            {
+                try
+                {
+                    _git.SetToLatestTag(fullProjectDirectory);
+                }
+                catch (TagException ex)
+                {
+                    _logger.LogWarning("Something went wrong while setting the repo's tag! I will continue but" +
+                                       "the repo will be using the latest commit on {Branch}! {Message}", project.GitBranch, ex.Message);
+                }
+            }
             
+            //Check what commit we have built against
+            string commitFile = Path.GetFullPath($"{destinationDir}/.commit");
+            if (File.Exists(commitFile))
+            {
+                string commit = File.ReadAllText(commitFile);
+                if (_git.GetRepoCommitHash(fullProjectDirectory) == commit)
+                {
+                    _logger.LogInformation("Commit hashes are the same, not rebuilding.");
+                    Cleanup();
+                    continue;
+                }
+            }
+
             //Get docs path
             string projectDocsPath = Path.GetFullPath($"{fullProjectDirectory}/{project.DocsPath}");
             if (!Directory.Exists(projectDocsPath))
@@ -98,14 +129,19 @@ public class SiteCacheManager
             }
 
             _logger.LogInformation("Copying built site to serving folder...");
-            string destinationDir =
-                Path.GetFullPath($"{AppContext.BaseDirectory}/{_config.SitesServingDir}/{project.Name}");
+            
+            //TODO: We should compare, and copy/delete based of that
+            //If the built site directory folder already exists, delete it so we can start from scratch
             if (Directory.Exists(destinationDir))
                 Directory.Delete(destinationDir, true);
 
             Directory.CreateDirectory(destinationDir);
             
+            //Copy built site to destination
             IOHelper.CopyDirectory(builtDocsDist, destinationDir, true);
+            
+            //Write commit info
+            File.WriteAllText(commitFile, _git.GetRepoCommitHash(fullProjectDirectory));
 
             //Cleanup
             Cleanup();

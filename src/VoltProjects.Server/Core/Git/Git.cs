@@ -35,6 +35,28 @@ public class Git
         });
     }
 
+    public string GetRepoCommitHash(string path)
+    {
+        using Repository repo = new(path);
+        return repo.Head.Tip.Sha;
+    }
+
+    public void SetToLatestTag(string path)
+    {
+        using Repository repo = new(path);
+        if(!repo.Tags.Any())
+            throw new TagException("The repo doesn't have any tags!");
+
+        Tag? tag = repo.Tags.ElementAt(repo.Tags.Count() - 1);
+        if (tag == null)
+            throw new TagException("Fail to get tag!");
+
+        Commands.Checkout(repo, tag.Target.Sha, new CheckoutOptions
+        {
+            OnCheckoutProgress = OnCheckoutLog
+        });
+    }
+
     #region Logging
 
     private bool OnProgressLog(string output)
