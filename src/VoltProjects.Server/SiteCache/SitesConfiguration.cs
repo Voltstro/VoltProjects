@@ -3,6 +3,7 @@ using System.IO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Net.Http.Headers;
+using VoltProjects.Server.Config;
 
 namespace VoltProjects.Server;
 
@@ -24,6 +25,7 @@ public static class SitesConfiguration
             }}
         });
             
+        /*
         app.UseFileServer(new FileServerOptions
         {
             FileProvider =
@@ -37,6 +39,7 @@ public static class SitesConfiguration
                     "public,max-age=" + config.HostCacheTime;
             }}
         });
+        */
 
         return app;
     }

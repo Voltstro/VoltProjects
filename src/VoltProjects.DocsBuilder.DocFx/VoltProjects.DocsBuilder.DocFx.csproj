@@ -1,17 +1,14 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="LibGit2Sharp" Version="0.27.0-preview-0116" />
-    </ItemGroup>
-
-    <ItemGroup>
+      <ProjectReference Include="..\ThirdParty\docfx\src\docfx\docfx.csproj" />
       <ProjectReference Include="..\VoltProjects.DocsBuilder.Core\VoltProjects.DocsBuilder.Core.csproj" />
-      <ProjectReference Include="..\VoltProjects.DocsBuilder.DocFx\VoltProjects.DocsBuilder.DocFx.csproj" />
     </ItemGroup>
 
 </Project>

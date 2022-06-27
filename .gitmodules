@@ -1,0 +1,4 @@
+[submodule "src/ThirdParty/docfx"]
+	path = src/ThirdParty/docfx
+	url = https://github.com/dotnet/docfx
+	branch = v3-template
