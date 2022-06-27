@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -10,6 +11,7 @@ using VoltProjects.Server.Core.Git;
 using VoltProjects.Server.SiteCache;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder();
+builder.WebHost.ConfigureKestrel(kestrel => kestrel.AddServerHeader = false);
 
 IConfigurationSection config = builder.Configuration.GetSection(VoltProjectsConfig.VoltProjects);
 builder.Services.Configure<VoltProjectsConfig>(config);
