@@ -1,8 +1,8 @@
 using System;
 using System.IO;
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using VoltProjects.DocsBuilder.Core;
 using VoltProjects.Server.Config;
 using VoltProjects.Server.Core.Git;

@@ -12,20 +12,16 @@ public class DocFxDocxBuilder : IDocsBuilder
 
     public void Build(string docsPath)
     {
-        string docfxPath = $"{AppContext.BaseDirectory}/{DocfxAppName}";
+        string docfxName = DocfxAppName;
         
         //Windows we need the '.exe'
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            docfxPath += ".exe";
-
-        docfxPath = Path.GetFullPath(docfxPath);
-        if (!File.Exists(docfxPath))
-            throw new FileNotFoundException("DocFx was not found!");
+            docfxName += ".exe";
 
         //Run DocFx
         Process docfxProcess = new()
         {
-            StartInfo = new ProcessStartInfo(docfxPath, "build")
+            StartInfo = new ProcessStartInfo(docfxName, "build")
             {
                 WorkingDirectory = docsPath
             }

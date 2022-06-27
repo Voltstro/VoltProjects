@@ -7,7 +7,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\ThirdParty\docfx\src\docfx\docfx.csproj" />
       <ProjectReference Include="..\VoltProjects.DocsBuilder.Core\VoltProjects.DocsBuilder.Core.csproj" />
     </ItemGroup>
 
