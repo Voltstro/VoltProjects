@@ -3,10 +3,12 @@
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
         <Nullable>enable</Nullable>
+        <UserSecretsId>d9871dfb-1dcf-46da-8f0c-df096479ebaa</UserSecretsId>
     </PropertyGroup>
 
     <ItemGroup>
       <PackageReference Include="LibGit2Sharp" Version="0.27.0-preview-0182" />
+      <PackageReference Include="Sentry.AspNetCore" Version="3.18.0" />
       <PackageReference Include="Serilog.AspNetCore" Version="5.0.0" />
     </ItemGroup>
 

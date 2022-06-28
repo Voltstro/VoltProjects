@@ -4,7 +4,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
-using Serilog.Events;
 using VoltProjects.DocsBuilder.Core;
 using VoltProjects.DocsBuilder.DocFx;
 using VoltProjects.Server;
@@ -14,6 +13,7 @@ using VoltProjects.Server.SiteCache;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder();
 builder.WebHost.ConfigureKestrel(kestrel => kestrel.AddServerHeader = false);
+builder.WebHost.UseSentry();
 builder.Host.UseSerilog();
 
 //Setup services
@@ -46,5 +46,6 @@ app.SetupVoltProjects(bindConfig);
 //Update our site cache now before running
 app.Services.GetService<SiteCacheManager>()!.UpdateCache();
 
+app.UseSentryTracing();
 app.Run();
 Log.CloseAndFlush();
