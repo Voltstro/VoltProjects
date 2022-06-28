@@ -23,6 +23,7 @@ builder.Services.AddSingleton(new DocsBuilder(new DocFxDocxBuilder()));
 builder.Services.AddSingleton<Git>();
 builder.Services.AddSingleton<SiteCacheManager>();
 builder.Services.AddHostedService<SitesCacheUpdater>();
+builder.Services.AddMvc(options => options.EnableEndpointRouting = false);
 
 //Setup logger
 Log.Logger = new LoggerConfiguration()
@@ -37,6 +38,11 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 else
     app.UseDeveloperExceptionPage();
+
+app.UseMvc(route =>
+{
+    route.MapRoute("default", "{controller=Main}/{action=Index}");
+});
 
 app.UseRouting();
 
