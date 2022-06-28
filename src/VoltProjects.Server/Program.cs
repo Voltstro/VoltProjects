@@ -52,6 +52,7 @@ app.SetupVoltProjects(bindConfig);
 //Update our site cache now before running
 app.Services.GetService<SiteCacheManager>()!.UpdateCache();
 
+app.UseStaticFiles();
 app.UseSentryTracing();
 app.Run();
 Log.CloseAndFlush();

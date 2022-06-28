@@ -17,4 +17,8 @@
       <ProjectReference Include="..\VoltProjects.DocsBuilder.DocFx\VoltProjects.DocsBuilder.DocFx.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="wwwroot\dist" />
+    </ItemGroup>
+
 </Project>
