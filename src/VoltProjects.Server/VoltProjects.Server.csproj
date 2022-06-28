@@ -4,6 +4,7 @@
         <TargetFramework>net6.0</TargetFramework>
         <Nullable>enable</Nullable>
         <UserSecretsId>d9871dfb-1dcf-46da-8f0c-df096479ebaa</UserSecretsId>
+        <ClientApp>ClientApp/</ClientApp>
     </PropertyGroup>
 
     <ItemGroup>
@@ -17,8 +18,57 @@
       <ProjectReference Include="..\VoltProjects.DocsBuilder.DocFx\VoltProjects.DocsBuilder.DocFx.csproj" />
     </ItemGroup>
 
+    <!-- Some files we don't want to include -->
     <ItemGroup>
-      <Folder Include="wwwroot\dist" />
+        <Content Remove="wwwroot\.gitignore" />
+        <Content Remove="$(ClientApp)**" />
+        <None Remove="$(ClientApp)**"/>
+        <None Include="$(ClientApp)**" Exclude="$(ClientApp)node_modules/**"/>
     </ItemGroup>
+    
+    <Target Name="YarnSetup" BeforeTargets="Build" Condition="!Exists('$(ClientApp)node_modules')" AfterTargets="">
+        <!-- Make sure Yarn is installed -->
+        <Exec Command="yarn --version" ContinueOnError="true">
+            <Output TaskParameter="ExitCode" PropertyName="ErrorCode"/>
+        </Exec>
+        <Error Condition="'$(ErrorCode)' != '0'" Text="Yarn is required to build this project! Please see https://classic.yarnpkg.com/en/docs/install on how to install."/>
+
+        <Message Importance="high" Text="Restoring dependencies using Yarn, give me a moment..."/>
+        <Exec WorkingDirectory="$(ClientApp)" Command="yarn"/>
+    </Target>
+    
+    <!-- We build the client app in different mode depending on the configuration -->
+    <Target Name="YarnBuild-Debug" BeforeTargets="Build" Condition="'$(Configuration)'=='Debug' AND '$(RuntimeIdentifier)'==''">
+        <Exec WorkingDirectory="$(ClientApp)" Command="yarn run build:dev"/>
+    </Target>
+
+    <Target Name="YarnBuild-Release" BeforeTargets="Build" Condition="'$(Configuration)'=='Release' AND '$(RuntimeIdentifier)'==''">
+        <Exec WorkingDirectory="$(ClientApp)" Command="yarn run build:prod"/>
+    </Target>
+
+    <Target Name="YarnPublish" AfterTargets="ComputeFilesToPublish">
+    </Target>
+
+    <!-- If we need to clean -->
+    <Target Name="YarnClean" BeforeTargets="Clean">
+        <RemoveDir Directories="wwwroot/dist"/>
+        <RemoveDir Directories="$(ClientApp)node_modules"/>
+    </Target>
+
+    <!-- For publishing -->
+    <Target Name="YarnPublish" AfterTargets="ComputeFilesToPublish">
+        <Exec WorkingDirectory="$(ClientApp)" Command="yarn"/>
+        <Exec WorkingDirectory="$(ClientApp)" Command="yarn run build:prod"/>
+
+        <!-- Include the newly-built files in the publish output -->
+        <ItemGroup>
+            <DistFiles Include="$wwwroot/dist/**"/>
+            <ResolvedFileToPublish Include="@(DistFiles->'%(FullPath)')" Exclude="@(ResolvedFileToPublish)">
+                <RelativePath>%(DistFiles.Identity)</RelativePath>
+                <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+                <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+            </ResolvedFileToPublish>
+        </ItemGroup>
+    </Target>
 
 </Project>
