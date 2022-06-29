@@ -9,6 +9,7 @@ using VoltProjects.DocsBuilder.DocFx;
 using VoltProjects.Server;
 using VoltProjects.Server.Config;
 using VoltProjects.Server.Core.Git;
+using VoltProjects.Server.Core.MiddlewareManagement;
 using VoltProjects.Server.SiteCache;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder();
@@ -19,6 +20,7 @@ builder.Host.UseSerilog();
 //Setup services
 IConfigurationSection config = builder.Configuration.GetSection(VoltProjectsConfig.VoltProjects);
 builder.Services.Configure<VoltProjectsConfig>(config);
+builder.Services.AddRuntimeMiddleware();
 builder.Services.AddSingleton(new DocsBuilder(new DocFxDocxBuilder()));
 builder.Services.AddSingleton<Git>();
 builder.Services.AddSingleton<SiteCacheManager>();
@@ -45,9 +47,7 @@ app.UseMvc(route =>
 });
 
 app.UseRouting();
-
-VoltProjectsConfig bindConfig = config.Get<VoltProjectsConfig>();
-app.SetupVoltProjects(bindConfig);
+app.UseRuntimeMiddleware();
 
 //Update our site cache now before running
 app.Services.GetService<SiteCacheManager>()!.UpdateCache();

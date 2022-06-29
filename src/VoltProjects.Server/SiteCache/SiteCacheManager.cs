@@ -1,11 +1,16 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Net.Http.Headers;
 using VoltProjects.DocsBuilder.Core;
 using VoltProjects.Server.Config;
 using VoltProjects.Server.Core.Git;
+using VoltProjects.Server.Core.MiddlewareManagement;
 
 namespace VoltProjects.Server.SiteCache;
 
@@ -16,13 +21,19 @@ public class SiteCacheManager
 {
     private readonly ILogger<SiteCacheManager> _logger;
     private readonly VoltProjectsConfig _config;
+    private readonly RuntimeMiddlewareService _runtimeMiddlewareService;
     private readonly Git _git;
     private readonly DocsBuilder.Core.DocsBuilder _docsBuilder;
+    private readonly List<VoltProject> _configuredProjects = new();
 
-    public SiteCacheManager(ILogger<SiteCacheManager> logger, IOptions<VoltProjectsConfig> config, Git git, DocsBuilder.Core.DocsBuilder docsBuilder)
+    public SiteCacheManager(ILogger<SiteCacheManager> logger, IOptions<VoltProjectsConfig> config, 
+        RuntimeMiddlewareService runtimeMiddleware,
+        Git git, 
+        DocsBuilder.Core.DocsBuilder docsBuilder)
     {
         _logger = logger;
         _config = config.Value;
+        _runtimeMiddlewareService = runtimeMiddleware;
         _git = git;
         _docsBuilder = docsBuilder;
     }
@@ -76,6 +87,7 @@ public class SiteCacheManager
                 {
                     _logger.LogInformation("Commit hashes are the same, not rebuilding.");
                     Cleanup();
+                    ConfigureServer();
                     continue;
                 }
             }
@@ -145,12 +157,42 @@ public class SiteCacheManager
 
             //Cleanup
             Cleanup();
+
+            ConfigureServer();
             
             _logger.LogInformation("Project {ProjectName} has successfully been built and deployed!", project.Name);
 
             void Cleanup()
             {
                 Directory.Delete(fullProjectDirectory, true);
+            }
+
+            void ConfigureServer()
+            {
+                //Setup our file server
+                if (_configuredProjects.Contains(project)) 
+                    return;
+                
+                _runtimeMiddlewareService.Configure(app =>
+                {
+                    app.UseFileServer(new FileServerOptions
+                    {
+                        FileProvider =
+                            new PhysicalFileProvider(
+                                Path.Combine(AppContext.BaseDirectory, $"Sites/{project.Name}")),
+                        RequestPath = $"/{project.Name}",
+                        RedirectToAppendTrailingSlash = true,
+                        StaticFileOptions =
+                        {
+                            OnPrepareResponse = ctx =>
+                            {
+                                ctx.Context.Response.Headers[HeaderNames.CacheControl] =
+                                    "public,max-age=" + _config.HostCacheTime;
+                            }
+                        }
+                    });
+                });
+                _configuredProjects.Add(project);
             }
         }
     }
