@@ -14,7 +14,6 @@ using VoltProjects.Server.SiteCache;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder();
 builder.WebHost.ConfigureKestrel(kestrel => kestrel.AddServerHeader = false);
-builder.WebHost.UseSentry();
 builder.Host.UseSerilog();
 
 //Setup services
@@ -53,6 +52,5 @@ app.UseRuntimeMiddleware();
 app.Services.GetService<SiteCacheManager>()!.UpdateCache();
 
 app.UseStaticFiles();
-app.UseSentryTracing();
 app.Run();
 Log.CloseAndFlush();

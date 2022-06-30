@@ -25,10 +25,6 @@ To build VoltProjects, simply use your IDE, or `dotnet build`.
 
 VoltProjects is configured using a `appsettings.json` file.
 
-#### Sentry
-
-VoltProjects uses Sentry, if you want to configure it's Dsn, either use the environmental variable `SENTRY_DSN` or by using [.NET's user secrets](https://docs.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-6.0&tabs=linux#set-a-secret).
-
 ### Docs Configuration
 
 Each docs project needs a `VoltDocsBuilder.json` file. See [VoltRpc for an example](https://github.com/Voltstro-Studios/VoltRpc/blob/master/docs/VoltDocsBuilder.json).
@@ -38,7 +34,6 @@ Each docs project needs a `VoltDocsBuilder.json` file. See [VoltRpc for an examp
 Doc builders are what are responsible for building the docs.
 
 - DocFx v3
-
 
 ## Authors
 
