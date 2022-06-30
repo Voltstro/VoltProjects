@@ -1,3 +1,4 @@
+using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -27,10 +28,14 @@ builder.Services.AddHostedService<SitesCacheUpdater>();
 builder.Services.AddMvc(options => options.EnableEndpointRouting = false);
 
 //Setup logger
+const string outPutTemplate = "{Timestamp:dd-MM hh:mm:ss tt} [{Level:u3}] {Message:lj}{NewLine}{Exception}";
+string logFileName =
+    $"{AppContext.BaseDirectory}/Logs/{DateTime.Now:yyyy-MM-dd-HH-mm-ss}.log";
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
-    .WriteTo.Console()
+    .WriteTo.Console(outputTemplate: outPutTemplate)
+    .WriteTo.File(logFileName, outputTemplate: outPutTemplate)
     .CreateLogger();
 
 WebApplication app = builder.Build();
