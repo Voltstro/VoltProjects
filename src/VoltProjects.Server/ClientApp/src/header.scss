@@ -1,0 +1,10 @@
+//HEADER
+header {
+  .navbar {
+    background-color: var(--navbar-bg-color);
+  }
+
+  @media print {
+    display: none;
+  }
+}

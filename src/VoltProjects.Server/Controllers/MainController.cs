@@ -7,12 +7,12 @@ namespace VoltProjects.Server.Controllers;
 /// </summary>
 public class MainController : Controller
 {
+    [Route("/")]
     public IActionResult Index()
     {
         return View();
     }
-
-    [HttpGet]
+    
     [Route("/about")]
     public IActionResult About()
     {

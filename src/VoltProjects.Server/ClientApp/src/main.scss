@@ -1,1 +1,63 @@
 @import "bootstrap/scss/bootstrap.scss";
+@import "header";
+
+$primary: #2d74b2 !default;
+$link-decoration: none !default;
+$link-hover-decoration: underline !default;
+$container-max-widths: (
+        xxl: 1768px
+) !default;
+
+:root {
+  --navbar-bg-color: #164268;
+  --bs-body-bg: #1c1e21;
+  --bs-body-color: #fff;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+@media (min-width: 1400px) {
+  .container-xxl,.container-xl,.container-lg,.container-md,.container-sm,.container {
+    max-width:1584px;
+  }
+}
+
+@media (min-width: 2100px) {
+  .container-xxl,.container-xl,.container-lg,.container-md,.container-sm,.container {
+    max-width: 2020px;
+  }
+}
+
+.hero {
+  .hero-content {
+    display: flex;
+    flex-direction: column;
+    padding: 5em 0;
+    gap: 1em;
+
+    h1 {
+      font-size: calc(1.525rem + 3.3vw);
+      font-weight: 600;
+    }
+
+    .lead {
+      font-weight: 400;
+      font-size: calc(1.275rem + .3vw);
+    }
+
+    .actions {
+      display: flex;
+      gap: 1em;
+
+      .btn {
+        font-weight: 600;
+        @include button-size(.75em, 1.5em, 1.25em, .3em);
+      }
+    }
+  }
+}
