@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using LibGit2Sharp;
 using Microsoft.Extensions.Logging;
@@ -8,7 +7,7 @@ namespace VoltProjects.Server.Core.Git;
 /// <summary>
 ///     Wrapper for interfacing with Git
 /// </summary>
-public class Git
+public sealed class Git
 {
     private readonly ILogger<Git> _logger;
 
@@ -35,12 +34,22 @@ public class Git
         });
     }
 
+    /// <summary>
+    ///     Gets a repo's latest commit's hash
+    /// </summary>
+    /// <param name="path"></param>
+    /// <returns></returns>
     public string GetRepoCommitHash(string path)
     {
         using Repository repo = new(path);
         return repo.Head.Tip.Sha;
     }
 
+    /// <summary>
+    ///     Sets a repo to it's latest tag
+    /// </summary>
+    /// <param name="path"></param>
+    /// <exception cref="TagException"></exception>
     public void SetToLatestTag(string path)
     {
         using Repository repo = new(path);

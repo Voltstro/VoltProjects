@@ -2,7 +2,10 @@ using System;
 
 namespace VoltProjects.Server.Core.Git;
 
-public class TagException : Exception
+/// <summary>
+///     Exception related to git tags
+/// </summary>
+public sealed class TagException : Exception
 {
     public TagException(string message)
         : base(message)

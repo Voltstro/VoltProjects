@@ -3,15 +3,14 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using VoltProjects.Server.Config;
-using VoltProjects.Server.SiteCache;
+using VoltProjects.Server.Core.SiteCache.Config;
 
-namespace VoltProjects.Server;
+namespace VoltProjects.Server.Core.SiteCache;
 
 /// <summary>
 ///     Background services that is responsible for updating the sites
 /// </summary>
-public class SitesCacheUpdater : BackgroundService
+public sealed class SitesCacheUpdater : BackgroundService
 {
     private readonly ILogger<SitesCacheUpdater> _logger;
     private readonly VoltProjectsConfig _config;
@@ -33,8 +32,7 @@ public class SitesCacheUpdater : BackgroundService
             await Task.Delay(_config.SitesUpdateTime, stoppingToken);
             
             _logger.LogInformation("Updating site cache...");
-
-            
+            _cacheManager.UpdateCache();
         }
     }
 }

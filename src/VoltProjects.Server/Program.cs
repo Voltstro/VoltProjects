@@ -7,11 +7,10 @@ using Microsoft.Extensions.Hosting;
 using Serilog;
 using VoltProjects.DocsBuilder.Core;
 using VoltProjects.DocsBuilder.DocFx;
-using VoltProjects.Server;
-using VoltProjects.Server.Config;
 using VoltProjects.Server.Core.Git;
 using VoltProjects.Server.Core.MiddlewareManagement;
-using VoltProjects.Server.SiteCache;
+using VoltProjects.Server.Core.SiteCache;
+using VoltProjects.Server.Core.SiteCache.Config;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder();
 builder.WebHost.ConfigureKestrel(kestrel => kestrel.AddServerHeader = false);
@@ -54,7 +53,7 @@ app.UseRouting();
 app.UseRuntimeMiddleware();
 
 //Update our site cache now before running
-app.Services.GetService<SiteCacheManager>()!.UpdateCache();
+app.Services.GetRequiredService<SiteCacheManager>().UpdateCache();
 
 app.UseStaticFiles();
 app.Run();

@@ -1,6 +1,6 @@
 using System;
 
-namespace VoltProjects.Server.Config;
+namespace VoltProjects.Server.Core.SiteCache.Config;
 
 public struct VoltProject
 {

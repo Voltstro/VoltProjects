@@ -8,27 +8,28 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
 using VoltProjects.DocsBuilder.Core;
-using VoltProjects.Server.Config;
 using VoltProjects.Server.Core.Git;
+using VoltProjects.Server.Core.Helper;
 using VoltProjects.Server.Core.MiddlewareManagement;
+using VoltProjects.Server.Core.SiteCache.Config;
 
-namespace VoltProjects.Server.SiteCache;
+namespace VoltProjects.Server.Core.SiteCache;
 
 /// <summary>
 ///     Manager for updating sites
 /// </summary>
-public class SiteCacheManager
+public sealed class SiteCacheManager
 {
     private readonly ILogger<SiteCacheManager> _logger;
     private readonly VoltProjectsConfig _config;
     private readonly RuntimeMiddlewareService _runtimeMiddlewareService;
-    private readonly Git _git;
+    private readonly Git.Git _git;
     private readonly DocsBuilder.Core.DocsBuilder _docsBuilder;
     private readonly List<VoltProject> _configuredProjects = new();
 
     public SiteCacheManager(ILogger<SiteCacheManager> logger, IOptions<VoltProjectsConfig> config, 
         RuntimeMiddlewareService runtimeMiddleware,
-        Git git, 
+        Git.Git git, 
         DocsBuilder.Core.DocsBuilder docsBuilder)
     {
         _logger = logger;
@@ -38,6 +39,9 @@ public class SiteCacheManager
         _docsBuilder = docsBuilder;
     }
 
+    /// <summary>
+    ///     Updates the site build cache, adn deploys new sites if necessary
+    /// </summary>
     public void UpdateCache()
     {
         _logger.LogInformation("Updating sites cache...");
