@@ -1,5 +1,19 @@
+$card-bg: #252526 !default;
+
 @import "bootstrap/scss/bootstrap.scss";
 @import "header";
+
+:root {
+  --navbar-bg-color: #164268;
+
+  --bs-body-bg: #1c1e21;
+  --bs-body-color: #fff;
+
+  --detail-color-bg: #1e1e1e;
+  --detail-color: #fff;
+
+  --detail-second-color-bg: #252526;
+}
 
 $primary: #2d74b2 !default;
 $link-decoration: none !default;
@@ -8,11 +22,6 @@ $container-max-widths: (
         xxl: 1768px
 ) !default;
 
-:root {
-  --navbar-bg-color: #164268;
-  --bs-body-bg: #1c1e21;
-  --bs-body-color: #fff;
-}
 
 body {
   min-height: 100vh;
@@ -60,4 +69,9 @@ body {
       }
     }
   }
+}
+
+.btn-outline-secondary {
+  color: white;
+  border-color: white;
 }

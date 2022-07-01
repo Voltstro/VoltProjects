@@ -38,6 +38,11 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 WebApplication app = builder.Build();
+app.UseRuntimeMiddleware();
+app.UseRouting();
+
+//Update our site cache now before running
+app.Services.GetRequiredService<SiteCacheManager>().UpdateCache();
 
 if (!app.Environment.IsDevelopment())
     app.UseHsts();
@@ -48,12 +53,6 @@ app.UseMvc(route =>
 {
     route.MapRoute("default", "{controller=Main}/{action=Index}");
 });
-
-app.UseRouting();
-app.UseRuntimeMiddleware();
-
-//Update our site cache now before running
-app.Services.GetRequiredService<SiteCacheManager>().UpdateCache();
 
 app.UseStaticFiles();
 app.Run();

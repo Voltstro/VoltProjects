@@ -1,16 +1,17 @@
 using System;
+using static System.String;
 
 namespace VoltProjects.Server.Core.SiteCache.Config;
 
-public struct VoltProject
+public class VoltProject
 {
-    public string Name { get; set; }
-    
-    public Uri GitUrl { get; set; }
-    public string GitBranch { get; set; }
+    public string Name { get; set; } = Empty;
+
+    public Uri GitUrl { get; set; } = new("https://rowansuxlol.com");
+    public string GitBranch { get; set; } = Empty;
     
     public bool GitUseLatestTag { get; set; }
-    
-    public string DocsPath { get; set; }
-    public string DocsBuildDist { get; set; }
+
+    public string DocsPath { get; set; } = Empty;
+    public string DocsBuildDist { get; set; } = Empty;
 }

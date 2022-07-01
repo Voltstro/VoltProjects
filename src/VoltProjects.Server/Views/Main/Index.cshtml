@@ -1,3 +1,5 @@
+@using VoltProjects.Server.Core.SiteCache.Config
+@model VoltProjects.Server.Models.IndexPageModel
 @{
     ViewBag.Title = "Home";
 }
@@ -8,4 +10,22 @@
             <p>The documentation site for Voltstro related projects.</p>
         </div>
     </div>
+</div>
+<div class="container-xxl">
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3 align-items-start">
+        @foreach (VoltProject project in Model.Projects)
+        {
+            <div class="col">
+                <div class="card shadow-sm">
+                    <h2>@project.Name</h2>
+                    <div class="btn-group">
+                        <a class="btn btn-sm btn-outline-secondary" href="#">View</a>
+                        <a class="btn btn-sm btn-outline-secondary" href="#">Git Repo</a>
+                    </div>
+                </div>
+            </div>
+        }
+
+    </div>
+
 </div>

@@ -25,7 +25,8 @@ public sealed class SiteCacheManager
     private readonly RuntimeMiddlewareService _runtimeMiddlewareService;
     private readonly Git.Git _git;
     private readonly DocsBuilder.Core.DocsBuilder _docsBuilder;
-    private readonly List<VoltProject> _configuredProjects = new();
+    
+    public readonly List<VoltProject> ConfiguredProjects = new();
 
     public SiteCacheManager(ILogger<SiteCacheManager> logger, IOptions<VoltProjectsConfig> config, 
         RuntimeMiddlewareService runtimeMiddleware,
@@ -174,7 +175,7 @@ public sealed class SiteCacheManager
             void ConfigureServer()
             {
                 //Setup our file server
-                if (_configuredProjects.Contains(project)) 
+                if (ConfiguredProjects.Contains(project)) 
                     return;
                 
                 _runtimeMiddlewareService.Configure(app =>
@@ -196,7 +197,7 @@ public sealed class SiteCacheManager
                         }
                     });
                 });
-                _configuredProjects.Add(project);
+                ConfiguredProjects.Add(project);
             }
         }
     }
