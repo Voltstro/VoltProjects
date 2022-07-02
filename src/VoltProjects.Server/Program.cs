@@ -19,6 +19,7 @@ builder.Host.UseSerilog();
 //Setup services
 IConfigurationSection config = builder.Configuration.GetSection(VoltProjectsConfig.VoltProjects);
 builder.Services.Configure<VoltProjectsConfig>(config);
+builder.Services.AddResponseCaching();
 builder.Services.AddRuntimeMiddleware();
 builder.Services.AddSingleton(new DocsBuilder(new DocFxDocxBuilder()));
 builder.Services.AddSingleton<Git>();
@@ -38,6 +39,7 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 WebApplication app = builder.Build();
+app.UseResponseCaching();
 app.UseRuntimeMiddleware();
 app.UseRouting();
 

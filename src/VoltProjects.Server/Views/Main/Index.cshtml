@@ -13,25 +13,27 @@
 </div>
 <div class="container-xxl">
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3 align-items-start">
-        @foreach (VoltProject project in Model.Projects)
-        {
-            <div class="col">
-                <div class="card shadow-sm">
-                    <a href="/@project.Name/" class="p-1">
-                        <div class="d-inline-flex justify-content-center">
-                            @if (project.IconPath != null)
-                            {
-                                <img alt="Project Icon" src=@($"/{project.Name}/projecticon{System.IO.Path.GetExtension(project.IconPath)}") width="100em"/>
-                            }
-                            <h2 class="p-2">@project.Name</h2>
+        <cache>
+            @foreach (VoltProject project in Model.Projects)
+            {
+                <div class="col">
+                    <div class="card shadow-sm">
+                        <a href="/@project.Name/" class="p-1">
+                            <div class="d-inline-flex justify-content-center">
+                                @if (project.IconPath != null)
+                                {
+                                    <img alt="Project Icon" src=@($"/{project.Name}/projecticon{System.IO.Path.GetExtension(project.IconPath)}") width="100em"/>
+                                }
+                                <h2 class="p-2">@project.Name</h2>
+                            </div>
+                        </a>
+                        <div class="btn-group">
+                            <a class="btn btn-sm btn-outline-secondary" href="/@project.Name/">View</a>
+                            <a class="btn btn-sm btn-outline-secondary" href="@project.GitUrl">Git Repo</a>
                         </div>
-                    </a>
-                    <div class="btn-group">
-                        <a class="btn btn-sm btn-outline-secondary" href="/@project.Name/">View</a>
-                        <a class="btn btn-sm btn-outline-secondary" href="@project.GitUrl">Git Repo</a>
                     </div>
                 </div>
-            </div>
-        }
+            }
+        </cache>
     </div>
 </div>
