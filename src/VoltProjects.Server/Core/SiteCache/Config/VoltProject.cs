@@ -12,6 +12,8 @@ public class VoltProject
     
     public bool GitUseLatestTag { get; set; }
 
+    public string? IconPath { get; set; }
+    
     public string DocsPath { get; set; } = Empty;
     public string DocsBuildDist { get; set; } = Empty;
 }

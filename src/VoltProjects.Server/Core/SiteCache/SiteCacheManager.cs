@@ -159,6 +159,21 @@ public sealed class SiteCacheManager
             
             //Write commit info
             File.WriteAllText(commitFile, _git.GetRepoCommitHash(fullProjectDirectory));
+            
+            //Icon
+            if (project.IconPath != null)
+            {
+                string iconPath = Path.GetFullPath($"{fullProjectDirectory}/{project.IconPath}");
+                if (!File.Exists(iconPath))
+                {
+                    _logger.LogWarning("Project specifies an icon, but the icon was not found!");
+                }
+                else
+                {
+                    string dest = Path.GetFullPath($"{destinationDir}/projecticon{Path.GetExtension(iconPath)}");
+                    File.Copy(iconPath, dest);
+                }
+            }
 
             //Cleanup
             Cleanup();

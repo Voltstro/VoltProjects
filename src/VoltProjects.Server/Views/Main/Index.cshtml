@@ -17,15 +17,21 @@
         {
             <div class="col">
                 <div class="card shadow-sm">
-                    <h2>@project.Name</h2>
+                    <a href="/@project.Name/" class="p-1">
+                        <div class="d-inline-flex justify-content-center">
+                            @if (project.IconPath != null)
+                            {
+                                <img alt="Project Icon" src=@($"/{project.Name}/projecticon{System.IO.Path.GetExtension(project.IconPath)}") width="100em"/>
+                            }
+                            <h2 class="p-2">@project.Name</h2>
+                        </div>
+                    </a>
                     <div class="btn-group">
-                        <a class="btn btn-sm btn-outline-secondary" href="#">View</a>
-                        <a class="btn btn-sm btn-outline-secondary" href="#">Git Repo</a>
+                        <a class="btn btn-sm btn-outline-secondary" href="/@project.Name/">View</a>
+                        <a class="btn btn-sm btn-outline-secondary" href="@project.GitUrl">Git Repo</a>
                     </div>
                 </div>
             </div>
         }
-
     </div>
-
 </div>
