@@ -44,7 +44,9 @@ app.UseRuntimeMiddleware();
 app.UseRouting();
 
 //Update our site cache now before running
-app.Services.GetRequiredService<SiteCacheManager>().UpdateCache();
+SiteCacheManager cacheManager = app.Services.GetRequiredService<SiteCacheManager>();
+cacheManager.UpdateCache();
+cacheManager.ConfigureFileServers();
 
 if (!app.Environment.IsDevelopment())
     app.UseHsts();

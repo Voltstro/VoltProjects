@@ -92,7 +92,7 @@ public sealed class SiteCacheManager
                 {
                     _logger.LogInformation("Commit hashes are the same, not rebuilding.");
                     Cleanup();
-                    ConfigureServer();
+                    ConfigureProject();
                     continue;
                 }
             }
@@ -178,7 +178,7 @@ public sealed class SiteCacheManager
             //Cleanup
             Cleanup();
 
-            ConfigureServer();
+            ConfigureProject();
             
             _logger.LogInformation("Project {ProjectName} has successfully been built and deployed!", project.Name);
 
@@ -187,33 +187,41 @@ public sealed class SiteCacheManager
                 Directory.Delete(fullProjectDirectory, true);
             }
 
-            void ConfigureServer()
+            void ConfigureProject()
             {
                 //Setup our file server
                 if (ConfiguredProjects.Contains(project)) 
                     return;
                 
-                _runtimeMiddlewareService.Configure(app =>
-                {
-                    app.UseFileServer(new FileServerOptions
-                    {
-                        FileProvider =
-                            new PhysicalFileProvider(
-                                Path.Combine(AppContext.BaseDirectory, $"Sites/{project.Name}")),
-                        RequestPath = $"/{project.Name}",
-                        RedirectToAppendTrailingSlash = true,
-                        StaticFileOptions =
-                        {
-                            OnPrepareResponse = ctx =>
-                            {
-                                ctx.Context.Response.Headers[HeaderNames.CacheControl] =
-                                    "public,max-age=" + _config.HostCacheTime;
-                            }
-                        }
-                    });
-                });
                 ConfiguredProjects.Add(project);
             }
         }
+    }
+
+    public void ConfigureFileServers()
+    {
+        _runtimeMiddlewareService.Configure(app =>
+        {
+            foreach (VoltProject project in ConfiguredProjects)
+            {
+                app.UseFileServer(new FileServerOptions
+                {
+                    FileProvider =
+                        new PhysicalFileProvider(
+                            Path.Combine(AppContext.BaseDirectory, $"Sites/{project.Name}")),
+                    RequestPath = $"/{project.Name}",
+                    RedirectToAppendTrailingSlash = true,
+                    StaticFileOptions =
+                    {
+                        OnPrepareResponse = ctx =>
+                        {
+                            ctx.Context.Response.Headers[HeaderNames.CacheControl] =
+                                "public,max-age=" + _config.HostCacheTime;
+                        }
+                    }
+                });
+                _logger.LogDebug("Configured file server for {ProjectName}", project.Name);
+            }
+        });
     }
 }
