@@ -21,6 +21,10 @@ Yarn
 
 To build VoltProjects, simply use your IDE, or `dotnet build`. Please not that Yarn will automatically be run for you.
 
+#### Publishing
+
+For publishing, run the `src/DevScripts/publish-linux-x64.ps1` file with PowerShell. This will build a published build of VoltProject for linux-x64. You can then run this build however you feel like, whether that is directly facing the internet, behind a reverse proxy, or for local use only.
+
 ### VoltProjects Config
 
 VoltProjects is configured using the `appsettings.json` file. The main configuration is done under the "`VoltProjects`" key. Is is fairly easy to understand what each option does.
