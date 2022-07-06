@@ -1,7 +1,6 @@
 using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
@@ -31,8 +30,8 @@ try
     builder.Host.UseSerilog();
 
     //Setup services
-    IConfigurationSection config = builder.Configuration.GetSection(VoltProjectsConfig.VoltProjects);
-    builder.Services.Configure<VoltProjectsConfig>(config);
+    builder.Services.Configure<VoltProjectsConfig>(
+        builder.Configuration.GetSection(VoltProjectsConfig.VoltProjects));
 
     builder.Services.AddControllersWithViews();
     builder.Services.AddResponseCaching();
