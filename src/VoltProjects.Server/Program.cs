@@ -2,10 +2,10 @@ using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyModel;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using VoltProjects.DocsBuilder.Core;
-using VoltProjects.DocsBuilder.DocFx;
 using VoltProjects.Server.Core.Git;
 using VoltProjects.Server.Core.MiddlewareManagement;
 using VoltProjects.Server.Core.SiteCache;
@@ -36,9 +36,8 @@ try
     builder.Services.AddControllersWithViews();
     builder.Services.AddResponseCaching();
     builder.Services.AddRuntimeMiddleware();
-
-    //TODO: It be better if we could load doc builders dynamically
-    builder.Services.AddSingleton(new DocsBuilder(new DocFxDocxBuilder()));
+    
+    builder.Services.AddSingleton(new DocsBuilderManager(DependencyContext.Default));
     builder.Services.AddSingleton<Git>();
     builder.Services.AddSingleton<SiteCacheManager>();
     builder.Services.AddHostedService<SitesCacheUpdater>();

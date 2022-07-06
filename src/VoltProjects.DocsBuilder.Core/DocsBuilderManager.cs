@@ -1,17 +1,35 @@
 using System.Diagnostics;
+using System.Reflection;
 using System.Text.Json;
+using Microsoft.Extensions.DependencyModel;
+using VoltProjects.DocsBuilder.Core.Assemblies;
 
 namespace VoltProjects.DocsBuilder.Core;
 
-public class DocsBuilder
+public sealed class DocsBuilderManager
 {
     private const string DocsBuilderConfigFileName = "VoltDocsBuilder.json";
 
-    private readonly IDocsBuilder[] _docsBuilders;
-
-    public DocsBuilder(params IDocsBuilder[] builders)
+    private readonly List<IDocsBuilder> _docsBuilders;
+    
+    public DocsBuilderManager(DependencyContext dependencyContext)
     {
-        _docsBuilders = builders;
+        _docsBuilders = new List<IDocsBuilder>();
+        AssemblyFinder assemblyFinder = new(dependencyContext);
+        LoadContext loadContext = new LoadContext();
+        IEnumerable<AssemblyName> assemblies = assemblyFinder.FindAssembliesContainingName("voltprojects.docsbuilder");
+        foreach (AssemblyName assemblyName in assemblies)
+        {
+            Assembly assembly = loadContext.LoadFromAssemblyName(assemblyName);
+            foreach (Type type in assembly.GetTypes().Where(x => x.IsClass && x.IsPublic))
+            {
+                if(!typeof(IDocsBuilder).IsAssignableFrom(type))
+                    continue;
+
+                if(Activator.CreateInstance(type) is IDocsBuilder docsBuilder)
+                    _docsBuilders.Add(docsBuilder);
+            }
+        }
     }
     
     public void BuildDocs(string projectPath, string docsPath)

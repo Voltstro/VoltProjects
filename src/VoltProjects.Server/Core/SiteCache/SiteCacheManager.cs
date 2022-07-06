@@ -24,20 +24,20 @@ public sealed class SiteCacheManager
     private readonly VoltProjectsConfig _config;
     private readonly RuntimeMiddlewareService _runtimeMiddlewareService;
     private readonly Git.Git _git;
-    private readonly DocsBuilder.Core.DocsBuilder _docsBuilder;
+    private readonly DocsBuilderManager _docsBuilderManager;
     
     public readonly List<VoltProject> ConfiguredProjects = new();
 
     public SiteCacheManager(ILogger<SiteCacheManager> logger, IOptions<VoltProjectsConfig> config, 
         RuntimeMiddlewareService runtimeMiddleware,
         Git.Git git, 
-        DocsBuilder.Core.DocsBuilder docsBuilder)
+        DocsBuilderManager docsBuilderManager)
     {
         _logger = logger;
         _config = config.Value;
         _runtimeMiddlewareService = runtimeMiddleware;
         _git = git;
-        _docsBuilder = docsBuilder;
+        _docsBuilderManager = docsBuilderManager;
     }
 
     /// <summary>
@@ -110,7 +110,7 @@ public sealed class SiteCacheManager
             //Build docs
             try
             {
-                _docsBuilder.BuildDocs(fullProjectDirectory, projectDocsPath);
+                _docsBuilderManager.BuildDocs(fullProjectDirectory, projectDocsPath);
             }
             catch (FileNotFoundException ex)
             {
