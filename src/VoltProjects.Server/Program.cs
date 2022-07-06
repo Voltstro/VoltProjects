@@ -19,13 +19,16 @@ builder.Host.UseSerilog();
 //Setup services
 IConfigurationSection config = builder.Configuration.GetSection(VoltProjectsConfig.VoltProjects);
 builder.Services.Configure<VoltProjectsConfig>(config);
+
+builder.Services.AddControllersWithViews();
 builder.Services.AddResponseCaching();
 builder.Services.AddRuntimeMiddleware();
+
+//TODO: It be better if we could load doc builders dynamically
 builder.Services.AddSingleton(new DocsBuilder(new DocFxDocxBuilder()));
 builder.Services.AddSingleton<Git>();
 builder.Services.AddSingleton<SiteCacheManager>();
 builder.Services.AddHostedService<SitesCacheUpdater>();
-builder.Services.AddMvc(options => options.EnableEndpointRouting = false);
 
 //Setup logger
 const string outPutTemplate = "{Timestamp:dd-MM hh:mm:ss tt} [{Level:u3}] {Message:lj}{NewLine}{Exception}";
@@ -38,6 +41,7 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.File(logFileName, outputTemplate: outPutTemplate)
     .CreateLogger();
 
+//Now setup the app
 WebApplication app = builder.Build();
 app.UseResponseCaching();
 app.UseRuntimeMiddleware();
@@ -48,16 +52,15 @@ SiteCacheManager cacheManager = app.Services.GetRequiredService<SiteCacheManager
 cacheManager.UpdateCache();
 cacheManager.ConfigureFileServers();
 
+//Some configuration will change depending on the environment
 if (!app.Environment.IsDevelopment())
     app.UseHsts();
 else
     app.UseDeveloperExceptionPage();
 
-app.UseMvc(route =>
-{
-    route.MapRoute("default", "{controller=Main}/{action=Index}");
-});
-
+//Setup our views/controllers
+app.MapControllers();
 app.UseStaticFiles();
+
 app.Run();
 Log.CloseAndFlush();

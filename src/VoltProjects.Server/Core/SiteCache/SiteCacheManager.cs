@@ -66,6 +66,7 @@ public sealed class SiteCacheManager
                 Path.GetFullPath($"{AppContext.BaseDirectory}/{_config.SitesServingDir}/{project.Name}");
             
             //Clone repo
+            //TODO: It be better if we clone or pulled the repo (if we already have it)
             _logger.LogInformation("Updating site cache {ProjectName}...", project.Name);
             _git.CloneRepo(project.GitUrl.ToString(), project.GitBranch, fullProjectDirectory);
 
