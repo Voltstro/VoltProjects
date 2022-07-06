@@ -13,22 +13,6 @@ using VoltProjects.Server.Core.SiteCache;
 using VoltProjects.Server.Core.SiteCache.Config;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder();
-builder.WebHost.ConfigureKestrel(kestrel => kestrel.AddServerHeader = false);
-builder.Host.UseSerilog();
-
-//Setup services
-IConfigurationSection config = builder.Configuration.GetSection(VoltProjectsConfig.VoltProjects);
-builder.Services.Configure<VoltProjectsConfig>(config);
-
-builder.Services.AddControllersWithViews();
-builder.Services.AddResponseCaching();
-builder.Services.AddRuntimeMiddleware();
-
-//TODO: It be better if we could load doc builders dynamically
-builder.Services.AddSingleton(new DocsBuilder(new DocFxDocxBuilder()));
-builder.Services.AddSingleton<Git>();
-builder.Services.AddSingleton<SiteCacheManager>();
-builder.Services.AddHostedService<SitesCacheUpdater>();
 
 //Setup logger
 const string outPutTemplate = "{Timestamp:dd-MM hh:mm:ss tt} [{Level:u3}] {Message:lj}{NewLine}{Exception}";
@@ -41,26 +25,56 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.File(logFileName, outputTemplate: outPutTemplate)
     .CreateLogger();
 
-//Now setup the app
-WebApplication app = builder.Build();
-app.UseResponseCaching();
-app.UseRuntimeMiddleware();
-app.UseRouting();
+try
+{
+    builder.WebHost.ConfigureKestrel(kestrel => kestrel.AddServerHeader = false);
+    builder.Host.UseSerilog();
 
-//Update our site cache now before running
-SiteCacheManager cacheManager = app.Services.GetRequiredService<SiteCacheManager>();
-cacheManager.UpdateCache();
-cacheManager.ConfigureFileServers();
+    //Setup services
+    IConfigurationSection config = builder.Configuration.GetSection(VoltProjectsConfig.VoltProjects);
+    builder.Services.Configure<VoltProjectsConfig>(config);
 
-//Some configuration will change depending on the environment
-if (!app.Environment.IsDevelopment())
-    app.UseHsts();
-else
-    app.UseDeveloperExceptionPage();
+    builder.Services.AddControllersWithViews();
+    builder.Services.AddResponseCaching();
+    builder.Services.AddRuntimeMiddleware();
 
-//Setup our views/controllers
-app.MapControllers();
-app.UseStaticFiles();
+    //TODO: It be better if we could load doc builders dynamically
+    builder.Services.AddSingleton(new DocsBuilder(new DocFxDocxBuilder()));
+    builder.Services.AddSingleton<Git>();
+    builder.Services.AddSingleton<SiteCacheManager>();
+    builder.Services.AddHostedService<SitesCacheUpdater>();
+    
+    //Now setup the app
+    WebApplication app = builder.Build();
+    app.UseResponseCaching();
+    app.UseRuntimeMiddleware();
+    app.UseRouting();
 
-app.Run();
-Log.CloseAndFlush();
+    //Update our site cache now before running
+    SiteCacheManager cacheManager = app.Services.GetRequiredService<SiteCacheManager>();
+    cacheManager.UpdateCache();
+    cacheManager.ConfigureFileServers();
+
+    //Some configuration will change depending on the environment
+    if (!app.Environment.IsDevelopment())
+        app.UseHsts();
+    else
+        app.UseDeveloperExceptionPage();
+
+    //Setup our views/controllers
+    app.MapControllers();
+    app.UseStaticFiles();
+
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Error(ex, "An uncaught error occured!");
+    return 1;
+}
+finally
+{
+    Log.CloseAndFlush();
+}
+
+return 0;
