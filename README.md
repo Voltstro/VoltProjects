@@ -42,7 +42,7 @@ Currently, we only have one, more should hopefully be added.
 ## Limitations
 
 - VoltProjects is very simple, it only hosts content built by a static documentation generator. If versioned docs or multi-lang docs are required, you will need a generator that can do that (Such as [Docusaurus](https://docusaurus.io/)). Maybe one day VoltProjects could be responsible for doing this, but not right now.
-- The main pages (Home & About) also don't support any other languages, english is hard baked into them. While I do belive adding multi-language support would be easy, the only reason why I haven't is I don't speak any other languages, I am your *usual western english only speaking person*.
+- The main pages (Home & About) also don't support any other languages, english is hard baked into them. While I do believe adding multi-language support would be easy, the only reason why I haven't is I don't speak any other languages, I am your *usual western english only speaking person*.
 - More sites cannot be added while live. For another site to be added, the server must be restarted. However, existing sites can be updated live.
 
 ## Security
@@ -57,4 +57,4 @@ Please see [SECURITY.md](/SECURITY.md) for details about security.
 
 This project is licensed under the AGPL-3.0 license - see the [LICENSE](/LICENSE) file for details.
 
-The content that VoltProjects may be served under a different license.
+The content that VoltProjects hosts may be under a different license. See that project's git repo for information on it's license.
