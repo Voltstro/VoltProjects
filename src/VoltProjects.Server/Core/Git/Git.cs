@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using LibGit2Sharp;
 using Microsoft.Extensions.Logging;
@@ -17,12 +18,42 @@ public sealed class Git
     }
 
     /// <summary>
+    ///     Pulls a repo (aka updating it) or cloning it if it doesn't exist at that path
+    /// </summary>
+    /// <param name="gitUrl"></param>
+    /// <param name="gitBranch"></param>
+    /// <param name="path"></param>
+    public void PullRepoOrCloneIfDoesntExist(string gitUrl, string gitBranch, string path)
+    {
+        try
+        {
+            using Repository repo = new(path);
+            repo.RemoveUntrackedFiles();
+            
+            //Pull
+            Commands.Pull(repo, new Signature("VoltProjects", "VoltProjects", DateTimeOffset.Now), new PullOptions
+            {
+                FetchOptions = new FetchOptions
+                {
+                    OnProgress = OnProgressLog,
+                    OnTransferProgress = OnTransferLog
+                }
+            });
+        }
+        //If the repo wasn't found, then clone it
+        catch (RepositoryNotFoundException)
+        {
+            CloneRepo(gitUrl, gitBranch, path);
+        }
+    }
+
+    /// <summary>
     ///     Clones a repo
     /// </summary>
     /// <param name="gitUrl"></param>
     /// <param name="gitBranch"></param>
     /// <param name="path"></param>
-    public void CloneRepo(string gitUrl, string gitBranch, string path)
+    private void CloneRepo(string gitUrl, string gitBranch, string path)
     {
         Repository.Clone(gitUrl, path, new CloneOptions
         {

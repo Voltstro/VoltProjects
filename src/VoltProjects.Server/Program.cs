@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -68,6 +69,11 @@ try
 catch (Exception ex)
 {
     Log.Error(ex, "An uncaught error occured!");
+#if DEBUG
+    if (Debugger.IsAttached)
+        throw;
+#endif
+    
     return 1;
 }
 finally

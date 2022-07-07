@@ -65,10 +65,19 @@ public sealed class SiteCacheManager
             string destinationDir =
                 Path.GetFullPath($"{AppContext.BaseDirectory}/{_config.SitesServingDir}/{project.Name}");
             
-            //Clone repo
-            //TODO: It be better if we clone or pulled the repo (if we already have it)
+            //Clone or pull repo
             _logger.LogInformation("Updating site cache {ProjectName}...", project.Name);
-            _git.CloneRepo(project.GitUrl.ToString(), project.GitBranch, fullProjectDirectory);
+
+            try
+            {
+                _git.PullRepoOrCloneIfDoesntExist(project.GitUrl.ToString(), project.GitBranch, fullProjectDirectory);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Something went wrong while trying to pull/clone the git repo!");
+                Cleanup();
+                continue;
+            }
 
             //Set to latest tag
             if (project.GitUseLatestTag)
@@ -79,8 +88,8 @@ public sealed class SiteCacheManager
                 }
                 catch (TagException ex)
                 {
-                    _logger.LogWarning("Something went wrong while setting the repo's tag! I will continue but" +
-                                       "the repo will be using the latest commit on {Branch}! {Message}", project.GitBranch, ex.Message);
+                    _logger.LogWarning(ex, "Something went wrong while setting the repo's tag! I will continue but" +
+                                       "the repo will be using the latest commit on {Branch}!", project.GitBranch);
                 }
             }
             
@@ -92,7 +101,6 @@ public sealed class SiteCacheManager
                 if (_git.GetRepoCommitHash(fullProjectDirectory) == commit)
                 {
                     _logger.LogInformation("Commit hashes are the same, not rebuilding.");
-                    Cleanup();
                     ConfigureProject();
                     continue;
                 }
@@ -114,13 +122,13 @@ public sealed class SiteCacheManager
             }
             catch (FileNotFoundException ex)
             {
-                _logger.LogError("A required file was not found! {Message}", ex.Message);
+                _logger.LogError(ex, "A required file was not found!");
                 Cleanup();
                 continue;
             }
             catch (JsonException ex)
             {
-                _logger.LogError("An error occured while parsing JSON! {Message}", ex.Message);
+                _logger.LogError(ex, "An error occured while parsing JSON!");
                 Cleanup();
                 continue;
             }
@@ -132,7 +140,7 @@ public sealed class SiteCacheManager
             }
             catch (Exception ex)
             {
-                _logger.LogError("An unknown error occured while building docs! {Message} {StackTrace}", ex.Message, ex.StackTrace);
+                _logger.LogError(ex, "An unknown error occured while building the docs!");
                 Cleanup();
                 continue;
             }
@@ -175,10 +183,7 @@ public sealed class SiteCacheManager
                     File.Copy(iconPath, dest);
                 }
             }
-
-            //Cleanup
-            Cleanup();
-
+            
             ConfigureProject();
             
             _logger.LogInformation("Project {ProjectName} has successfully been built and deployed!", project.Name);
