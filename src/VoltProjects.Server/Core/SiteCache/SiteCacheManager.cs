@@ -41,7 +41,7 @@ public sealed class SiteCacheManager
     }
 
     /// <summary>
-    ///     Updates the site build cache, adn deploys new sites if necessary
+    ///     Updates the sites be pulling down the latest updates of them from their repos, then building them
     /// </summary>
     public void UpdateCache()
     {
@@ -222,7 +222,7 @@ public sealed class SiteCacheManager
                         OnPrepareResponse = ctx =>
                         {
                             ctx.Context.Response.Headers[HeaderNames.CacheControl] =
-                                "public,max-age=" + _config.HostCacheTime;
+                                "public,max-age=" + _config.SitesServingCacheHeaderTimeSeconds;
                         }
                     }
                 });

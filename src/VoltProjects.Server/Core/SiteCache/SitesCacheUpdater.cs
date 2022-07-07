@@ -27,9 +27,9 @@ public sealed class SitesCacheUpdater : BackgroundService
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            //Now you might think "should we immediately update before delaying?" however we call to the SiteCacheManager
-            //to build the cache before running the app
-            await Task.Delay(_config.SitesUpdateTime, stoppingToken);
+            //Now you might think "shouldn't we immediately call update cache before delaying?" however we call UpdateCache
+            //before WebApplication's run is called. (So before this is executed)
+            await Task.Delay(_config.SitesRebuildTimeSeconds * 1000, stoppingToken);
             
             _logger.LogInformation("Updating site cache...");
             _cacheManager.UpdateCache();
