@@ -195,7 +195,7 @@ public sealed class SiteCacheManager
 
             void ConfigureProject()
             {
-                //Setup our file server
+                //For setting up our file server
                 if (ConfiguredProjects.Contains(project)) 
                     return;
                 
@@ -214,7 +214,7 @@ public sealed class SiteCacheManager
                 {
                     FileProvider =
                         new PhysicalFileProvider(
-                            Path.Combine(AppContext.BaseDirectory, $"Sites/{project.Name}")),
+                            Path.Combine(AppContext.BaseDirectory, $"{_config.SitesServingDir}/{project.Name}")),
                     RequestPath = $"/{project.Name}",
                     RedirectToAppendTrailingSlash = true,
                     StaticFileOptions =
