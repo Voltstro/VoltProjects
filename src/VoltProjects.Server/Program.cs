@@ -14,7 +14,7 @@ using VoltProjects.Server.Core.SiteCache.Config;
 WebApplicationBuilder builder = WebApplication.CreateBuilder();
 
 //Setup logger
-const string outPutTemplate = "{Timestamp:dd-MM hh:mm:ss tt} [{Level:u3}] {Message:lj}{NewLine}{Exception}";
+const string outPutTemplate = "{Timestamp:dd-MM hh:mm:ss tt} [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}";
 string logFileName =
     $"{AppContext.BaseDirectory}/Logs/{DateTime.Now:yyyy-MM-dd-HH-mm-ss}.log";
 Log.Logger = new LoggerConfiguration()
