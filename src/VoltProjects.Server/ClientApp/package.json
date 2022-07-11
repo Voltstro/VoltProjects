@@ -10,7 +10,7 @@
     "rollup-plugin-terser": "^7.0.2",
     "sass": "^1.52.3",
     "typescript": "^4.5.4",
-    "vite": "^2.9.9"
+    "vite": "^2.9.14"
   },
   "dependencies": {
     "bootstrap": "^5.1.3"
