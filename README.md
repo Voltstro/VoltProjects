@@ -1,5 +1,11 @@
 # VoltProjects
 
+[![License](https://img.shields.io/github/license/voltstro/VoltProjects.svg)](/LICENSE)
+[![Build](https://github.com/Voltstro/VoltProjects/actions/workflows/build.yml/badge.svg)](https://github.com/Voltstro/VoltProjects/actions/workflows/build.yml)
+[![Docs Status](https://img.shields.io/website?down_color=red&down_message=Offline&label=Docs&up_color=blue&up_message=Online&url=https%3A%2F%2Fprojects.voltstro.dev)](https://projects.voltstro.dev)
+[![Discord](https://img.shields.io/badge/Discord-Voltstro-7289da.svg?logo=discord)](https://discord.voltstro.dev) 
+[![YouTube](https://img.shields.io/badge/Youtube-Voltstro-red.svg?logo=youtube)](https://www.youtube.com/Voltstro)
+
 VoltProjects - An online documentation building and hosting service. Built with ASP.NET Core.
 
 ## What does it do?
