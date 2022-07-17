@@ -1,0 +1,10 @@
+footer {
+  padding: 2rem 0;
+  margin-top: auto;
+  background-color: var(--detail-color-bg) !important;
+  color: var(--detail-color) !important;
+}
+
+footer>.container-xxl {
+  display: flex;
+}

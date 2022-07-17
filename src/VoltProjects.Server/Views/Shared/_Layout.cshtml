@@ -1,3 +1,4 @@
+@using VoltProjects.Server.Core
 @using VoltProjects.Server.Core.Helper
 @{
   string pageTitle = $"{ViewBag.Title} - VoltProjects";
@@ -40,6 +41,18 @@
 <main class="container-xxl">
   @RenderBody()
 </main>
+<footer>
+  <div class="container-xxl justify-content-between align-items-center">
+    <span class="col-md-4 d-flex align-items-center">Copyright (c) 2022 Voltstro</span>
+    <span class="col-md-4 justify-content-end text-end text-muted">
+      @(Versioning.Version) - 
+      <a class="text-muted text-decoration-none"
+         href="@($"https://github.com/Voltstro/VoltProjects/commit/{Versioning.GitHashFull}")">
+        @Versioning.GitHashSmall
+      </a>
+    </span>
+  </div>
+</footer>
 <script type="text/javascript" src="~/dist/site.js" defer></script>
 </body>
 </html>
