@@ -9,6 +9,7 @@
 
     <ItemGroup>
       <PackageReference Include="LibGit2Sharp" Version="0.27.0-preview-0182" />
+      <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="6.0.7" Condition="'$(Configuration)'=='Debug'" />
       <PackageReference Include="Serilog.AspNetCore" Version="5.0.0" />
     </ItemGroup>
 

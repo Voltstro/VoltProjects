@@ -34,7 +34,12 @@ try
     builder.Services.Configure<VoltProjectsConfig>(
         builder.Configuration.GetSection(VoltProjectsConfig.VoltProjects));
 
-    builder.Services.AddControllersWithViews();
+    IMvcBuilder mvcBuilder = builder.Services.AddControllersWithViews();
+#if DEBUG
+    if (builder.Environment.IsDevelopment())
+        mvcBuilder.AddRazorRuntimeCompilation();
+#endif
+
     builder.Services.AddResponseCaching();
     builder.Services.AddRuntimeMiddleware();
     

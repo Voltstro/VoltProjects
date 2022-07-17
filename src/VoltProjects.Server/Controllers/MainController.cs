@@ -7,7 +7,9 @@ namespace VoltProjects.Server.Controllers;
 /// <summary>
 ///     Main <see cref="Controller"/>, for the index and about pages
 /// </summary>
+#if !DEBUG
 [ResponseCache(Duration = 1209600)]
+#endif
 public class MainController : Controller
 {
     private readonly IndexPageModel _pageModel;

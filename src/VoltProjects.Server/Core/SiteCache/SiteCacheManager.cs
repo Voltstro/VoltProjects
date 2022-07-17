@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
@@ -22,6 +24,7 @@ public sealed class SiteCacheManager
 {
     private readonly ILogger<SiteCacheManager> _logger;
     private readonly VoltProjectsConfig _config;
+    private readonly IWebHostEnvironment _environment;
     private readonly RuntimeMiddlewareService _runtimeMiddlewareService;
     private readonly Git.Git _git;
     private readonly DocsBuilderManager _docsBuilderManager;
@@ -29,12 +32,14 @@ public sealed class SiteCacheManager
     public readonly List<VoltProject> ConfiguredProjects = new();
 
     public SiteCacheManager(ILogger<SiteCacheManager> logger, IOptions<VoltProjectsConfig> config, 
+        IWebHostEnvironment environment,
         RuntimeMiddlewareService runtimeMiddleware,
         Git.Git git, 
         DocsBuilderManager docsBuilderManager)
     {
         _logger = logger;
         _config = config.Value;
+        _environment = environment;
         _runtimeMiddlewareService = runtimeMiddleware;
         _git = git;
         _docsBuilderManager = docsBuilderManager;
@@ -219,11 +224,16 @@ public sealed class SiteCacheManager
                     RedirectToAppendTrailingSlash = true,
                     StaticFileOptions =
                     {
+#if !DEBUG
                         OnPrepareResponse = ctx =>
                         {
+                            if(_environment.IsDevelopment())
+                                return;
+                            
                             ctx.Context.Response.Headers[HeaderNames.CacheControl] =
                                 "public,max-age=" + _config.SitesServingCacheHeaderTimeSeconds;
                         }
+#endif
                     }
                 });
                 _logger.LogDebug("Configured file server for {ProjectName}", project.Name);
