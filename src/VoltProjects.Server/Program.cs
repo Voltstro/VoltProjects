@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using Figgle;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,6 +25,10 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.Console(outputTemplate: outPutTemplate)
     .WriteTo.File(logFileName, outputTemplate: outPutTemplate)
     .CreateLogger();
+
+//NOTE: We are adding a new line due to all the stuff at the start of each log message
+Log.Information($"\n{FiggleFonts.Graffiti.Render("VoltProjects")}");
+Log.Information("Logger started...");
 
 try
 {
