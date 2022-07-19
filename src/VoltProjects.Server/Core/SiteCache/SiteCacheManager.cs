@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.FileProviders;
@@ -10,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
 using VoltProjects.DocsBuilder.Core;
+using VoltProjects.Server.Core.Collections;
 using VoltProjects.Server.Core.Git;
 using VoltProjects.Server.Core.Helper;
 using VoltProjects.Server.Core.MiddlewareManagement;
@@ -28,8 +30,8 @@ public sealed class SiteCacheManager
     private readonly RuntimeMiddlewareService _runtimeMiddlewareService;
     private readonly Git.Git _git;
     private readonly DocsBuilderManager _docsBuilderManager;
-    
-    public readonly List<VoltProject> ConfiguredProjects = new();
+
+    public IReadOnlyList<VoltProject> ConfiguredProjects = null!;
 
     public SiteCacheManager(ILogger<SiteCacheManager> logger, IOptions<VoltProjectsConfig> config, 
         IWebHostEnvironment environment,
@@ -58,8 +60,9 @@ public sealed class SiteCacheManager
             Directory.CreateDirectory(workPathFull);
         
         _logger.LogDebug("Building sites to {BuildDir}", workPathFull);
-        
-        foreach (VoltProject project in _config.Projects)
+        ListBuilder<VoltProject> configuredProjectsBuilder = new();
+
+        Parallel.ForEach(_config.Projects, project =>
         {
             //Setup our project's directory
             string fullProjectDirectory = Path.GetFullPath($"{workPathFull}/{project.Name}");
@@ -81,7 +84,7 @@ public sealed class SiteCacheManager
             {
                 _logger.LogError(ex, "Something went wrong while trying to pull/clone the git repo!");
                 Cleanup();
-                continue;
+                return;
             }
 
             //Set to latest tag
@@ -107,7 +110,7 @@ public sealed class SiteCacheManager
                 {
                     _logger.LogInformation("Commit hashes are the same, not rebuilding.");
                     ConfigureProject();
-                    continue;
+                    return;
                 }
             }
 
@@ -117,7 +120,7 @@ public sealed class SiteCacheManager
             {
                 _logger.LogError("Docs directory was not found in project!");
                 Cleanup();
-                continue;
+                return;
             }
             
             //Build docs
@@ -129,25 +132,25 @@ public sealed class SiteCacheManager
             {
                 _logger.LogError(ex, "A required file was not found!");
                 Cleanup();
-                continue;
+                return;
             }
             catch (JsonException ex)
             {
                 _logger.LogError(ex, "An error occured while parsing JSON!");
                 Cleanup();
-                continue;
+                return;
             }
             catch (DocsBuilderNotFoundException)
             {
                 _logger.LogError("Docs Builder for this docs type was not found!");
                 Cleanup();
-                continue;
+                return;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An unknown error occured while building the docs!");
                 Cleanup();
-                continue;
+                return;
             }
             
             //Copy our site
@@ -156,7 +159,7 @@ public sealed class SiteCacheManager
             {
                 _logger.LogError("Directory for built site was not found!");
                 Cleanup();
-                continue;
+                return;
             }
 
             _logger.LogInformation("Copying built site to serving folder...");
@@ -201,12 +204,15 @@ public sealed class SiteCacheManager
             void ConfigureProject()
             {
                 //For setting up our file server
-                if (ConfiguredProjects.Contains(project)) 
+                if (configuredProjectsBuilder.Contains(project)) 
                     return;
                 
-                ConfiguredProjects.Add(project);
+                configuredProjectsBuilder.Add(project);
             }
-        }
+        });
+        
+        configuredProjectsBuilder.Sort((x, y) => string.Compare(x.Name, y.Name, StringComparison.Ordinal));
+        ConfiguredProjects = configuredProjectsBuilder.AsList();
     }
 
     public void ConfigureFileServers()
