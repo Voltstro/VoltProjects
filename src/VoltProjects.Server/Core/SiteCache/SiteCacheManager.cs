@@ -33,7 +33,8 @@ public sealed class SiteCacheManager
 
     public IReadOnlyList<VoltProject> ConfiguredProjects = null!;
 
-    public SiteCacheManager(ILogger<SiteCacheManager> logger, IOptions<VoltProjectsConfig> config, 
+    public SiteCacheManager(ILogger<SiteCacheManager> logger,
+        IOptions<VoltProjectsConfig> config, 
         IWebHostEnvironment environment,
         RuntimeMiddlewareService runtimeMiddleware,
         Git.Git git, 
@@ -211,6 +212,8 @@ public sealed class SiteCacheManager
             }
         });
         
+        //Tell what projects have been configured successfully
+        //Sort projects first by their name, it effects in what order they are displayed on the main page
         configuredProjectsBuilder.Sort((x, y) => string.Compare(x.Name, y.Name, StringComparison.Ordinal));
         ConfiguredProjects = configuredProjectsBuilder.AsList();
     }
@@ -230,6 +233,7 @@ public sealed class SiteCacheManager
                     RedirectToAppendTrailingSlash = true,
                     StaticFileOptions =
                     {
+                        //We want the client's browser to cache the response
 #if !DEBUG
                         OnPrepareResponse = ctx =>
                         {
@@ -242,7 +246,7 @@ public sealed class SiteCacheManager
 #endif
                     }
                 });
-                _logger.LogDebug("Configured file server for {ProjectName}", project.Name);
+                _logger.LogInformation("Configured file server for {ProjectName}", project.Name);
             }
         });
     }

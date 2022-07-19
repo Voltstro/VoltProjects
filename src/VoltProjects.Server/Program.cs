@@ -16,12 +16,13 @@ using VoltProjects.Server.Core.SiteCache.Config;
 WebApplicationBuilder builder = WebApplication.CreateBuilder();
 
 //Setup logger
-const string outPutTemplate = "{Timestamp:dd-MM hh:mm:ss tt} [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}";
+const string outPutTemplate = "{Timestamp:dd-MM hh:mm:ss tt} [{Level:u3}] [T: {ThreadId}] [{SourceContext}] {Message:lj}{NewLine}{Exception}";
 string logFileName =
     $"{AppContext.BaseDirectory}/Logs/{DateTime.Now:yyyy-MM-dd-HH-mm-ss}.log";
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
+    .Enrich.WithThreadId()
     .WriteTo.Console(outputTemplate: outPutTemplate)
     .WriteTo.File(logFileName, outputTemplate: outPutTemplate)
     .CreateLogger();
@@ -32,22 +33,26 @@ Log.Information("Logger started...");
 
 try
 {
-    builder.WebHost.ConfigureKestrel(kestrel => kestrel.AddServerHeader = false);
+    //Setup host
     builder.Host.UseSerilog();
+    builder.WebHost.ConfigureKestrel(kestrel => kestrel.AddServerHeader = false);
 
     //Setup services
     builder.Services.Configure<VoltProjectsConfig>(
         builder.Configuration.GetSection(VoltProjectsConfig.VoltProjects));
 
+    //Support razor pages runtime compilation for hot reloading
     IMvcBuilder mvcBuilder = builder.Services.AddControllersWithViews();
 #if DEBUG
     if (builder.Environment.IsDevelopment())
         mvcBuilder.AddRazorRuntimeCompilation();
 #endif
 
+    //Allows for caching
     builder.Services.AddResponseCaching();
+
+    //VoltProject's services
     builder.Services.AddRuntimeMiddleware();
-    
     builder.Services.AddSingleton(new DocsBuilderManager(DependencyContext.Default));
     builder.Services.AddSingleton<Git>();
     builder.Services.AddSingleton<SiteCacheManager>();

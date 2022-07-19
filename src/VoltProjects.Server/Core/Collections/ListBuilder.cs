@@ -6,10 +6,18 @@ using System.Collections.Generic;
 
 namespace VoltProjects.Server.Core.Collections;
 
-internal class ListBuilder<T> where T : notnull
+/// <summary>
+///     Thread-safe builder of a <see cref="List{T}"/>
+/// </summary>
+/// <typeparam name="T"></typeparam>
+internal sealed class ListBuilder<T> where T : notnull
 {
     private readonly List<T> _array = new();
 
+    /// <summary>
+    ///     Add an item
+    /// </summary>
+    /// <param name="item"></param>
     public void Add(T item)
     {
         lock (_array)
@@ -18,17 +26,26 @@ internal class ListBuilder<T> where T : notnull
         }
     }
 
+    /// <summary>
+    ///     Add a range (list) of items
+    /// </summary>
+    /// <param name="items"></param>
     public void AddRange(IReadOnlyList<T> items)
     {
         lock (_array)
         {
-            for (var i = 0; i < items.Count; i++)
+            for (int i = 0; i < items.Count; i++)
             {
                 _array.Add(items[i]);
             }
         }
     }
 
+    /// <summary>
+    ///     Does this list contain an item
+    /// </summary>
+    /// <param name="item"></param>
+    /// <returns></returns>
     public bool Contains(T item)
     {
         lock (_array)
@@ -37,6 +54,10 @@ internal class ListBuilder<T> where T : notnull
         }
     }
 
+    /// <summary>
+    ///     Sort this list
+    /// </summary>
+    /// <param name="comparison"></param>
     public void Sort(Comparison<T> comparison)
     {
         lock (_array)
@@ -45,6 +66,10 @@ internal class ListBuilder<T> where T : notnull
         }
     }
 
+    /// <summary>
+    ///     Convert this list to a <see cref="IReadOnlyList{T}"/>
+    /// </summary>
+    /// <returns></returns>
     public IReadOnlyList<T> AsList()
     {
         lock (_array)
