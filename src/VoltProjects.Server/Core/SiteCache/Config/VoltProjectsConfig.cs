@@ -10,6 +10,8 @@ public class VoltProjectsConfig
     
     public string SitesServingDir { get; set; } = "Sites/";
 
+    public bool CleanupOnError { get; set; } = true;
+
     public int SitesRebuildTimeSeconds { get; set; } = 60 * 60 * 24 * 15;
 
     public int SitesServingCacheHeaderTimeSeconds { get; set; } = 60 * 60 * 24 * 15;

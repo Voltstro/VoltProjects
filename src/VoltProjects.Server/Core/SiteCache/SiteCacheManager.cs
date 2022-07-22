@@ -207,6 +207,9 @@ public sealed class SiteCacheManager
 
             void Cleanup()
             {
+                if(!_config.CleanupOnError)
+                    return;
+                
                 Directory.Delete(fullProjectDirectory, true);
             }
 

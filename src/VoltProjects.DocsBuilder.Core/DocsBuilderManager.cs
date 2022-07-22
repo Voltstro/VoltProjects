@@ -58,7 +58,8 @@ public sealed class DocsBuilderManager
             {
                 StartInfo = new ProcessStartInfo(action.Program, action.Arguments)
                 {
-                    WorkingDirectory = projectPath
+                    WorkingDirectory = projectPath,
+                    UseShellExecute = true
                 }
             };
             actionProcess.Start();
@@ -66,6 +67,9 @@ public sealed class DocsBuilderManager
 
             if (actionProcess.ExitCode != 0)
                 throw new Exception("Action process failed to run!");
+            
+            actionProcess.Kill(true);
+            actionProcess.Dispose();
         }
         
         //Pass it over to the docs builder
