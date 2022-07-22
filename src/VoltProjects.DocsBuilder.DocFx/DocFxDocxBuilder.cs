@@ -23,7 +23,7 @@ public class DocFxDocxBuilder : IDocsBuilder
         {
             StartInfo = new ProcessStartInfo(docfxName, "build")
             {
-                WorkingDirectory = docsPath
+                WorkingDirectory = Path.GetFullPath(docsPath)
             }
         };
         docfxProcess.Start();

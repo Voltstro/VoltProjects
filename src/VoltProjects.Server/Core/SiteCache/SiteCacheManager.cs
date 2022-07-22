@@ -87,6 +87,14 @@ public sealed class SiteCacheManager
                 Cleanup();
                 return;
             }
+            
+            //Check that the folder was created/exists
+            if (!Directory.Exists(fullProjectDirectory))
+            {
+                _logger.LogError("The project's folder doesn't exist for some reason!");
+                Cleanup();
+                return;
+            }
 
             //Set to latest tag
             if (project.GitUseLatestTag)
