@@ -6,6 +6,9 @@ namespace VoltProjects.DocsBuilder.DocFx;
 
 public class DocFxDocxBuilder : IDocsBuilder
 {
+    private const string DocfxGithubEnvironmentVariable = "DOCFX__SECRETS__GITHUB_TOKEN";
+    private const string DocfxAppPathEnvironmentVariable = "VOLTPRJ_DOCFX";
+    
     private const string DocfxDefaultAppName = "docfx";
     
     public string Name => "DocFx";
@@ -19,7 +22,7 @@ public class DocFxDocxBuilder : IDocsBuilder
             docfxName += ".exe";
         
         //Environment variables overrides everything
-        string? docfxPath = Environment.GetEnvironmentVariable("VOLTPRJ_DOCFX");
+        string? docfxPath = Environment.GetEnvironmentVariable(DocfxAppPathEnvironmentVariable);
         if (!string.IsNullOrWhiteSpace(docfxPath))
             docfxName = docfxPath;
 
@@ -28,8 +31,9 @@ public class DocFxDocxBuilder : IDocsBuilder
         {
             StartInfo = new ProcessStartInfo(docfxName, "build")
             {
+                EnvironmentVariables = { [DocfxGithubEnvironmentVariable] = Environment.GetEnvironmentVariable(DocfxGithubEnvironmentVariable) },
                 WorkingDirectory = Path.GetFullPath(docsPath),
-                UseShellExecute = true
+                UseShellExecute = false
             }
         };
         docfxProcess.Start();
