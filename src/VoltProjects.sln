@@ -8,6 +8,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VoltProjects.DocsBuilder.Do
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DocsBuilder", "DocsBuilder", "{ADF9D636-E4DD-4BEF-8A11-D5C159E0D26F}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Properties", "Properties", "{73218599-D804-4CD5-8CD3-BF36BA63A0DC}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Build.props = Directory.Build.props
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
