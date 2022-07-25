@@ -58,8 +58,7 @@ public sealed class DocsBuilderManager
             {
                 StartInfo = new ProcessStartInfo(action.Program, action.Arguments)
                 {
-                    WorkingDirectory = projectPath,
-                    UseShellExecute = true
+                    WorkingDirectory = projectPath
                 }
             };
             actionProcess.Start();
