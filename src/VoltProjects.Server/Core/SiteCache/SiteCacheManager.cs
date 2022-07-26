@@ -67,6 +67,9 @@ public sealed class SiteCacheManager
         {
             //Setup our project's directory
             string fullProjectDirectory = Path.GetFullPath($"{workPathFull}/{project.Name}");
+            if (!project.GitIsRemote)
+                fullProjectDirectory = project.GitPath;
+            
             if (!Directory.Exists(fullProjectDirectory))
                 Directory.CreateDirectory(fullProjectDirectory);
             
@@ -74,42 +77,46 @@ public sealed class SiteCacheManager
             string destinationDir =
                 Path.GetFullPath($"{AppContext.BaseDirectory}/{_config.SitesServingDir}/{project.Name}");
             
-            //Clone or pull repo
             _logger.LogInformation("Updating site cache {ProjectName}...", project.Name);
 
-            try
+            //Actions we want to do if we are working on a remote repo
+            if (project.GitIsRemote)
             {
-                _git.PullRepoOrCloneIfDoesntExist(project.GitUrl.ToString(), project.GitBranch, fullProjectDirectory);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Something went wrong while trying to pull/clone the git repo!");
-                Cleanup();
-                return;
-            }
-            
-            //Check that the folder was created/exists
-            if (!Directory.Exists(fullProjectDirectory))
-            {
-                _logger.LogError("The project's folder doesn't exist for some reason!");
-                Cleanup();
-                return;
-            }
-
-            //Set to latest tag
-            if (project.GitUseLatestTag)
-            {
+                //Clone or pull repo
                 try
                 {
-                    _git.SetToLatestTag(fullProjectDirectory);
+                    _git.PullRepoOrCloneIfDoesntExist(project.GitPath, project.GitBranch, fullProjectDirectory);
                 }
-                catch (TagException ex)
+                catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Something went wrong while setting the repo's tag! I will continue but" +
-                                       "the repo will be using the latest commit on {Branch}!", project.GitBranch);
+                    _logger.LogError(ex, "Something went wrong while trying to pull/clone the git repo!");
+                    Cleanup();
+                    return;
+                }
+            
+                //Check that the folder was created/exists
+                if (!Directory.Exists(fullProjectDirectory))
+                {
+                    _logger.LogError("The project's folder doesn't exist for some reason!");
+                    Cleanup();
+                    return;
+                }
+                
+                //Set to latest tag
+                if (project.GitUseLatestTag)
+                {
+                    try
+                    {
+                        _git.SetToLatestTag(fullProjectDirectory);
+                    }
+                    catch (TagException ex)
+                    {
+                        _logger.LogWarning(ex, "Something went wrong while setting the repo's tag! I will continue but" +
+                                               "the repo will be using the latest commit on {Branch}!", project.GitBranch);
+                    }
                 }
             }
-            
+
             //Check what commit we have built against
             string commitFile = Path.GetFullPath($"{destinationDir}/.commit");
             if (File.Exists(commitFile))
@@ -208,6 +215,9 @@ public sealed class SiteCacheManager
             void Cleanup()
             {
                 if(!_config.CleanupOnError)
+                    return;
+                
+                if(!project.GitIsRemote)
                     return;
                 
                 Directory.Delete(fullProjectDirectory, true);

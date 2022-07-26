@@ -7,7 +7,20 @@ public class VoltProject
 {
     public string Name { get; set; } = Empty;
 
-    public Uri GitUrl { get; set; } = new("https://rowansuxlol.com");
+    private string _gitPath = Empty;
+    public string GitPath
+    {
+        get => _gitPath;
+        set
+        {
+            _gitPath = value;
+            if (value.StartsWith("https://"))
+                GitIsRemote = true;
+        }
+    }
+
+    public bool GitIsRemote { get; private set; }
+    
     public string GitBranch { get; set; } = Empty;
     
     public bool GitUseLatestTag { get; set; }
