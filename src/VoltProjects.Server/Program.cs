@@ -10,6 +10,7 @@ using Serilog;
 using VoltProjects.DocsBuilder.Core;
 using VoltProjects.Server.Core.Git;
 using VoltProjects.Server.Core.MiddlewareManagement;
+using VoltProjects.Server.Core.Robots;
 using VoltProjects.Server.Core.SiteCache;
 using VoltProjects.Server.Core.SiteCache.Config;
 
@@ -53,6 +54,7 @@ try
 
     //VoltProject's services
     builder.Services.AddRuntimeMiddleware();
+    builder.Services.AddSitemapService();
     builder.Services.AddSingleton(new DocsBuilderManager(DependencyContext.Default));
     builder.Services.AddSingleton<Git>();
     builder.Services.AddSingleton<SiteCacheManager>();
@@ -63,7 +65,8 @@ try
     app.UseResponseCaching();
     app.UseRuntimeMiddleware();
     app.UseRouting();
-
+    app.UseSitemapMiddleware();
+    
     //Update our site cache now before running
     SiteCacheManager cacheManager = app.Services.GetRequiredService<SiteCacheManager>();
     cacheManager.UpdateCache();
