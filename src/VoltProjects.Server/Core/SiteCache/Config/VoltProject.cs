@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using static System.String;
 
@@ -66,6 +67,13 @@ public class VoltProject
     ///     <para>From <see cref="DocsPath"/></para>
     /// </summary>
     public string DocsBuildDist { get; init; } = Empty;
+    
+    //NOTE: These settings should not be set in appsettings!!!
+    #region Non-Settings
+
+    internal DateTime? SitemapLastModTime { get; set; }
+
+    #endregion
 }
 // ReSharper restore UnusedMember.Local
 // ReSharper restore UnusedAutoPropertyAccessor.Local

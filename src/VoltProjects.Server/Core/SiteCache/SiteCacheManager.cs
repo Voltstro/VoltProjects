@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -189,6 +190,32 @@ public sealed class SiteCacheManager
             
             //Copy built site to destination
             IOHelper.CopyDirectory(builtDocsDist, destinationDir, true);
+            
+            //Sitemap (if it exists)
+            string siteMapFileDir = Path.GetFullPath($"{destinationDir}/sitemap.xml");
+            if (File.Exists(siteMapFileDir))
+            {
+                //We want to compress our site's sitemap first
+                
+                //Write stream
+                string writeFileDir = $"{siteMapFileDir}.gz";
+                FileStream siteMapWriteStream = File.Open(writeFileDir, FileMode.OpenOrCreate);
+                
+                //Read original file, and write to gz stream
+                FileStream siteMapReadStream = File.OpenRead(siteMapFileDir);
+                GZipStream siteMapGzStream = new(siteMapWriteStream, CompressionLevel.SmallestSize);
+                siteMapReadStream.CopyTo(siteMapGzStream);
+                
+                siteMapWriteStream.Flush();
+                
+                //Cleanup
+                siteMapGzStream.Dispose();
+                siteMapWriteStream.Dispose();
+                siteMapReadStream.Dispose();
+                
+                project.SitemapLastModTime = File.GetLastWriteTime(siteMapFileDir);
+                File.Delete(siteMapFileDir);
+            }
             
             //Write commit info
             File.WriteAllText(commitFile, _git.GetRepoCommitHash(fullProjectDirectory));
