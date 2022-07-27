@@ -44,9 +44,14 @@ public class SitemapService
         GZipStream gzStream = new(documentCompressedStream, CompressionLevel.SmallestSize);
 
         gzStream.Write(documentStream.GetBuffer());
-        
         gzStream.Close();
+
+        byte[] compressedData = documentCompressedStream.ToArray();
         
-        return documentCompressedStream.ToArray();
+        gzStream.Dispose();
+        documentCompressedStream.Dispose();
+        documentStream.Dispose();
+        
+        return compressedData;
     }
 }
