@@ -16,7 +16,7 @@ public class SitemapMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        if (context.Request.Path.StartsWithSegments("/sitemapindex.xml.gz"))
+        if (context.Request.Path.StartsWithSegments("/sitemap_index.xml.gz"))
         {
             context.Response.ContentType = "application/x-gzip";
             await context.Response.BodyWriter.WriteAsync(_sitemapService.CompressedIndexSitemap);

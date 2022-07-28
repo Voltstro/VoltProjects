@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://projects.voltstro.dev/sitemap_index.xml.gz

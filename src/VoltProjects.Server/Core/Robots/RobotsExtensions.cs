@@ -12,7 +12,7 @@ public static class RobotsExtensions
 
     public static IApplicationBuilder UseSitemapMiddleware(this IApplicationBuilder builder)
     {
-        return builder.MapWhen(ctx => ctx.Request.Path.StartsWithSegments("/sitemapindex.xml.gz") || ctx.Request.Path.StartsWithSegments("/sitemap.xml.gz"),
+        return builder.MapWhen(ctx => ctx.Request.Path.StartsWithSegments("/sitemap_index.xml.gz") || ctx.Request.Path.StartsWithSegments("/sitemap.xml.gz"),
             app => app.UseMiddleware<SitemapMiddleware>());
     }
 }
