@@ -71,7 +71,7 @@ public class VoltProject
     //NOTE: These settings should not be set in appsettings!!!
     #region Non-Settings
 
-    internal DateTime? SitemapLastModTime { get; set; }
+    internal bool HasSitemap { get; set; }
 
     #endregion
 }

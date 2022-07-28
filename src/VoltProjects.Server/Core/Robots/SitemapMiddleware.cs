@@ -18,7 +18,8 @@ public class SitemapMiddleware
     {
         if (context.Request.Path.StartsWithSegments("/sitemapindex.xml.gz"))
         {
-            //TODO
+            context.Response.ContentType = "application/x-gzip";
+            await context.Response.BodyWriter.WriteAsync(_sitemapService.CompressedIndexSitemap);
         }
         else if (context.Request.Path.StartsWithSegments("/sitemap.xml.gz"))
         {

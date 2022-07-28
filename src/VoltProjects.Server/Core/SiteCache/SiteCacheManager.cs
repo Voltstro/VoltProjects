@@ -16,6 +16,7 @@ using VoltProjects.Server.Core.Collections;
 using VoltProjects.Server.Core.Git;
 using VoltProjects.Server.Core.Helper;
 using VoltProjects.Server.Core.MiddlewareManagement;
+using VoltProjects.Server.Core.Robots;
 using VoltProjects.Server.Core.SiteCache.Config;
 
 namespace VoltProjects.Server.Core.SiteCache;
@@ -29,6 +30,7 @@ public sealed class SiteCacheManager
     private readonly VoltProjectsConfig _config;
     private readonly IWebHostEnvironment _environment;
     private readonly RuntimeMiddlewareService _runtimeMiddlewareService;
+    private readonly SitemapService _sitemapService;
     private readonly Git.Git _git;
     private readonly DocsBuilderManager _docsBuilderManager;
 
@@ -38,6 +40,7 @@ public sealed class SiteCacheManager
         IOptions<VoltProjectsConfig> config, 
         IWebHostEnvironment environment,
         RuntimeMiddlewareService runtimeMiddleware,
+        SitemapService sitemapService,
         Git.Git git, 
         DocsBuilderManager docsBuilderManager)
     {
@@ -45,6 +48,7 @@ public sealed class SiteCacheManager
         _config = config.Value;
         _environment = environment;
         _runtimeMiddlewareService = runtimeMiddleware;
+        _sitemapService = sitemapService;
         _git = git;
         _docsBuilderManager = docsBuilderManager;
     }
@@ -125,6 +129,11 @@ public sealed class SiteCacheManager
                 string commit = File.ReadAllText(commitFile);
                 if (_git.GetRepoCommitHash(fullProjectDirectory) == commit)
                 {
+                    //Check for sitemap
+                    if (File.Exists($"{destinationDir}/sitemap.xml.gz"))
+                        project.HasSitemap = true;
+                    
+                    //Configure
                     _logger.LogInformation("Commit hashes are the same, not rebuilding.");
                     ConfigureProject();
                     return;
@@ -212,8 +221,8 @@ public sealed class SiteCacheManager
                 siteMapGzStream.Dispose();
                 siteMapWriteStream.Dispose();
                 siteMapReadStream.Dispose();
-                
-                project.SitemapLastModTime = File.GetLastWriteTime(siteMapFileDir);
+
+                project.HasSitemap = true;
                 File.Delete(siteMapFileDir);
             }
             
@@ -255,8 +264,9 @@ public sealed class SiteCacheManager
                 //For setting up our file server
                 if (configuredProjectsBuilder.Contains(project)) 
                     return;
-                
+
                 configuredProjectsBuilder.Add(project);
+                _sitemapService.AddProjectSitemap(project);
             }
         });
         
