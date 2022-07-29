@@ -101,7 +101,11 @@ public class SitemapService
         MemoryStream documentCompressedStream = new();
         GZipStream gzStream = new(documentCompressedStream, CompressionLevel.SmallestSize);
 
-        gzStream.Write(documentStream.GetBuffer());
+        byte[] buffer = new byte[documentStream.Position];
+        documentStream.Position = 0;
+        int _ = documentStream.Read(buffer, 0, buffer.Length);
+        
+        gzStream.Write(buffer);
         gzStream.Close();
 
         byte[] compressedData = documentCompressedStream.ToArray();
