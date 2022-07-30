@@ -1,10 +1,13 @@
 import {defineConfig, UserConfig} from 'vite'
-import {terser} from 'rollup-plugin-terser';
 import {resolve} from 'path'
 
-export default defineConfig(({command, mode}) => {
+export default defineConfig(({mode}) => {
+
+    //Base vite config
     let config: UserConfig = {
         build: {
+            //No minify in dev builds, speeds shit up
+            minify: false,
             rollupOptions: {
                 input: {
                     main: resolve(__dirname, 'src/main.ts')
@@ -19,8 +22,11 @@ export default defineConfig(({command, mode}) => {
         }
     }
 
+    //In non-dev builds, we will use terser to minify everything
     if (mode != 'development') {
-        config.build.rollupOptions.plugins = [terser({
+        console.log('Non-dev build, using terser...')
+        config.build!.minify = 'terser';
+        config.build!.terserOptions = {
             format: {
                 comments: false
             },
@@ -30,7 +36,7 @@ export default defineConfig(({command, mode}) => {
                 drop_debugger: true
             },
             ecma: 2020
-        })]
+        };
     }
 
     return config;
