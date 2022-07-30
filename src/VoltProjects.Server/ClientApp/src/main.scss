@@ -24,7 +24,6 @@ $container-max-widths: (
         xxl: 1768px
 ) !default;
 
-
 body {
   min-height: 100vh;
   display: flex;
@@ -41,6 +40,16 @@ body {
 @media (min-width: 2100px) {
   .container-xxl,.container-xl,.container-lg,.container-md,.container-sm,.container {
     max-width: 2020px;
+  }
+}
+
+.nav-social {
+  font-size: 1.25rem !important
+}
+
+@include media-breakpoint-down(md) {
+  .nav-social {
+    font-size: 1rem !important;
   }
 }
 
