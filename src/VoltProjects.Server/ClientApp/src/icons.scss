@@ -1,0 +1,37 @@
+//Based off bootstrap-icons's scss
+$bootstrap-icons-font: "bootstrap-icons" !default;
+$bootstrap-icons-font-hash: "8d200481aa7f02a2d63a331fc782cfaf" !default;
+$bootstrap-icons-font-src: url("#{$bootstrap-icons-font}.woff2?#{$bootstrap-icons-font-hash}") format("woff2"), url("#{$bootstrap-icons-font}.woff?#{$bootstrap-icons-font-hash}") format("woff") !default;
+
+@font-face {
+  font-display: block;
+  font-family: $bootstrap-icons-font;
+  src: $bootstrap-icons-font-src;
+}
+
+.bi::before,
+[class^="bi-"]::before,
+[class*=" bi-"]::before {
+  display: inline-block;
+  font-family: $bootstrap-icons-font !important;
+  font-style: normal;
+  font-weight: normal !important;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  vertical-align: -.125em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+$bootstrap-icons-map: (
+    "discord": "\f300",
+    "github": "\f3ed",
+    "globe2": "\f3ef",
+    "twitter": "\f5ef",
+) !default;
+
+.bi-discord::before { content: map-get($bootstrap-icons-map, "discord"); }
+.bi-github::before { content: map-get($bootstrap-icons-map, "github"); }
+.bi-globe2::before { content: map-get($bootstrap-icons-map, "globe2"); }
+.bi-twitter::before { content: map-get($bootstrap-icons-map, "twitter"); }
