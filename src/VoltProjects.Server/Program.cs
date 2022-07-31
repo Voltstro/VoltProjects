@@ -65,6 +65,7 @@ try
     app.UseResponseCaching();
     app.UseRuntimeMiddleware();
     app.UseRouting();
+    app.UseStatusCodePagesWithReExecute("/Eroor/{0}");
     app.UseSitemapMiddleware();
     
     //Update our site cache now before running

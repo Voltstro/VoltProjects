@@ -1,0 +1,30 @@
+@using System.Net
+@model VoltProjects.Server.Models.ErrorPageModel
+@{
+    ViewBag.Title = "Error";
+    ViewBag.Description = "VoltProjects - Error...";
+}
+<!-- 01000101 01110010 01101111 01101111 01110010 -->
+<div class="hero container-xxl">
+    <div class="hero-content">
+        <h1>Something happened...</h1>
+        <div class="lead">
+            @{
+                if (Model.ErrorCode == HttpStatusCode.NotFound)
+                {
+                    <p>404 - Yea, I don't have that file on hand!</p>
+                }
+                else
+                {
+                    <p>@((int)Model.ErrorCode) - @Model.ErrorCode.ToString()</p>
+                }
+            }
+        </div>
+        @if (Model.ErrorCode == HttpStatusCode.NotFound)
+        {
+            <div class="actions">
+                <input type="button" class="btn btn-primary btn-lg" onclick="history.go(-1)" value="Go Back..."/>
+            </div>
+        }
+    </div>
+</div>
