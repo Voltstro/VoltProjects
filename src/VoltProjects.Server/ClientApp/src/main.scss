@@ -43,16 +43,6 @@ body {
   }
 }
 
-.nav-social {
-  font-size: 1.25rem !important
-}
-
-@include media-breakpoint-down(md) {
-  .nav-social {
-    font-size: 1rem !important;
-  }
-}
-
 .hero {
   .hero-content {
     display: flex;
