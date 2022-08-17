@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.FileProviders.Physical;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -26,6 +27,8 @@ namespace VoltProjects.Server.Core.SiteCache;
 /// </summary>
 public sealed class SiteCacheManager
 {
+    private const ExclusionFilters FileProviderFilters = ExclusionFilters.System;
+    
     private readonly ILogger<SiteCacheManager> _logger;
     private readonly VoltProjectsConfig _config;
     private readonly IWebHostEnvironment _environment;
@@ -286,7 +289,7 @@ public sealed class SiteCacheManager
                 {
                     FileProvider =
                         new PhysicalFileProvider(
-                            Path.Combine(AppContext.BaseDirectory, $"{_config.SitesServingDir}/{project.Name}")),
+                            Path.Combine(AppContext.BaseDirectory, $"{_config.SitesServingDir}/{project.Name}"), FileProviderFilters),
                     RequestPath = $"/{project.Name}",
                     RedirectToAppendTrailingSlash = true,
                     StaticFileOptions =
