@@ -11,7 +11,7 @@
     "sass": "^1.54.4",
     "terser": "^5.14.2",
     "typescript": "^4.5.4",
-    "vite": "^3.0.8"
+    "vite": "^3.0.9"
   },
   "dependencies": {
     "bootstrap": "^5.2.0",
