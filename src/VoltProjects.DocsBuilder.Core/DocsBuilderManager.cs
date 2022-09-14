@@ -1,3 +1,4 @@
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json;
@@ -54,13 +55,30 @@ public sealed class DocsBuilderManager
         //Run pre-actions
         foreach (DocsBuilderAction action in config.PreActions)
         {
+            ProcessStartInfo startInfo = new ProcessStartInfo(action.Program, action.Arguments)
+            {
+                WorkingDirectory = projectPath
+            };
+            
+            //Setup environmental variables
+            StringDictionary environmentalVariables = startInfo.EnvironmentVariables;
+            if(action.EnvironmentalVariables != null)
+                foreach (KeyValuePair<string,string> environmentalVariable in action.EnvironmentalVariables)
+                {
+                    environmentalVariables.Add(environmentalVariable.Key, environmentalVariable.Value);
+                }
+            
+            if(action.EnvironmentalVariablesMapping != null)
+                foreach (KeyValuePair<string,string> environmentalVariable in action.EnvironmentalVariablesMapping)
+                {
+                    environmentalVariables.Add(environmentalVariable.Key, Environment.GetEnvironmentVariable(environmentalVariable.Value));
+                }
+            
             Process actionProcess = new()
             {
-                StartInfo = new ProcessStartInfo(action.Program, action.Arguments)
-                {
-                    WorkingDirectory = projectPath
-                }
+                StartInfo = startInfo
             };
+            
             actionProcess.Start();
             actionProcess.WaitForExit();
 

@@ -26,7 +26,18 @@
                                 {
                                     <img alt="Project Icon" src=@($"/{project.Name}/projecticon{System.IO.Path.GetExtension(project.IconPath)}") width="100em"/>
                                 }
-                                <h2 class="p-2">@project.Name</h2>
+                                
+                                @if (project.NameShort != null) 
+                                {
+                                    <div class="p-2">
+                                        <h2 class="d-none d-xl-block">@project.Name</h2>
+                                        <h2 class="d-block d-xl-none">@project.NameShort</h2>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <h2 class="p-2">@project.Name</h2>
+                                }
                             </div>
                         </a>
                         <div class="btn-group">

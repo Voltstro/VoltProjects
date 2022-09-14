@@ -18,6 +18,11 @@ public class VoltProject
     /// </summary>
     public string Name { get; init; } = Empty;
 
+    /// <summary>
+    ///     Short version of the name
+    /// </summary>
+    public string? NameShort { get; init; } = null;
+
     private readonly string _gitPath = Empty;
     
     /// <summary>
