@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics;
 using static System.String;
 
@@ -22,6 +21,11 @@ public class VoltProject
     ///     Short version of the name
     /// </summary>
     public string? NameShort { get; init; } = null;
+    
+    /// <summary>
+    ///     Display this doc on the main index?
+    /// </summary>
+    public bool Hidden { get; init; }
 
     private readonly string _gitPath = Empty;
     
