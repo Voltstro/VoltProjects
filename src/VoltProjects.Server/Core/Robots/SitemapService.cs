@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Xml.Linq;
-using VoltProjects.Server.Core.SiteCache.Config;
+using VoltProjects.Server.Shared;
 
 namespace VoltProjects.Server.Core.Robots;
 
@@ -41,9 +41,6 @@ public class SitemapService
 
     public void AddProjectSitemap(VoltProject project)
     {
-        if(!project.HasSitemap)
-            return;
-        
         _projects.Add(project);
     }
 

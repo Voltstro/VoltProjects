@@ -1,7 +1,7 @@
 using System.Linq;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
-namespace VoltProjects.Server.Core.Helper;
+namespace VoltProjects.Server.Shared.Helpers;
 
 //Credit:
 //https://levelup.gitconnected.com/using-asp-net-mvc-to-specify-which-element-in-a-navigation-bar-is-active-9c3dac154f9c

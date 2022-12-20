@@ -1,7 +1,8 @@
-using System.Linq;
+using System;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using VoltProjects.Server.Core.SiteCache;
 using VoltProjects.Server.Models;
+using VoltProjects.Server.Shared;
 
 namespace VoltProjects.Server.Controllers;
 
@@ -13,25 +14,39 @@ namespace VoltProjects.Server.Controllers;
 #endif
 public class MainController : Controller
 {
-    private readonly IndexPageModel _pageModel;
+    //private readonly IndexPageModel _pageModel;
     
-    public MainController(SiteCacheManager cacheManager)
+    public MainController()
     {
+        /*
         _pageModel = new IndexPageModel()
         {
             Projects = cacheManager.ConfiguredProjects.ToArray()
         };
+        */
     }
     
     [Route("/")]
     public IActionResult Index()
     {
-        return View(_pageModel);
+        return View(new IndexPageModel
+        {
+            Projects = Array.Empty<VoltProject>()
+        });
     }
     
     [Route("/about")]
     public IActionResult About()
     {
         return View();
+    }
+
+    [Route("/{**catchAll}")]
+    public IActionResult Main(string catchAll)
+    {
+        Debug.WriteLine(catchAll);
+        string? route = RouteData.Values["page"] as string;
+
+        return NotFound();
     }
 }

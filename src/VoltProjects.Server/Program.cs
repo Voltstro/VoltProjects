@@ -4,15 +4,10 @@ using Figgle;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyModel;
 using Microsoft.Extensions.Hosting;
 using Serilog;
-using VoltProjects.DocsBuilder.Core;
-using VoltProjects.Server.Core.Git;
-using VoltProjects.Server.Core.MiddlewareManagement;
 using VoltProjects.Server.Core.Robots;
-using VoltProjects.Server.Core.SiteCache;
-using VoltProjects.Server.Core.SiteCache.Config;
+using VoltProjects.Server.Shared;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder();
 
@@ -41,6 +36,7 @@ try
     //Setup services
     builder.Services.Configure<VoltProjectsConfig>(
         builder.Configuration.GetSection(VoltProjectsConfig.VoltProjects));
+    builder.Services.AddSitemapService();
 
     //Support razor pages runtime compilation for hot reloading
     IMvcBuilder mvcBuilder = builder.Services.AddControllersWithViews();
@@ -52,26 +48,13 @@ try
     //Allows for caching
     builder.Services.AddResponseCaching();
 
-    //VoltProject's services
-    builder.Services.AddRuntimeMiddleware();
-    builder.Services.AddSitemapService();
-    builder.Services.AddSingleton(new DocsBuilderManager(DependencyContext.Default));
-    builder.Services.AddSingleton<Git>();
-    builder.Services.AddSingleton<SiteCacheManager>();
-    builder.Services.AddHostedService<SitesCacheUpdater>();
-    
     //Now setup the app
     WebApplication app = builder.Build();
-    app.UseResponseCaching();
-    app.UseRuntimeMiddleware();
-    app.UseRouting();
+    app.UseStaticFiles();
     app.UseStatusCodePagesWithReExecute("/Eroor/{0}");
     app.UseSitemapMiddleware();
-    
-    //Update our site cache now before running
-    SiteCacheManager cacheManager = app.Services.GetRequiredService<SiteCacheManager>();
-    cacheManager.UpdateCache();
-    cacheManager.ConfigureFileServers();
+    app.UseResponseCaching();
+    app.UseRouting();
 
     //Some configuration will change depending on the environment
     if (!app.Environment.IsDevelopment())
@@ -81,7 +64,6 @@ try
 
     //Setup our views/controllers
     app.MapControllers();
-    app.UseStaticFiles();
 
     app.Run();
 }

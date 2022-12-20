@@ -1,4 +1,4 @@
-@using VoltProjects.Server.Core.SiteCache.Config
+@using VoltProjects.Server.Shared
 @model VoltProjects.Server.Models.IndexPageModel
 @{
     ViewBag.Title = "Home";
@@ -26,8 +26,8 @@
                                 {
                                     <img alt="Project Icon" src=@($"/{project.Name}/projecticon{System.IO.Path.GetExtension(project.IconPath)}") width="100em"/>
                                 }
-                                
-                                @if (project.NameShort != null) 
+
+                                @if (project.NameShort != null)
                                 {
                                     <div class="p-2">
                                         <h2 class="d-none d-xl-block">@project.Name</h2>
