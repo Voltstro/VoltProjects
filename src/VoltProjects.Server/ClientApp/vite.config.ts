@@ -10,18 +10,19 @@ export default defineConfig(({mode}) => {
             minify: false,
             rollupOptions: {
                 input: {
-                    main: resolve(__dirname, 'src/main.ts')
+                    main: resolve(__dirname, 'src/main/main.ts'),
+                    hero: resolve(__dirname, 'src/hero/hero.ts')
                 },
                 output: {
                     dir: resolve(__dirname, '..', 'wwwroot', 'dist'),
-                    entryFileNames: () => 'site.js',
+                    entryFileNames: () => '[name].js',
                     assetFileNames: () => '[name][extname]',
-                    sourcemap: false
-                },
-            },
+                    sourcemap: false,
+                }
+            }
         }
     }
-
+    
     //In non-dev builds, we will use terser to minify everything
     if (mode != 'development') {
         console.log('Non-dev build, using terser...')
