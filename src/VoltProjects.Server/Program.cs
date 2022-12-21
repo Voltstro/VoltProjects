@@ -8,6 +8,7 @@ using Microsoft.Extensions.Hosting;
 using Serilog;
 using VoltProjects.Server.Core.Robots;
 using VoltProjects.Server.Shared;
+using Westwind.AspNetCore.LiveReload;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder();
 
@@ -30,30 +31,35 @@ try
     builder.Services.Configure<VoltProjectsConfig>(
         builder.Configuration.GetSection(VoltProjectsConfig.VoltProjects));
     builder.Services.AddSitemapService();
-
+    
     //Support razor pages runtime compilation for hot reloading
     IMvcBuilder mvcBuilder = builder.Services.AddControllersWithViews();
-#if DEBUG
     if (builder.Environment.IsDevelopment())
+    {
+        builder.Services.AddLiveReload();
         mvcBuilder.AddRazorRuntimeCompilation();
-#endif
+    }
 
     //Allows for caching
     builder.Services.AddResponseCaching();
 
     //Now setup the app
     WebApplication app = builder.Build();
+    
+    //Some configuration will change depending on the environment
+    if (!app.Environment.IsDevelopment())
+        app.UseHsts();
+    else
+    {
+        app.UseDeveloperExceptionPage();
+        app.UseLiveReload();
+    }
+    
     app.UseStaticFiles();
     app.UseStatusCodePagesWithReExecute("/Eroor/{0}");
     app.UseSitemapMiddleware();
     app.UseResponseCaching();
     app.UseRouting();
-
-    //Some configuration will change depending on the environment
-    if (!app.Environment.IsDevelopment())
-        app.UseHsts();
-    else
-        app.UseDeveloperExceptionPage();
 
     //Setup our views/controllers
     app.MapControllers();
