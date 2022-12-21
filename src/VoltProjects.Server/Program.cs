@@ -12,20 +12,13 @@ using VoltProjects.Server.Shared;
 WebApplicationBuilder builder = WebApplication.CreateBuilder();
 
 //Setup logger
-const string outPutTemplate = "{Timestamp:dd-MM hh:mm:ss tt} [{Level:u3}] [T: {ThreadId}] [{SourceContext}] {Message:lj}{NewLine}{Exception}";
-string logFileName =
-    $"{AppContext.BaseDirectory}/Logs/{DateTime.Now:yyyy-MM-dd-HH-mm-ss}.log";
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
-    .Enrich.FromLogContext()
-    .Enrich.WithThreadId()
-    .WriteTo.Console(outputTemplate: outPutTemplate)
-    .WriteTo.File(logFileName, outputTemplate: outPutTemplate)
     .CreateLogger();
 
 //NOTE: We are adding a new line due to all the stuff at the start of each log message
 Log.Information($"\n{FiggleFonts.Graffiti.Render("VoltProjects")}");
-Log.Information("Logger started...");
+Log.Information("VoltProjects starting...");
 
 try
 {
@@ -65,6 +58,7 @@ try
     //Setup our views/controllers
     app.MapControllers();
 
+    Log.Information("Configuration done! Starting...");
     app.Run();
 }
 catch (Exception ex)
