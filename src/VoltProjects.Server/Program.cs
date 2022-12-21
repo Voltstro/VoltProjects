@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using VoltProjects.Server.Core.Robots;
+using VoltProjects.Server.Services.Dev;
 using VoltProjects.Server.Shared;
 using Westwind.AspNetCore.LiveReload;
 
@@ -38,6 +39,8 @@ try
     {
         builder.Services.AddLiveReload();
         mvcBuilder.AddRazorRuntimeCompilation();
+
+        builder.Services.AddHostedService<ClientAppWatcher>();
     }
 
     //Allows for caching

@@ -4,7 +4,8 @@
   "license": "AGPL-3.0",
   "scripts": {
     "build:dev": "tsc && vite build --mode development",
-    "build:prod": "tsc && vite build"
+    "build:prod": "tsc && vite build",
+    "watch": "tsc && vite build --watch --mode development"
   },
   "devDependencies": {
     "@types/node": "^18.7.18",
