@@ -1,4 +1,20 @@
+//Override bootstrap variables first!
 $card-bg: #252526 !default;
+$grid-breakpoints: (
+        xs: 0,
+        sm: 580px,
+        md: 760px,
+        lg: 1100px,
+        xl: 1400px,
+        xxl: 1900px
+) !default;
+$container-max-widths: (
+        sm: 540px,
+        md: 720px,
+        lg: 960px,
+        xl: 1300px,
+        xxl: 1800px
+) !default;
 
 @import "bootstrap/scss/bootstrap.scss";
 @import "header";
@@ -20,27 +36,12 @@ $card-bg: #252526 !default;
 $primary: #2d74b2 !default;
 $link-decoration: none !default;
 $link-hover-decoration: underline !default;
-$container-max-widths: (
-        xxl: 1768px
-) !default;
 
 body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: stretch;
-}
-
-@media (min-width: 1400px) {
-  .container-xxl,.container-xl,.container-lg,.container-md,.container-sm,.container {
-    max-width:1584px;
-  }
-}
-
-@media (min-width: 2100px) {
-  .container-xxl,.container-xl,.container-lg,.container-md,.container-sm,.container {
-    max-width: 2020px;
-  }
 }
 
 .hero {
