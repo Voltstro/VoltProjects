@@ -12,14 +12,14 @@ namespace VoltProjects.Server.Services.Dev;
 /// <summary>
 ///     Runs vite build watcher
 /// </summary>
-public sealed class ClientAppWatcher : BackgroundService
+public sealed class ClientAppWatcherService : BackgroundService
 {
     private readonly string clientAppRootPath;
-    private readonly ILogger<ClientAppWatcher> logger;
+    private readonly ILogger<ClientAppWatcherService> logger;
 
     private Process? backgroundProcess;
     
-    public ClientAppWatcher(ILogger<ClientAppWatcher> appWatcherLogger, IWebHostEnvironment env)
+    public ClientAppWatcherService(ILogger<ClientAppWatcherService> appWatcherLogger, IWebHostEnvironment env)
     {
         logger = appWatcherLogger;
         clientAppRootPath = Path.GetFullPath($"{env.ContentRootPath}/ClientApp");
@@ -31,7 +31,7 @@ public sealed class ClientAppWatcher : BackgroundService
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("Starting background vite build watcher...");
-        ProcessStartInfo startInfo = new ProcessStartInfo("yarn", "run watch")
+        ProcessStartInfo startInfo = new("yarn", "run watch")
         {
             WorkingDirectory = clientAppRootPath,
             UseShellExecute = false,

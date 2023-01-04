@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace VoltProjects.Server.Core.Robots;
+namespace VoltProjects.Server.Services.Robots;
 
 public static class RobotsExtensions
 {

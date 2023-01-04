@@ -6,8 +6,10 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
-using VoltProjects.Server.Core.Robots;
 using VoltProjects.Server.Services.Dev;
+using VoltProjects.Server.Services.DocsBuilder;
+using VoltProjects.Server.Services.Git;
+using VoltProjects.Server.Services.Robots;
 using VoltProjects.Server.Shared;
 using Westwind.AspNetCore.LiveReload;
 
@@ -40,11 +42,17 @@ try
         builder.Services.AddLiveReload();
         mvcBuilder.AddRazorRuntimeCompilation();
 
-        builder.Services.AddHostedService<ClientAppWatcher>();
+        builder.Services.AddHostedService<ClientAppWatcherService>();
     }
 
     //Allows for caching
     builder.Services.AddResponseCaching();
+    
+    //VoltProject's services
+    builder.Services.AddSingleton<GitService>();
+    builder.Services.AddSingleton<SitemapService>();
+    builder.Services.AddSingleton<DocsBuilderService>();
+    builder.Services.AddHostedService<DocsBuilderBackgroundService>();
 
     //Now setup the app
     WebApplication app = builder.Build();

@@ -5,33 +5,33 @@ using System.IO.Compression;
 using System.Xml.Linq;
 using VoltProjects.Server.Shared;
 
-namespace VoltProjects.Server.Core.Robots;
+namespace VoltProjects.Server.Services.Robots;
 
-public class SitemapService
+public sealed class SitemapService
 {
     //TODO: We should make this externally configurable
     private const string BaseUrl = "https://projects.voltstro.dev";
     
-    private readonly string[] _baseSitePaths = { "/", "/about" };
+    private readonly string[] baseSitePaths = { "/", "/about" };
 
     public readonly ReadOnlyMemory<byte> CompressedBaseSitemap;
 
-    private ReadOnlyMemory<byte>? _compressedIndexSitemap;
+    private ReadOnlyMemory<byte>? compressedIndexSitemap;
     public ReadOnlyMemory<byte> CompressedIndexSitemap
     {
         get
         {
-            if (!_compressedIndexSitemap.HasValue)
+            if (!compressedIndexSitemap.HasValue)
             {
                 XDocument indexSitemap = GenerateIndexSitemap();
-                _compressedIndexSitemap = CompressDocument(indexSitemap);
+                compressedIndexSitemap = CompressDocument(indexSitemap);
             }
             
-            return _compressedIndexSitemap.Value;
+            return compressedIndexSitemap.Value;
         }
     }
 
-    private readonly List<VoltProject> _projects = new();
+    private readonly List<VoltProject> projects = new();
 
     public SitemapService()
     {
@@ -41,7 +41,7 @@ public class SitemapService
 
     public void AddProjectSitemap(VoltProject project)
     {
-        _projects.Add(project);
+        projects.Add(project);
     }
 
     private XDocument GenerateIndexSitemap()
@@ -53,7 +53,7 @@ public class SitemapService
         XElement baseSitemap = GenerateIndexSitemapElement(xmlns, $"{BaseUrl}/sitemap.xml.gz");
         root.Add(baseSitemap);
 
-        foreach (VoltProject project in _projects)
+        foreach (VoltProject project in projects)
         {
             string fullUrl = $"{BaseUrl}/{project.Name}/sitemap.xml.gz";
             XElement sitemapElement = GenerateIndexSitemapElement(xmlns, fullUrl);
@@ -77,7 +77,7 @@ public class SitemapService
         XNamespace xmlns = "http://www.sitemaps.org/schemas/sitemap/0.9";
         XElement root = new(xmlns + "urlset");
 
-        foreach (string sitePath in _baseSitePaths)
+        foreach (string sitePath in baseSitePaths)
         {
             string fullUrl = $"{BaseUrl}{sitePath}";
             XElement urlElement = new(

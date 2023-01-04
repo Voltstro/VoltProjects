@@ -33,6 +33,28 @@ public class VoltProject
     public string GitPath { get; init; } = Empty;
 
     /// <summary>
+    ///     What git branch to use
+    /// </summary>
+    public string GitBranch { get; init; } = "master";
+
+    /// <summary>
+    ///     Is this git repo a url
+    /// </summary>
+    public bool GitIsUrl => GitPath.StartsWith("https://");
+
+    /// <summary>
+    ///     What docs builder to use
+    /// </summary>
+    public string DocsBuilder { get; init; } = "DocFx";
+    
+    /// <summary>
+    ///     Where are the actual docs located in the git repo
+    /// </summary>
+    public string DocsPath { get; init; } = "docs/";
+
+    public string DocsOutputPath { get; init; } = "docs/_site/";
+
+    /// <summary>
     ///     Path to the icon to use
     ///     <para>From the root of the repo</para>
     /// </summary>

@@ -1,94 +1,62 @@
-using System.Collections.Specialized;
-using System.Diagnostics;
 using System.Reflection;
-using System.Text.Json;
 using Microsoft.Extensions.DependencyModel;
 using VoltProjects.DocsBuilder.Core.Assemblies;
 
 namespace VoltProjects.DocsBuilder.Core;
 
+/// <summary>
+///     Manager for <see cref="IDocsBuilder"/>
+/// </summary>
 public sealed class DocsBuilderManager
 {
-    private const string DocsBuilderConfigFileName = "VoltDocsBuilder.json";
-
-    private readonly List<IDocsBuilder> _docsBuilders;
+    private readonly IDocsBuilder[] docsBuilders;
     
+    /// <summary>
+    ///     Creates a new <see cref="DocsBuilderManager"/> instance
+    /// </summary>
+    /// <param name="dependencyContext">The <see cref="DependencyContext"/> to find <see cref="IDocsBuilder"/> from.</param>
     public DocsBuilderManager(DependencyContext dependencyContext)
     {
-        _docsBuilders = new List<IDocsBuilder>();
+        List<IDocsBuilder> foundBuilders = new();
+        
         AssemblyFinder assemblyFinder = new(dependencyContext);
-        LoadContext loadContext = new LoadContext();
+        LoadContext loadContext = new();
+        
+        //Get all assemblies that have "voltprojects.docsbuilder" in their name
         IEnumerable<AssemblyName> assemblies = assemblyFinder.FindAssembliesContainingName("voltprojects.docsbuilder");
         foreach (AssemblyName assemblyName in assemblies)
         {
+            //Load assembly
             Assembly assembly = loadContext.LoadFromAssemblyName(assemblyName);
-            foreach (Type type in assembly.GetTypes().Where(x => x.IsClass && x.IsPublic))
+            foreach (Type type in assembly.GetTypes().Where(x => x is { IsClass: true, IsPublic: true }))
             {
+                //For each type, check if it is a IDocsBuilder
                 if(!typeof(IDocsBuilder).IsAssignableFrom(type))
                     continue;
 
+                //Create instance
                 if(Activator.CreateInstance(type) is IDocsBuilder docsBuilder)
-                    _docsBuilders.Add(docsBuilder);
+                    foundBuilders.Add(docsBuilder);
             }
         }
+
+        //Create static array
+        docsBuilders = foundBuilders.ToArray();
     }
     
-    public void BuildDocs(string projectPath, string docsPath)
+    /// <summary>
+    ///     Builds docs from a path
+    /// </summary>
+    /// <param name="docsBuilder"></param>
+    /// <param name="docsPath"></param>
+    /// <exception cref="DocsBuilderNotFoundException"></exception>
+    public void BuildDocs(string docsBuilder, string docsPath)
     {
-        string configFilePath = $"{docsPath}/{DocsBuilderConfigFileName}";
-        
-        //Config don't exist
-        if (!File.Exists(configFilePath))
-            throw new FileNotFoundException($"{DocsBuilderConfigFileName} was not found!");
-
-        //Read it
-        DocsBuilderConfig? config = JsonSerializer.Deserialize<DocsBuilderConfig>(File.ReadAllText(configFilePath));
-        if (config == null)
-            throw new JsonException("Fail to read json!");
-
         //Find docs builder
-        string docsType = config.DocsType;
-        IDocsBuilder? builder = _docsBuilders.FirstOrDefault(x => x.Name == docsType);
+        IDocsBuilder? builder = docsBuilders.FirstOrDefault(x => x.Name.Equals(docsBuilder, StringComparison.InvariantCultureIgnoreCase));
         if (builder == null)
-            throw new DocsBuilderNotFoundException();
-        
-        //Run pre-actions
-        foreach (DocsBuilderAction action in config.PreActions)
-        {
-            ProcessStartInfo startInfo = new ProcessStartInfo(action.Program, action.Arguments)
-            {
-                WorkingDirectory = projectPath
-            };
-            
-            //Setup environmental variables
-            StringDictionary environmentalVariables = startInfo.EnvironmentVariables;
-            if(action.EnvironmentalVariables != null)
-                foreach (KeyValuePair<string,string> environmentalVariable in action.EnvironmentalVariables)
-                {
-                    environmentalVariables.Add(environmentalVariable.Key, environmentalVariable.Value);
-                }
-            
-            if(action.EnvironmentalVariablesMapping != null)
-                foreach (KeyValuePair<string,string> environmentalVariable in action.EnvironmentalVariablesMapping)
-                {
-                    environmentalVariables.Add(environmentalVariable.Key, Environment.GetEnvironmentVariable(environmentalVariable.Value));
-                }
-            
-            Process actionProcess = new()
-            {
-                StartInfo = startInfo
-            };
-            
-            actionProcess.Start();
-            actionProcess.WaitForExit();
+            throw new DocsBuilderNotFoundException($"The builder {docsBuilder} was not found!");
 
-            if (actionProcess.ExitCode != 0)
-                throw new Exception("Action process failed to run!");
-            
-            actionProcess.Kill(true);
-            actionProcess.Dispose();
-        }
-        
         //Pass it over to the docs builder
         builder.Build(docsPath);
     }
