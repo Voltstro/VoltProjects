@@ -8,6 +8,7 @@ using Microsoft.Extensions.Hosting;
 using Serilog;
 using VoltProjects.Server.Services.Dev;
 using VoltProjects.Server.Services.DocsBuilder;
+using VoltProjects.Server.Services.DocsServer;
 using VoltProjects.Server.Services.Git;
 using VoltProjects.Server.Services.Robots;
 using VoltProjects.Server.Shared;
@@ -53,6 +54,7 @@ try
     builder.Services.AddSingleton<SitemapService>();
     builder.Services.AddSingleton<DocsBuilderService>();
     builder.Services.AddHostedService<DocsBuilderBackgroundService>();
+    builder.Services.AddSingleton<DocsServerService>();
 
     //Now setup the app
     WebApplication app = builder.Build();

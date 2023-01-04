@@ -4,6 +4,7 @@ using System.IO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
 using VoltProjects.Server.Models;
+using VoltProjects.Server.Services.DocsServer;
 using VoltProjects.Server.Shared;
 
 namespace VoltProjects.Server.Controllers;
@@ -18,11 +19,11 @@ public class MainController : Controller
 {
     //private readonly IndexPageModel _pageModel;
 
-    private IContentTypeProvider typeProvider;
+    private readonly DocsServerService serverService;
     
-    public MainController()
+    public MainController(DocsServerService serverService)
     {
-        typeProvider = new FileExtensionContentTypeProvider();
+        this.serverService = serverService;
     }
     
     [Route("/")]
@@ -40,26 +41,14 @@ public class MainController : Controller
         return View();
     }
 
-    [Route("/{**catchAll}")]
-    public IActionResult Main(string catchAll)
+    [Route("/{project}/{**catchAll}")]
+    public IActionResult Main(string project, string? catchAll)
     {
         Debug.WriteLine(catchAll);
 
-        //TODO: Prober solution for this lol
-        //Find with extension
-        string fullSitePath = Path.Join(AppContext.BaseDirectory, "Sites/", catchAll);
-        
-        if (System.IO.File.Exists(fullSitePath))
-        {
-            string? fileMimeType = null;
-            if (typeProvider.TryGetContentType(fullSitePath, out string? type))
-            {
-                fileMimeType = type;
-            }
-            
-            return Content(System.IO.File.ReadAllText(fullSitePath), fileMimeType);
-        }
-            
+        ContentResult? content = serverService.TryGetProjectFile(project, catchAll);
+        if (content != null)
+            return content;
         
         return NotFound();
     }
