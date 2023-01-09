@@ -17,7 +17,7 @@
   "dependencies": {
     "bootstrap": "^5.2.1",
     "bootstrap-icons": "^1.9.1",
-    "three": "^0.147.0",
+    "three": "^0.148.0",
     "vanta": "^0.5.24"
   }
 }
