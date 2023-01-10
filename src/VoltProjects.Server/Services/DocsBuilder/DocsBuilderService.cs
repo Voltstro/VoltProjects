@@ -92,8 +92,10 @@ public class DocsBuilderService
             throw new DirectoryNotFoundException($"The directory {docsBuiltSitePath} was not found!");
 
         string docsServingSitePath = Path.Combine(sitePath, project.Name);
-        if (!Directory.Exists(docsServingSitePath))
-            Directory.CreateDirectory(docsServingSitePath);
+        if (Directory.Exists(docsServingSitePath))
+            Directory.Delete(docsServingSitePath, true);
+        
+        Directory.CreateDirectory(docsServingSitePath);
         
         IOHelper.CopyDirectory(docsBuiltSitePath, docsServingSitePath, true);
     }
