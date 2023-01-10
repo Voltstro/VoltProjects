@@ -3,7 +3,7 @@ import 'vanta/src/vanta.waves.js'
 
 async function mountWaves() {
     
-    const THREE = await import("three/src/Three.js");
+    const THREE = await import("three");
     
     VANTA.WAVES({
         el: "#hero",
