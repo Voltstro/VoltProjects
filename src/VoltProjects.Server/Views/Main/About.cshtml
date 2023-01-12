@@ -1,22 +1,31 @@
 @{
     ViewBag.Title = "About";
-    ViewBag.Description = "VoltProjects - Information about VoltProjects";
+    ViewBag.Description = "VoltProjects - Information on the Volt Project service";
 }
-<div class="hero container">
-    <div class="hero-content">
-        <h1>About Volt Projects</h1>
-        <div class="lead">
-            <p>Information on what Volt Project is.</p>
+@section BottomJs {
+    <script type="text/javascript" src="~/js/hero.js" defer></script>
+}
+
+<div class="hero" id="hero">
+    <div class="container">
+        <div class="hero-content">
+            <h1>About Volt Projects</h1>
+            <div class="lead">
+                <p>Information on the Volt Project service.</p>
+            </div>
         </div>
     </div>
 </div>
+
 <div class="container">
-    <h2>About</h2>
-    <p>Volt Projects is a site that can build online static documentation of different defined projects, and serve the content built.</p>
+    <h2 class="pt-5">About</h2>
+    <p>Volt Projects is a centeralized service for building and hosting documentation of
+        <a href="http://github.com/Voltstro">Voltstro</a> and <a href="http://github.com/Voltstro-Studios">Voltstro-Studio</a>
+        projects. Instead of having to manually build docs, and host them all on seperate sub-domains, Volt Projects does it all automatically, and does it all in one place.</p>
 
     <h2 class="pt-4">Open-Source</h2>
     <p>Volt Projects is entirely open-source! You can make contributions back, or simply host your own instance for your own projects.</p>
-    <a href="https://github.com/Voltstro/VoltProjects">Source code available on GitHub!</a>
+    <p>You can find the <a href="https://github.com/Voltstro/VoltProjects">source code on GitHub!</a></p>
     
     <h2 class="pt-4">Developers</h2>
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3 align-items-start">
@@ -86,6 +95,7 @@
         </div>
     </div>
     
-    <p>(For a complete list of dependencies, <a href="https://github.com/Voltstro/VoltProjects/network/dependencies">see here</a>)</p>
+    <p class="text-muted">The projects listed here have no assoications with Volt Projects, they are just really cool,
+        and have fancy icons. (For a complete list of dependencies, <a href="https://github.com/Voltstro/VoltProjects/network/dependencies">see here</a>)</p>
     <p>Thank you to my parents and friends as well.</p>
 </div>

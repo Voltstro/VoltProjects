@@ -8,6 +8,7 @@ import { PointLight } from "three/src/lights/PointLight"
 import { Mesh } from "three/src/objects/Mesh"
 import { MeshPhongMaterial } from "three/src/materials/MeshPhongMaterial"
 
+//We doing three like this so we only have what we need
 export { DynamicDrawUsage, 
     WebGLRenderer, BufferGeometry, 
     Scene,

@@ -2,14 +2,18 @@
 @model VoltProjects.Server.Models.IndexPageModel
 @{
     ViewBag.Title = "Home";
-    ViewBag.Description = "VoltProjects - The documentation site for Voltstro related projects";
+    ViewBag.Description = "VoltProjects - The documentation service for Voltstro related projects";
 }
+@section BottomJs {
+    <script type="text/javascript" src="~/js/hero.js" defer></script>
+}
+
 <div class="hero" id="hero">
     <div class="container">
         <div class="hero-content">
             <h1>Volt Projects</h1>
             <div class="lead">
-                <p>The documentation site for Voltstro related projects.</p>
+                <p>The documentation service for Voltstro related projects.</p>
             </div>
         </div>
     </div>
