@@ -1,4 +1,4 @@
-import { defineConfig, UserConfig } from 'vite'
+import {defineConfig, UserConfig } from 'vite'
 import { webfontDownload } from 'vite-plugin-webfont-dl';
 import { resolve } from 'path'
 
@@ -39,6 +39,15 @@ export default defineConfig(({mode}) => {
                 defaults: true,
                 drop_console: true,
                 drop_debugger: true
+            },
+            mangle: {
+                eval: true,
+                keep_classnames: false,
+                keep_fnames: false,
+                module: false,
+                properties: false,
+                safari10: false,
+                toplevel: false,
             },
             ecma: 2020
         };
