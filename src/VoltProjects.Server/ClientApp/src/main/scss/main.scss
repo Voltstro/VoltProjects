@@ -15,6 +15,7 @@ $container-max-widths: (
         xl: 1300px,
         xxl: 1800px
 ) !default;
+$font-family-sans-serif: 'Roboto', sans-serif;
 
 @import "bootstrap/scss/bootstrap.scss";
 @import "header";

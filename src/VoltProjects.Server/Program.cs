@@ -40,10 +40,12 @@ try
     IMvcBuilder mvcBuilder = builder.Services.AddControllersWithViews();
     if (builder.Environment.IsDevelopment())
     {
-        builder.Services.AddLiveReload();
+        //builder.Services.AddLiveReload();
+#if DEBUG
         mvcBuilder.AddRazorRuntimeCompilation();
+#endif
 
-        builder.Services.AddHostedService<ClientAppWatcherService>();
+        //builder.Services.AddHostedService<ClientAppWatcherService>();
     }
 
     //Allows for caching
@@ -65,7 +67,7 @@ try
     else
     {
         app.UseDeveloperExceptionPage();
-        app.UseLiveReload();
+        //app.UseLiveReload();
     }
     
     app.UseStaticFiles();

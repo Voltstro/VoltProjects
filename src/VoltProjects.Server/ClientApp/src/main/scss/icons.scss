@@ -1,7 +1,6 @@
 //Based off bootstrap-icons's scss
 $bootstrap-icons-font: "bootstrap-icons" !default;
-$bootstrap-icons-font-hash: "8d200481aa7f02a2d63a331fc782cfaf" !default;
-$bootstrap-icons-font-src: url("#{$bootstrap-icons-font}.woff2?#{$bootstrap-icons-font-hash}") format("woff2"), url("#{$bootstrap-icons-font}.woff?#{$bootstrap-icons-font-hash}") format("woff") !default;
+$bootstrap-icons-font-src: url("#{$bootstrap-icons-font}.woff2") format("woff2"), url("#{$bootstrap-icons-font}.woff") format("woff") !default;
 
 @font-face {
   font-display: block;

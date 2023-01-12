@@ -19,7 +19,8 @@
 <!-- Links & other stuff -->
 <title>@pageTitle</title>
 <link rel="icon" type="image/x-icon" href="~/favicon.ico"/>
-<link rel="stylesheet" href="~/dist/main.css" />
+<link rel="stylesheet" href="~/assets/main.css" />
+<link rel="stylesheet" href="~/assets/webfonts.css" />
 <body>
 <header>
   <nav class="navbar navbar-expand-md navbar-dark">
@@ -62,8 +63,8 @@
   @RenderBody()
 </main>
 <footer>
-  <div class="container-xxl justify-content-between align-items-center">
-    <span class="col-md-4 d-flex align-items-center">Copyright (c) 2022 Voltstro</span>
+  <div class="container d-flex flex-wrap justify-content-between align-items-center">
+    <span class="col-md-4 align-items-center">Copyright (c) 2022-2023 Voltstro</span>
     <span class="col-md-4 justify-content-end text-end text-muted">
       @(Versioning.Version) - 
       <a class="text-muted text-decoration-none"
@@ -73,7 +74,7 @@
     </span>
   </div>
 </footer>
-<script type="text/javascript" src="~/dist/main.js" defer></script>
-<script type="text/javascript" src="~/dist/hero.js" defer></script>
+<script type="text/javascript" src="~/js/main.js"></script>
+<script type="text/javascript" src="~/js/hero.js" defer></script>
 </body>
 </html>

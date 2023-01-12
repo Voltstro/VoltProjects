@@ -1,22 +1,26 @@
-import {defineConfig, UserConfig} from 'vite'
-import {resolve} from 'path'
+import { defineConfig, UserConfig } from 'vite'
+import { webfontDownload } from 'vite-plugin-webfont-dl';
+import { resolve } from 'path'
 
 export default defineConfig(({mode}) => {
 
     //Base vite config
     let config: UserConfig = {
+        plugins: [webfontDownload(["https://fonts.googleapis.com/css2?family=Roboto:wght@400;900&display=swap"])],
         build: {
             //No minify in dev builds, speeds shit up
             minify: false,
+            emptyOutDir: true,
             rollupOptions: {
                 input: {
                     main: resolve(__dirname, 'src/main/main.ts'),
                     hero: resolve(__dirname, 'src/hero/hero.ts')
                 },
                 output: {
-                    dir: resolve(__dirname, '..', 'wwwroot', 'dist'),
-                    entryFileNames: () => '[name].js',
-                    assetFileNames: () => '[name][extname]',
+                    dir: resolve(__dirname, '..', 'wwwroot'),
+                    entryFileNames: () => 'js/[name].js',
+                    chunkFileNames: () => 'js/[name].[hash].js',
+                    assetFileNames: () => 'assets/[name][extname]',
                     sourcemap: false,
                 }
             }
