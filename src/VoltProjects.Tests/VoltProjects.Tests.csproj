@@ -18,7 +18,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\VoltProjects.DocsBuilder.Core\VoltProjects.DocsBuilder.Core.csproj" />
-      <ProjectReference Include="..\VoltProjects.DocsBuilder.DocFx\VoltProjects.DocsBuilder.DocFx.csproj" />
+      <ProjectReference Include="..\VoltProjects.DocsBuilder.VDocFx\VoltProjects.DocsBuilder.VDocFx.csproj" />
       <ProjectReference Include="..\VoltProjects.Server\VoltProjects.Server.csproj" />
     </ItemGroup>
 

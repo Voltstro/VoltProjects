@@ -31,7 +31,7 @@ public class MainController : Controller
     {
         return View(new IndexPageModel
         {
-            Projects = Array.Empty<VoltProject>()
+            Projects = Array.Empty<Project>()
         });
     }
     
@@ -44,9 +44,13 @@ public class MainController : Controller
     [Route("/{project}/{**catchAll}")]
     public IActionResult Main(string project, string? catchAll)
     {
-        Debug.WriteLine(catchAll);
+        return RedirectToAction("Main", new {project = project, version = "latest", catchAll = catchAll});
+    }
 
-        ContentResult? content = serverService.TryGetProjectFile(project, catchAll);
+    [Route("/{project}/{version}/{**catchAll}")]
+    public IActionResult Main(string project, string version, string? catchAll)
+    {
+        IActionResult? content = serverService.TryGetProjectFile(Request, ViewData, project, version, catchAll);
         if (content != null)
             return content;
         

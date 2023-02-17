@@ -1,3 +1,5 @@
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@using VoltProjects.Server.Models
 @using VoltProjects.Server.Shared
 @model VoltProjects.Server.Models.IndexPageModel
 @{
@@ -23,7 +25,7 @@
     <h4 class="pt-1 text-muted">Listing of all projects documentation that is currently on-hand.</h4>
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3 align-items-start">
         <cache>
-            @foreach (VoltProject project in Model.Projects.Where(x => !x.Hidden))
+            @foreach (Project project in Model.Projects)
             {
                 <div class="col">
                     <div class="card shadow-sm">
@@ -34,11 +36,11 @@
                                     <img alt="Project Icon" src=@($"/{project.Name}/projecticon{System.IO.Path.GetExtension(project.IconPath)}") width="100em"/>
                                 }
 
-                                @if (project.NameShort != null)
+                                @if (project.ShortName != null)
                                 {
                                     <div class="p-2">
                                         <h2 class="d-none d-xl-block">@project.Name</h2>
-                                        <h2 class="d-block d-xl-none">@project.NameShort</h2>
+                                        <h2 class="d-block d-xl-none">@project.ShortName</h2>
                                     </div>
                                 }
                                 else
@@ -49,7 +51,7 @@
                         </a>
                         <div class="btn-group">
                             <a class="btn btn-sm btn-outline-secondary" href="/@project.Name/">View</a>
-                            <a class="btn btn-sm btn-outline-secondary" href="@project.GitPath">Git Repo</a>
+                            <a class="btn btn-sm btn-outline-secondary" href="@project.GitUrl">Git Repo</a>
                         </div>
                     </div>
                 </div>

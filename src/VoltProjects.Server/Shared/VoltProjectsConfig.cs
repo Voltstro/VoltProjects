@@ -13,6 +13,4 @@ public sealed class VoltProjectsConfig
     public int SitesRebuildTimeSeconds { get; set; }
     
     public int SitesServingCacheHeaderTimeSeconds { get; set; } = 60 * 60 * 24 * 15;
-
-    public VoltProject[] Projects { get; set; } = Array.Empty<VoltProject>();
 }

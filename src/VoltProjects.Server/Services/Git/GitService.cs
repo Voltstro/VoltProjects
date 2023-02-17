@@ -27,7 +27,7 @@ public sealed class GitService
     /// <param name="gitUrl"></param>
     /// <param name="gitBranch"></param>
     /// <param name="path"></param>
-    public void PullRepoOrCloneIfDoesntExist(string gitUrl, string gitBranch, string path)
+    public void PullRepoOrCloneIfDoesntExist(string gitUrl, string? gitBranch, string path)
     {
         try
         {
@@ -57,7 +57,7 @@ public sealed class GitService
     /// <param name="gitUrl"></param>
     /// <param name="gitBranch"></param>
     /// <param name="path"></param>
-    private void CloneRepo(string gitUrl, string gitBranch, string path)
+    private void CloneRepo(string gitUrl, string? gitBranch, string path)
     {
         Repository.Clone(gitUrl, path, new CloneOptions
         {
@@ -80,6 +80,19 @@ public sealed class GitService
         return repo.Head.Tip.Sha;
     }
 
+    public string GetRepoLatestTag(string path)
+    {
+        using Repository repo = new(path);
+        if (!repo.Tags.Any())
+            throw new TagException("The repo doesn't have any tags!");
+        
+        Tag? tag = repo.Tags.ElementAt(repo.Tags.Count() - 1);
+        if (tag == null)
+            throw new TagException("Fail to get tag!");
+
+        return tag.CanonicalName;
+    }
+
     /// <summary>
     ///     Sets a repo to it's latest tag
     /// </summary>
@@ -92,6 +105,28 @@ public sealed class GitService
             throw new TagException("The repo doesn't have any tags!");
 
         Tag? tag = repo.Tags.ElementAt(repo.Tags.Count() - 1);
+        if (tag == null)
+            throw new TagException("Fail to get tag!");
+
+        Commands.Checkout(repo, tag.Target.Sha, new CheckoutOptions
+        {
+            OnCheckoutProgress = OnCheckoutLog
+        });
+    }
+
+    /// <summary>
+    ///     Sets a repo to a specific tag
+    /// </summary>
+    /// <param name="path"></param>
+    /// <param name="gitTag"></param>
+    /// <exception cref="TagException"></exception>
+    public void SetRepoToTag(string path, string gitTag)
+    {
+        using Repository repo = new(path);
+        if (!repo.Tags.Any())
+            throw new TagException("The repo doesn't have any tags!");
+
+        Tag? tag = repo.Tags.SingleOrDefault(x => x.CanonicalName == gitTag);
         if (tag == null)
             throw new TagException("Fail to get tag!");
 

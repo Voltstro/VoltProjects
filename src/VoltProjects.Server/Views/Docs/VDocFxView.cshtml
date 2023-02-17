@@ -1,0 +1,9 @@
+@model VoltProjects.Server.Models.View.VDocFxViewModel
+@{
+    ViewBag.Title = Model.Tile ?? "Doc";
+}
+
+<div class="container">
+    @Html.Raw(Model.RawTitle)
+    @Html.Raw(Model.Content)
+</div>

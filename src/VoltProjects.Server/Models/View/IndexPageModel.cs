@@ -8,5 +8,5 @@ namespace VoltProjects.Server.Models;
 /// </summary>
 public class IndexPageModel
 {
-    public VoltProject[] Projects { get; init; } = Array.Empty<VoltProject>();
+    public Project[] Projects { get; init; } = Array.Empty<Project>();
 }

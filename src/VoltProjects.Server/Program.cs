@@ -3,16 +3,18 @@ using System.Diagnostics;
 using Figgle;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
-using VoltProjects.Server.Services.Dev;
+using VoltProjects.Server.Services;
 using VoltProjects.Server.Services.DocsBuilder;
 using VoltProjects.Server.Services.DocsServer;
+using VoltProjects.Server.Services.DocsView;
 using VoltProjects.Server.Services.Git;
 using VoltProjects.Server.Services.Robots;
 using VoltProjects.Server.Shared;
-using Westwind.AspNetCore.LiveReload;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder();
 
@@ -34,49 +36,50 @@ try
     //Setup services
     builder.Services.Configure<VoltProjectsConfig>(
         builder.Configuration.GetSection(VoltProjectsConfig.VoltProjects));
-    builder.Services.AddSitemapService();
-    
+
     //Support razor pages runtime compilation for hot reloading
     IMvcBuilder mvcBuilder = builder.Services.AddControllersWithViews();
-    if (builder.Environment.IsDevelopment())
-    {
-        //builder.Services.AddLiveReload();
-#if DEBUG
-        mvcBuilder.AddRazorRuntimeCompilation();
-#endif
-
-        //builder.Services.AddHostedService<ClientAppWatcherService>();
-    }
+    mvcBuilder.AddRazorRuntimeCompilation();
 
     //Allows for caching
     builder.Services.AddResponseCaching();
     
+    //Db
+    if (builder.Environment.IsDevelopment())
+        builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+    
+    builder.Services.AddDbContextFactory<VoltProjectsDbContext>(options =>
+        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    builder.Services.AddDbContext<VoltProjectsDbContext>(options => 
+        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
     //VoltProject's services
+    builder.Services.AddSitemapService();
     builder.Services.AddSingleton<GitService>();
     builder.Services.AddSingleton<SitemapService>();
     builder.Services.AddSingleton<DocsBuilderService>();
     builder.Services.AddHostedService<DocsBuilderBackgroundService>();
+    builder.Services.AddSingleton<DocsViewService>();
     builder.Services.AddSingleton<DocsServerService>();
 
     //Now setup the app
     WebApplication app = builder.Build();
     
+    //Db init
+    VoltProjectsDbContext.Initialize(app.Services);
+    
     //Some configuration will change depending on the environment
     if (!app.Environment.IsDevelopment())
         app.UseHsts();
     else
-    {
         app.UseDeveloperExceptionPage();
-        //app.UseLiveReload();
-    }
-    
+
     app.UseStaticFiles();
     app.UseStatusCodePagesWithReExecute("/Eroor/{0}");
     app.UseSitemapMiddleware();
     app.UseResponseCaching();
-    app.UseRouting();
 
-    //Setup our views/controllers
+    app.UseRouting();
     app.MapControllers();
 
     Log.Information("Configuration done! Starting...");

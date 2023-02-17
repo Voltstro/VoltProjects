@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Xml.Linq;
+using VoltProjects.Server.Models;
 using VoltProjects.Server.Shared;
 
 namespace VoltProjects.Server.Services.Robots;
@@ -31,7 +32,7 @@ public sealed class SitemapService
         }
     }
 
-    private readonly List<VoltProject> projects = new();
+    private readonly List<Project> projects = new();
 
     public SitemapService()
     {
@@ -39,7 +40,7 @@ public sealed class SitemapService
         CompressedBaseSitemap = CompressDocument(baseSitemap);
     }
 
-    public void AddProjectSitemap(VoltProject project)
+    public void AddProjectSitemap(Project project)
     {
         projects.Add(project);
     }
@@ -53,7 +54,7 @@ public sealed class SitemapService
         XElement baseSitemap = GenerateIndexSitemapElement(xmlns, $"{BaseUrl}/sitemap.xml.gz");
         root.Add(baseSitemap);
 
-        foreach (VoltProject project in projects)
+        foreach (Project project in projects)
         {
             string fullUrl = $"{BaseUrl}/{project.Name}/sitemap.xml.gz";
             XElement sitemapElement = GenerateIndexSitemapElement(xmlns, fullUrl);

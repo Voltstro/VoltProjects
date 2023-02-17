@@ -4,7 +4,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VoltProjects.Server", "Volt
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VoltProjects.DocsBuilder.Core", "VoltProjects.DocsBuilder.Core\VoltProjects.DocsBuilder.Core.csproj", "{01E41114-FCA5-427B-8ACF-17540F33E509}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VoltProjects.DocsBuilder.DocFx", "VoltProjects.DocsBuilder.DocFx\VoltProjects.DocsBuilder.DocFx.csproj", "{4009BFD4-402E-433B-8327-9CFC1EC8C3C4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VoltProjects.DocsBuilder.VDocFx", "VoltProjects.DocsBuilder.VDocFx\VoltProjects.DocsBuilder.VDocFx.csproj", "{4009BFD4-402E-433B-8327-9CFC1EC8C3C4}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DocsBuilder", "DocsBuilder", "{ADF9D636-E4DD-4BEF-8A11-D5C159E0D26F}"
 EndProject

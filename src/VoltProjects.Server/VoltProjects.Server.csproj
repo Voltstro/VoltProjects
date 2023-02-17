@@ -10,19 +10,25 @@
     <ItemGroup>
       <PackageReference Include="Figgle" Version="0.5.1" />
       <PackageReference Include="LibGit2Sharp" Version="0.27.0-preview-0182" />
-      <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="7.0.1" Condition="'$(Configuration)'=='Debug'" />
+      <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="7.0.2" />
+      <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="7.0.2" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.2" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.2">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
       <PackageReference Include="Nerdbank.GitVersioning" Version="3.5.119">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
+      <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.1" />
       <PackageReference Include="Serilog.AspNetCore" Version="6.1.0" />
       <PackageReference Include="Serilog.Enrichers.Thread" Version="3.1.0" />
-      <PackageReference Include="Westwind.AspNetCore.LiveReload" Version="0.4.0" />
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\VoltProjects.DocsBuilder.Core\VoltProjects.DocsBuilder.Core.csproj" />
-        <ProjectReference Include="..\VoltProjects.DocsBuilder.DocFx\VoltProjects.DocsBuilder.DocFx.csproj" />
+        <ProjectReference Include="..\VoltProjects.DocsBuilder.VDocFx\VoltProjects.DocsBuilder.VDocFx.csproj" />
     </ItemGroup>
     
     <!-- Some files we don't want to include -->
@@ -31,6 +37,9 @@
         <Content Remove="$(ClientApp)**" />
         <None Remove="$(ClientApp)**" />
         <None Include="$(ClientApp)**" Exclude="$(ClientApp)node_modules/**" />
+    </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Migrations" />
     </ItemGroup>
     
     <Target Name="YarnSetup" BeforeTargets="Build" Condition="!Exists('$(ClientApp)node_modules')" AfterTargets="">
