@@ -17,7 +17,7 @@ export default defineConfig(({mode}) => {
                     hero: resolve(__dirname, 'src/hero/hero.ts')
                 },
                 output: {
-                    dir: resolve(__dirname, '..', 'wwwroot'),
+                    dir: resolve(__dirname, '..', 'VoltProjects.Server', 'wwwroot'),
                     entryFileNames: () => 'js/[name].js',
                     chunkFileNames: () => 'js/[name].[hash].js',
                     assetFileNames: () => 'assets/[name][extname]',
