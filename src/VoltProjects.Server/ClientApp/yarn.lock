@@ -258,7 +258,6 @@ commander@^2.20.0:
   resolved "https://registry.yarnpkg.com/commander/-/commander-2.20.3.tgz#fd485e84c03eb4881c20722ba48035e8531aeb33"
   integrity sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==
 
-<<<<<<< HEAD
 concat-map@0.0.1:
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/concat-map/-/concat-map-0.0.1.tgz#d8a96bd77fd68df7793a73036a3ba0d5405d477b"
@@ -269,16 +268,10 @@ delayed-stream@~1.0.0:
   resolved "https://registry.yarnpkg.com/delayed-stream/-/delayed-stream-1.0.0.tgz#df3ae199acadfb7d440aaae0b29e2272b24ec619"
   integrity sha512-ZySD7Nf91aLB0RxL4KGrKHBXl7Eds1DAmEdcoVawXnLD7SDhpNgtuII2aAkg7a7QS41jxPSZ17p4VdGnMHk3MQ==
 
-esbuild@^0.16.3:
-  version "0.16.13"
-  resolved "https://registry.yarnpkg.com/esbuild/-/esbuild-0.16.13.tgz#83cd347c28221268bbfa0425db532d7d05f85b48"
-  integrity sha512-oYwFdSEIoKM1oYzyem1osgKJAvg5447XF+05ava21fOtilyb2HeQQh26/74K4WeAk5dZmj/Mx10zUqUnI14jhA==
-=======
 esbuild@^0.16.14:
   version "0.16.17"
   resolved "https://registry.yarnpkg.com/esbuild/-/esbuild-0.16.17.tgz#fc2c3914c57ee750635fee71b89f615f25065259"
   integrity sha512-G8LEkV0XzDMNwXKgM0Jwu3nY3lSTwSGY6XbxM9cr9+s0T/qSV1q1JVPBGzm3dcjhCic9+emZDmMffkwgPeOeLg==
->>>>>>> origin/dependabot/npm_and_yarn/src/VoltProjects.Server/ClientApp/vite-4.1.1
   optionalDependencies:
     "@esbuild/android-arm" "0.16.17"
     "@esbuild/android-arm64" "0.16.17"
@@ -513,7 +506,6 @@ resolve@^1.22.1:
     path-parse "^1.0.7"
     supports-preserve-symlinks-flag "^1.0.0"
 
-<<<<<<< HEAD
 rimraf@^3.0.2:
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/rimraf/-/rimraf-3.0.2.tgz#f1a5402ba6220ad52cc1282bac1ae3aa49fd061a"
@@ -521,23 +513,17 @@ rimraf@^3.0.2:
   dependencies:
     glob "^7.1.3"
 
-rollup@^3.7.0:
-  version "3.9.1"
-  resolved "https://registry.yarnpkg.com/rollup/-/rollup-3.9.1.tgz#27501d3d026418765fe379d5620d25954ff2a011"
-  integrity sha512-GswCYHXftN8ZKGVgQhTFUJB/NBXxrRGgO2NCy6E8s1rwEJ4Q9/VttNqcYfEvx4dTo4j58YqdC3OVztPzlKSX8w==
-=======
 rollup@^3.10.0:
   version "3.14.0"
   resolved "https://registry.yarnpkg.com/rollup/-/rollup-3.14.0.tgz#f5925255f3b6e8de1dba3916d7619c7da5708d95"
   integrity sha512-o23sdgCLcLSe3zIplT9nQ1+r97okuaiR+vmAPZPTDYB7/f3tgWIYNyiQveMsZwshBT0is4eGax/HH83Q7CG+/Q==
->>>>>>> origin/dependabot/npm_and_yarn/src/VoltProjects.Server/ClientApp/vite-4.1.1
   optionalDependencies:
     fsevents "~2.3.2"
 
-sass@^1.55.0:
-  version "1.57.1"
-  resolved "https://registry.yarnpkg.com/sass/-/sass-1.57.1.tgz#dfafd46eb3ab94817145e8825208ecf7281119b5"
-  integrity sha512-O2+LwLS79op7GI0xZ8fqzF7X2m/m8WFfI02dHOdsK5R2ECeS5F62zrwg/relM1rjSLy7Vd/DiMNIvPrQGsA0jw==
+sass@^1.58.0:
+  version "1.58.0"
+  resolved "https://registry.yarnpkg.com/sass/-/sass-1.58.0.tgz#ee8aea3ad5ea5c485c26b3096e2df6087d0bb1cc"
+  integrity sha512-PiMJcP33DdKtZ/1jSjjqVIKihoDc6yWmYr9K/4r3fVVIEDAluD0q7XZiRKrNJcPK3qkLRF/79DND1H5q1LBjgg==
   dependencies:
     chokidar ">=3.0.0 <4.0.0"
     immutable "^4.0.0"
