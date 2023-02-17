@@ -1,4 +1,4 @@
-namespace VoltProjects.DocsBuilder.Core;
+namespace VoltProjects.Server.Services.DocsBuilder;
 
 /// <summary>
 ///     base interface for a docs builder

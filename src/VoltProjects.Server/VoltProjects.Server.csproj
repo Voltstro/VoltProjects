@@ -25,11 +25,6 @@
       <PackageReference Include="Serilog.AspNetCore" Version="6.1.0" />
       <PackageReference Include="Serilog.Enrichers.Thread" Version="3.1.0" />
     </ItemGroup>
-
-    <ItemGroup>
-        <ProjectReference Include="..\VoltProjects.DocsBuilder.Core\VoltProjects.DocsBuilder.Core.csproj" />
-        <ProjectReference Include="..\VoltProjects.DocsBuilder.VDocFx\VoltProjects.DocsBuilder.VDocFx.csproj" />
-    </ItemGroup>
     
     <!-- Some files we don't want to include -->
     <ItemGroup>

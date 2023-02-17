@@ -1,7 +1,8 @@
+using System;
 using System.Diagnostics;
-using VoltProjects.DocsBuilder.Core;
+using System.IO;
 
-namespace VoltProjects.DocsBuilder.DocFx;
+namespace VoltProjects.Server.Services.DocsBuilder.VDocFx;
 
 /// <summary>
 ///     Custom DocFX builder for VoltProject

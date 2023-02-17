@@ -1,4 +1,6 @@
-namespace VoltProjects.DocsBuilder.Core;
+using System;
+
+namespace VoltProjects.Server.Services.DocsBuilder;
 
 /// <summary>
 ///     <see cref="Exception"/> for when a docs builder was not found

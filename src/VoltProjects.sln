@@ -2,19 +2,11 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VoltProjects.Server", "VoltProjects.Server\VoltProjects.Server.csproj", "{267760BE-AE59-4404-8D78-5673A000CB9C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VoltProjects.DocsBuilder.Core", "VoltProjects.DocsBuilder.Core\VoltProjects.DocsBuilder.Core.csproj", "{01E41114-FCA5-427B-8ACF-17540F33E509}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VoltProjects.DocsBuilder.VDocFx", "VoltProjects.DocsBuilder.VDocFx\VoltProjects.DocsBuilder.VDocFx.csproj", "{4009BFD4-402E-433B-8327-9CFC1EC8C3C4}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DocsBuilder", "DocsBuilder", "{ADF9D636-E4DD-4BEF-8A11-D5C159E0D26F}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Properties", "Properties", "{73218599-D804-4CD5-8CD3-BF36BA63A0DC}"
 	ProjectSection(SolutionItems) = preProject
 		Directory.Build.props = Directory.Build.props
 		version.json = version.json
 	EndProjectSection
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VoltProjects.Tests", "VoltProjects.Tests\VoltProjects.Tests.csproj", "{E3988C6F-1849-48FF-840B-18AA6337AE29}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,21 +18,7 @@ Global
 		{267760BE-AE59-4404-8D78-5673A000CB9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{267760BE-AE59-4404-8D78-5673A000CB9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{267760BE-AE59-4404-8D78-5673A000CB9C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{01E41114-FCA5-427B-8ACF-17540F33E509}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{01E41114-FCA5-427B-8ACF-17540F33E509}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{01E41114-FCA5-427B-8ACF-17540F33E509}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{01E41114-FCA5-427B-8ACF-17540F33E509}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4009BFD4-402E-433B-8327-9CFC1EC8C3C4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4009BFD4-402E-433B-8327-9CFC1EC8C3C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4009BFD4-402E-433B-8327-9CFC1EC8C3C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4009BFD4-402E-433B-8327-9CFC1EC8C3C4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E3988C6F-1849-48FF-840B-18AA6337AE29}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E3988C6F-1849-48FF-840B-18AA6337AE29}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E3988C6F-1849-48FF-840B-18AA6337AE29}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E3988C6F-1849-48FF-840B-18AA6337AE29}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{01E41114-FCA5-427B-8ACF-17540F33E509} = {ADF9D636-E4DD-4BEF-8A11-D5C159E0D26F}
-		{4009BFD4-402E-433B-8327-9CFC1EC8C3C4} = {ADF9D636-E4DD-4BEF-8A11-D5C159E0D26F}
 	EndGlobalSection
 EndGlobal

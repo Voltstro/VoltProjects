@@ -4,10 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyModel;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using VoltProjects.DocsBuilder.Core;
 using VoltProjects.Server.Models;
 using VoltProjects.Server.Services.Git;
 using VoltProjects.Server.Services.Robots;
@@ -39,7 +37,7 @@ public class DocsBuilderService
         this.dbContext = dbContext;
         this.sitemapService = sitemapService;
         this.git = git;
-        docsBuilderManager = new DocsBuilderManager(DependencyContext.Default);
+        docsBuilderManager = new DocsBuilderManager();
     }
 
     public void UpdateOrBuildAllProjects(string workPath, string sitePath)
