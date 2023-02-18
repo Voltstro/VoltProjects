@@ -1,5 +1,6 @@
 import { defineConfig, UserConfig } from 'vite';
 import { webfontDownload } from 'vite-plugin-webfont-dl';
+import cssnano from 'cssnano';
 import { resolve } from 'path';
 
 export default defineConfig(({ mode }) => {
@@ -23,6 +24,11 @@ export default defineConfig(({ mode }) => {
 					assetFileNames: () => 'assets/[name][extname]',
 					sourcemap: false,
 				}
+			}
+		},
+		css: {
+			postcss: {
+				plugins: [cssnano()],
 			}
 		}
 	};
