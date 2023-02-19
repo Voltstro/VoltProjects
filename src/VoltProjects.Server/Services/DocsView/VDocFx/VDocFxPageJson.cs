@@ -23,6 +23,15 @@ public struct Metadata
     [JsonPropertyName("wordCount")]
     public int? WordCount { get; init; }
     
+    [JsonPropertyName("page_type")]
+    public string? PageType { get; init; }
+    
+    [JsonPropertyName("layout")]
+    public string Layout { get; init; }
+    
+    [JsonPropertyName("original_content_git_url")]
+    public string? GitUrl { get; init; }
+    
     //[JsonPropertyName("updated_at")]
     //public DateTime? UpdatedAt { get; init; }
 }

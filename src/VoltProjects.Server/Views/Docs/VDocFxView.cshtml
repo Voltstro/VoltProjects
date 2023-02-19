@@ -3,7 +3,45 @@
     ViewBag.Title = Model.Tile ?? "Doc";
 }
 
-<div class="container">
-    @Html.Raw(Model.RawTitle)
-    @Html.Raw(Model.Content)
+@section TopInclude
+{
+    <link rel="stylesheet" href="~/assets/docfx.css" />
+}
+
+@section BottomJs 
+{
+    <script type="text/javascript" src="~/js/docfx.js"></script>
+}
+
+<div class="container layout-@Model.Layout page-type-@Model.PageType">
+    @if (Model.Layout == "conceptual")
+    {
+        <nav class="layout-toc">
+            <div class="sticky-top navbar navbar-expand-lg navbar-light">
+                <a class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#toc-pannel" aria-controls="toc-pannel" aria-expanded="false">
+                    Table of Contents
+                </a>
+                <div class="collapse navbar-collapse" id="toc-pannel">
+                    <div>
+                        <input class="form-control" type="text" id="toc-filter" placeholder="Filter">
+                        <div class="toc" id="toc"></div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    }
+    <article>
+        @Html.Raw(Model.RawTitle)
+        @Html.Raw(Model.Content)
+    </article>
+
+    <aside>
+        <div class="sticky-top">
+            @if (Model.Layout != "reference" && Model.GitUrl != null)
+            {
+                <a class="nav edit-this-page" href="@Model.GitUrl">Improve this Doc</a>
+            }
+            <nav id="in-this-article" class="in-this-article"></nav>
+        </div>
+    </aside>
 </div>

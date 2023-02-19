@@ -29,6 +29,16 @@ public class VDocFxView : IDocView
         if (pageJson == null)
             return null;
 
+        string layout = pageJson.Metadata.Layout.ToLower();
+        string? pageType = pageJson.Metadata.PageType;
+        if (pageType == null)
+            pageType = layout;
+        if (pageType == "dotnet")
+        {
+            pageType = "reference";
+            layout = "conceptual";
+        }
+
         ViewResult view = new()
         {
             ViewName = "~/Views/Docs/VDocFxView.cshtml",
@@ -38,7 +48,10 @@ public class VDocFxView : IDocView
                 {
                     Tile = pageJson.Metadata.Title,
                     RawTitle = pageJson.Metadata.RawTitle,
-                    Content = pageJson.Content
+                    Content = pageJson.Content,
+                    Layout = layout,
+                    PageType = pageType,
+                    GitUrl = pageJson.Metadata.GitUrl
                 }
             }
         };

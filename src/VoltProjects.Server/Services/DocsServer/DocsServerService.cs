@@ -45,7 +45,10 @@ public sealed class DocsServerService
 
         ProjectVersion? projectVersion = context.ProjectVersions.SingleOrDefault(x => x.ProjectId == project.Id && x.VersionTag == version);
         if (projectVersion == null)
-            return new RedirectToRouteResult("", new { project = project, version = "latest", catchAll = path});
+        {
+            string redirectPath = $"/{Path.Combine(projectName, "latest", version, path ?? string.Empty)}/";
+            return new RedirectResult(redirectPath);
+        }
 
         //No path, or file? Assume index.html
         string? preFuckedPath = path;

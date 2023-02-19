@@ -15,7 +15,8 @@ export default defineConfig(({ mode }) => {
 			rollupOptions: {
 				input: {
 					main: resolve(__dirname, 'src/main/main.ts'),
-					hero: resolve(__dirname, 'src/hero/hero.ts')
+					hero: resolve(__dirname, 'src/hero/hero.ts'),
+					docfx: resolve(__dirname, 'src/docfx/docfx.ts'),
 				},
 				output: {
 					dir: resolve(__dirname, '..', 'VoltProjects.Server', 'wwwroot'),

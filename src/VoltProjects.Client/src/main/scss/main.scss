@@ -16,6 +16,9 @@ $container-max-widths: (
         xxl: 1800px
 ) !default;
 $font-family-sans-serif: 'Roboto', sans-serif;
+$primary: #2d74b2 !default;
+$link-decoration: none !default;
+$link-hover-decoration: underline !default;
 
 @import "bootstrap/scss/bootstrap.scss";
 @import "header";
@@ -33,10 +36,6 @@ $font-family-sans-serif: 'Roboto', sans-serif;
 
   --detail-second-color-bg: #252526;
 }
-
-$primary: #2d74b2 !default;
-$link-decoration: none !default;
-$link-hover-decoration: underline !default;
 
 body {
   min-height: 100vh;
