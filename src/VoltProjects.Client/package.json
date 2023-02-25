@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "devDependencies": {
+    "@types/bootstrap": "^5.2.6",
     "@types/node": "^18.7.18",
     "@typescript-eslint/eslint-plugin": "^5.52.0",
     "@typescript-eslint/parser": "^5.52.0",
@@ -26,6 +27,7 @@
     "bootstrap": "^5.2.1",
     "bootstrap-icons": "^1.9.1",
     "highlight.js": "^11.7.0",
+    "jsx-dom": "^8.0.5",
     "three": "^0.149.0",
     "vanta": "^0.5.24"
   }

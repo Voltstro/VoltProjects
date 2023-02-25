@@ -72,7 +72,7 @@ public sealed class DocsServerService
         //View service might be able to serve this
         if (Path.GetExtension(fullPath) == ".html")
         {
-            ViewResult? viewResult = docsViewService.GetViewFromDocsView(projectVersion.DocViewId, viewData, fileProvider, sitePath, path);
+            ViewResult? viewResult = docsViewService.GetViewFromDocsView(projectVersion.DocViewId, viewData, fileProvider, sitePath, path, projectName);
             if (viewResult != null)
                 return viewResult;
         }

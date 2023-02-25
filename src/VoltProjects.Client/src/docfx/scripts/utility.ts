@@ -4,3 +4,7 @@
 export function meta(name: string): string {
 	return (document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement)?.content;
 }
+
+export function isVisible(element: Element): boolean {
+	return (element as HTMLElement).offsetParent != null;
+}

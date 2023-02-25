@@ -9,14 +9,14 @@ $grid-breakpoints: (
         xxl: 1900px
 ) !default;
 $container-max-widths: (
-        sm: 540px,
-        md: 720px,
-        lg: 960px,
-        xl: 1300px,
+        sm: 580px,
+        md: 760px,
+        lg: 1150px,
+        xl: 1400px,
         xxl: 1800px
 ) !default;
 $font-family-sans-serif: 'Roboto', sans-serif;
-$primary: #2d74b2 !default;
+$primary: #164268 !default;
 $link-decoration: none !default;
 $link-hover-decoration: underline !default;
 
@@ -102,4 +102,14 @@ body {
   height: 64px;
   background-size:cover;
   background-position:center center;
+}
+
+.offcanvas {
+  background-color: $primary;
+  color: white;
+
+  .offcanvas-body .dropdown .navbar-brand {
+    font-size: 1.25em;
+    padding-top: 1em;
+  }
 }

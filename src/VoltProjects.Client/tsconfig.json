@@ -12,6 +12,10 @@
       "noUnusedLocals": false,
       "noUnusedParameters": true,
       "noImplicitReturns": true,
+      "jsx": "react",
+      "types": [
+        "bootstrap"
+      ]
     },
     "include": ["./src"]
   }

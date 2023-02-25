@@ -24,40 +24,25 @@
 @await RenderSectionAsync("TopInclude", false)
 <body>
 <header>
-  <nav class="navbar navbar-expand-md navbar-dark">
-    <div class="container">
-      <a class="navbar-brand" asp-controller="Main" asp-action="Index">Volt Projects</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbar">
-        <ul class="navbar-nav me-auto">
-          <li>
-            <a class="nav-link @Html.ActiveClass("Main", "About")" asp-controller="Main" asp-action="About">About</a>
-          </li>
-        </ul>
-        <ul class="navbar-nav">
-          <li>
-            <a class="nav-link" href="https://github.com/Voltstro/VoltProjects">
-              <span class="bi bi-github"></span>
-              <span class="d-md-none">GitHub</span>
-            </a>
-          </li>
-          <li>
-            <a class="nav-link" href="https://twitter.com/Voltstro">
-              <span class="bi bi-twitter"></span>
-              <span class="d-md-none">Twitter</span>
-            </a>
-          </li>
-          <li>
-            <a class="nav-link" href="https://discord.voltstro.dev">
-              <span class="bi bi-discord"></span>
-              <span class="d-md-none">Discord</span>
-            </a>
-          </li>
-        </ul>
+  <nav>
+    <div class="navbar navbar-dark navbar-expand-md">
+      <div class="container">
+        <a class="navbar-brand" asp-controller="Main" asp-action="Index">Volt Projects</a>
+        <button class="navbar-toggler" type="button" id="navbarToggle" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbar" data-merge-nav="true">
+          <ul class="navbar-nav">
+            <li>
+              <a class="nav-link @Html.ActiveClass("Main", "About")" asp-controller="Main" asp-action="About">About</a>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
+    
+    @await RenderSectionAsync("NavbarSecond", false)
+
   </nav>
 </header>
 <main>
@@ -75,7 +60,7 @@
     </span>
   </div>
 </footer>
-<script type="text/javascript" src="~/js/main.js"></script>
+<script type="module" src="~/js/main.js"></script>
 @await RenderSectionAsync("BottomJs", false)
 </body>
 </html>
