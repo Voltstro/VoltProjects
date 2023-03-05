@@ -63,10 +63,9 @@ public class VDocFxView : IDocView
             IFileInfo menuToc = fileProvider.GetFileInfo(Path.Combine(sitePath, filePath, pageJson.Metadata.TocRel));
             if (menuToc.Exists)
             {
-                List<VDocFxViewModel.TocItem> tocItemsBuilder = new();
                 VDocFxTocJson tocJsonObj =
                     JsonSerializer.Deserialize<VDocFxTocJson>(File.ReadAllText(menuToc.PhysicalPath));
-                tocItem = BuildItem(tocJsonObj, sitePath, filePath);
+                tocItem = BuildItem(tocJsonObj, sitePath, Path.GetDirectoryName(filePath));
             }
         }
 
@@ -93,7 +92,7 @@ public class VDocFxView : IDocView
         return view;
     }
 
-    private VDocFxViewModel.TocItem BuildItem(VDocFxTocJson tocJson, string sitePath, string filePath)
+    private VDocFxViewModel.TocItem BuildItem(VDocFxTocJson tocJson, string sitePath, string basePath)
     {
         VDocFxViewModel.TocItem[]? children = null;
         if (tocJson.Items != null)
@@ -101,13 +100,16 @@ public class VDocFxView : IDocView
             children = new VDocFxViewModel.TocItem[tocJson.Items.Length];
             for (int i = 0; i < tocJson.Items.Length; i++)
             {
-                children[i] = BuildItem(tocJson.Items[i], sitePath, filePath);
+                children[i] = BuildItem(tocJson.Items[i], sitePath, basePath);
             }
         }
 
         string? href = tocJson.Href;
         if (href != null)
-            href = $"/{Path.Combine(sitePath, Directory.GetDirectoryRoot(filePath), tocJson.Href)}";
+        {
+            if (!href.StartsWith("/"))
+                href = $"/{Path.Combine(sitePath, basePath, href)}";
+        }
 
         return new VDocFxViewModel.TocItem(tocJson.Name, href, false, children);
     }

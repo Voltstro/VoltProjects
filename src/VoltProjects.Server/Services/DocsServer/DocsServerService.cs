@@ -46,7 +46,7 @@ public sealed class DocsServerService
         ProjectVersion? projectVersion = context.ProjectVersions.SingleOrDefault(x => x.ProjectId == project.Id && x.VersionTag == version);
         if (projectVersion == null)
         {
-            string redirectPath = $"/{Path.Combine(projectName, "latest", version, path ?? string.Empty)}/";
+            string redirectPath = $"/{Path.Combine(projectName, "latest", version, path ?? string.Empty)}";
             return new RedirectResult(redirectPath);
         }
 

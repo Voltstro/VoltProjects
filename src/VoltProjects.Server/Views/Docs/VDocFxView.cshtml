@@ -54,22 +54,22 @@
 @section NavbarSecond
 {
     <div class="navbar navbar-dark navbar-expand-md d-sm-none d-md-flex border-top border-secondary">
-       <div class="container">
-                 <div class="collapse navbar-collapse" data-merge-nav="true">
-                   <a class="navbar-brand" href="@Model.ProjectBasePath">@Model.ProjectName</a>
-                     <ul class="navbar-nav me-auto">
-                         @if (Model.MenuItems != null)
-                         {
-                             foreach (VDocFxViewModel.MenuItem menuItem in Model.MenuItems)
-                             {
-                                 <li>
-                                     <a class="nav-link" href="@menuItem.Href">@menuItem.Name</a>
-                                 </li>
-                             }
-                         }
-                     </ul>
-                 </div>
-               </div>
+        <div class="container">
+            <div class="collapse navbar-collapse" data-merge-nav="true">
+                <a class="navbar-brand" href="@Model.ProjectBasePath">@Model.ProjectName</a>
+                <ul class="navbar-nav me-auto">
+                @if (Model.MenuItems != null)
+                {
+                    foreach (VDocFxViewModel.MenuItem menuItem in Model.MenuItems)
+                    {
+                        <li>
+                            <a class="nav-link" href="@menuItem.Href">@menuItem.Name</a>
+                        </li>
+                    }
+                }
+                </ul>
+            </div>
+        </div>
     </div>
 }
 
@@ -102,9 +102,13 @@
 
     <aside>
         <div class="sticky-top">
-            @if (Model is { Layout: "conceptual",GitUrl: { } })
+            @if (Model is { PageType: "conceptual",GitUrl: { } })
             {
                 <a class="nav edit-this-page" href="@Model.GitUrl">Improve this Doc</a>
+                
+            }
+            @if (Model.Layout == "conceptual")
+            {
                 <nav id="in-this-article" class="in-this-article"></nav>
             }
         </div>
