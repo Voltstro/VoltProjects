@@ -11,6 +11,9 @@ export interface NavItem {
 
 export function renderAside(): void {
 	const inThisArticle = document.getElementById('in-this-article');
+	if(!inThisArticle)
+		return;
+
 	const sections = Array.from(document.querySelectorAll('article h2'))
 		.filter(e => isVisible(e))
 		.map(item => ({ name: item.textContent, href: '#' + item.id }));

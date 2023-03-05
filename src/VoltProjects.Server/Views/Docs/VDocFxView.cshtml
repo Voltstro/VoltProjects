@@ -102,11 +102,11 @@
 
     <aside>
         <div class="sticky-top">
-            @if (Model.Layout != "reference" && Model.GitUrl != null)
+            @if (Model is { Layout: "conceptual",GitUrl: { } })
             {
                 <a class="nav edit-this-page" href="@Model.GitUrl">Improve this Doc</a>
+                <nav id="in-this-article" class="in-this-article"></nav>
             }
-            <nav id="in-this-article" class="in-this-article"></nav>
         </div>
     </aside>
 </div>
