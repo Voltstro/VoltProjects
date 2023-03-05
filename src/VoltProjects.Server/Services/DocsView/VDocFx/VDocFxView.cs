@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
@@ -43,7 +44,7 @@ public class VDocFxView : IDocView
 
         //Menu
         VDocFxViewModel.MenuItem[]? menuItems = null;
-        IFileInfo menuJson = fileProvider.GetFileInfo(Path.Join(sitePath, "menu.json"));
+        IFileInfo menuJson = fileProvider.GetFileInfo(Path.Combine(sitePath, "menu.json"));
         if (menuJson.Exists)
         {
             VDocfxMenuJson menuJsonObj =
@@ -55,6 +56,20 @@ public class VDocFxView : IDocView
             }
         }
         
+        //Toc
+        VDocFxViewModel.TocItem? tocItem = null;
+        if (pageJson.Metadata.TocRel != null)
+        {
+            IFileInfo menuToc = fileProvider.GetFileInfo(Path.Combine(sitePath, filePath, pageJson.Metadata.TocRel));
+            if (menuToc.Exists)
+            {
+                List<VDocFxViewModel.TocItem> tocItemsBuilder = new();
+                VDocFxTocJson tocJsonObj =
+                    JsonSerializer.Deserialize<VDocFxTocJson>(File.ReadAllText(menuToc.PhysicalPath));
+                tocItem = BuildItem(tocJsonObj, sitePath, filePath);
+            }
+        }
+
         ViewResult view = new()
         {
             ViewName = "~/Views/Docs/VDocFxView.cshtml",
@@ -70,10 +85,30 @@ public class VDocFxView : IDocView
                     Layout = layout,
                     PageType = pageType,
                     GitUrl = pageJson.Metadata.GitUrl,
-                    MenuItems = menuItems
+                    MenuItems = menuItems,
+                    Toc = tocItem
                 }
             }
         };
         return view;
+    }
+
+    private VDocFxViewModel.TocItem BuildItem(VDocFxTocJson tocJson, string sitePath, string filePath)
+    {
+        VDocFxViewModel.TocItem[]? children = null;
+        if (tocJson.Items != null)
+        {
+            children = new VDocFxViewModel.TocItem[tocJson.Items.Length];
+            for (int i = 0; i < tocJson.Items.Length; i++)
+            {
+                children[i] = BuildItem(tocJson.Items[i], sitePath, filePath);
+            }
+        }
+
+        string? href = tocJson.Href;
+        if (href != null)
+            href = $"/{Path.Combine(sitePath, Directory.GetDirectoryRoot(filePath), tocJson.Href)}";
+
+        return new VDocFxViewModel.TocItem(tocJson.Name, href, false, children);
     }
 }

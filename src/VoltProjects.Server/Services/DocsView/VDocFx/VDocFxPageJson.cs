@@ -32,6 +32,9 @@ public struct Metadata
     [JsonPropertyName("original_content_git_url")]
     public string? GitUrl { get; init; }
     
+    [JsonPropertyName("_tocRel")]
+    public string? TocRel { get; init; }
+    
     //[JsonPropertyName("updated_at")]
     //public DateTime? UpdatedAt { get; init; }
 }

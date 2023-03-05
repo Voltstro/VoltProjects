@@ -1,5 +1,41 @@
-@using Microsoft.AspNetCore.Mvc.TagHelpers
 @using VoltProjects.Server.Models.View
+
+@{
+    void RenderToc(VDocFxViewModel.TocItem toc)
+    {
+        @if (toc.Name == null && toc.Href == null && toc.TocItems != null)
+        {
+            <ul>
+                @foreach (VDocFxViewModel.TocItem item in toc.TocItems)
+                {
+                    RenderToc(item);
+                }
+            </ul>
+            return;
+        }
+        
+         <li>
+            @if (toc.TocItems != null)
+            {
+                <i class="toggle">
+                    <svg width="16" height="16" viewBox="0 0 16 16">
+                        <path fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 14l6-6-6-6"></path>
+                    </svg>
+                </i>
+            }
+            <a href="@toc.Href">@toc.Name</a>
+            @if (toc.TocItems != null)
+            {
+                <ul>
+                    @foreach (VDocFxViewModel.TocItem item in toc.TocItems)
+                    {
+                        RenderToc(item);
+                    }
+                </ul>
+            }
+        </li>
+    }
+}
 @model VoltProjects.Server.Models.View.VDocFxViewModel
 @{
     ViewBag.Title = Model.Tile ?? Model.ProjectName;
@@ -24,7 +60,7 @@
                      <ul class="navbar-nav me-auto">
                          @if (Model.MenuItems != null)
                          {
-                             @foreach (VDocFxViewModel.MenuItem menuItem in Model.MenuItems)
+                             foreach (VDocFxViewModel.MenuItem menuItem in Model.MenuItems)
                              {
                                  <li>
                                      <a class="nav-link" href="@menuItem.Href">@menuItem.Name</a>
@@ -48,7 +84,12 @@
                 <div class="collapse navbar-collapse" id="toc-pannel">
                     <div>
                         <input class="form-control" type="text" id="toc-filter" placeholder="Filter">
-                        <div class="toc" id="toc"></div>
+                        <div class="toc" id="toc">
+                            @if (Model.Toc != null)
+                            {
+                                RenderToc(Model.Toc);
+                            }
+                        </div>
                     </div>
                 </div>
             </div>

@@ -79,11 +79,6 @@
     transform: rotate(90deg);
   }
 
-  li.active > .toggle:before > svg,
-  li.filtered > .toggle::before > svg {
-    transform: rotate(90deg);
-  }
-
   .hide {
     display: none;
   }

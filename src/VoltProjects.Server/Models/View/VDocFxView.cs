@@ -19,5 +19,9 @@ public class VDocFxViewModel
 
     public MenuItem[]? MenuItems { get; set; }
     
+    public VDocFxViewModel.TocItem? Toc { get; set; }
+    
     public record MenuItem(string Name, string Href);
+
+    public record TocItem(string? Name, string? Href, bool IsActive, TocItem[]? TocItems);
 }
