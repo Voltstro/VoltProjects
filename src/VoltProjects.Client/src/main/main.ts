@@ -4,4 +4,4 @@ import 'bootstrap-icons/font/fonts/bootstrap-icons.woff2';
 
 import './scss/main.scss';
 
-import './scripts/navbar';
+import 'bootstrap/js/dist/collapse';

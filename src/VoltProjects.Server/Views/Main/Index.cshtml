@@ -4,7 +4,7 @@
 @model VoltProjects.Server.Models.IndexPageModel
 @{
     ViewBag.Title = "Home";
-    ViewBag.Description = "VoltProjects - The documentation service for Voltstro related projects";
+    ViewBag.Description = "VoltProjects - Find all documentation available related to Voltstro's projects in one place!";
 }
 @section BottomJs {
     <script type="text/javascript" src="~/js/hero.js" defer></script>
@@ -15,14 +15,14 @@
         <div class="hero-content">
             <h1>Volt Projects</h1>
             <div class="lead">
-                <p>The documentation service for Voltstro related projects.</p>
+                <p>Find all documentation available related to Voltstro's projects in one place!</p>
             </div>
         </div>
     </div>
 </div>
 <div class="container">
     <h2 class="pt-5">Projects</h2>
-    <h4 class="pt-1 text-muted">Listing of all projects documentation that is currently on-hand.</h4>
+    <h4 class="pt-1">Listing of all projects documentation that is currently on-hand.</h4>
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3 align-items-start">
         <cache>
             @foreach (Project project in Model.Projects)

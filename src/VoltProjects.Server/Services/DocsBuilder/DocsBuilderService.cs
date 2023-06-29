@@ -131,5 +131,7 @@ public class DocsBuilderService
         Directory.CreateDirectory(docsServingSitePath);
         
         IOHelper.CopyDirectory(docsBuiltSitePath, docsServingSitePath, true);
+        
+        File.Copy(Path.Combine(docsPath, project.IconPath), Path.Combine(docsServingSitePath, $"projecticon{Path.GetExtension(project.IconPath)}"));
     }
 }

@@ -53,24 +53,25 @@
 
 @section NavbarSecond
 {
-    <div class="navbar navbar-dark navbar-expand-md d-sm-none d-md-flex border-top border-secondary">
+    <nav class="navbar navbar-dark navbar-expand-md border-top">
         <div class="container">
-            <div class="collapse navbar-collapse" data-merge-nav="true">
-                <a class="navbar-brand" href="@Model.ProjectBasePath">@Model.ProjectName</a>
-                <ul class="navbar-nav me-auto">
-                @if (Model.MenuItems != null)
-                {
-                    foreach (VDocFxViewModel.MenuItem menuItem in Model.MenuItems)
+             <a class="navbar-brand" href="@Model.ProjectBasePath">@Model.ProjectName</a>
+            <div class="collapse navbar-collapse" id="navbar">
+
+                <ul class="navbar-nav flex-grow">
+                    @if (Model.MenuItems != null)
                     {
-                        <li>
-                            <a class="nav-link" href="@menuItem.Href">@menuItem.Name</a>
-                        </li>
+                        foreach (VDocFxViewModel.MenuItem menuItem in Model.MenuItems)
+                        {
+                            <li>
+                                <a class="nav-link" href="@menuItem.Href">@menuItem.Name</a>
+                            </li>
+                        }
                     }
-                }
                 </ul>
             </div>
         </div>
-    </div>
+    </nav>
 }
 
 <div class="container layout-@Model.Layout page-type-@Model.PageType">

@@ -1,9 +1,11 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
 using VoltProjects.Server.Models;
+using VoltProjects.Server.Services;
 using VoltProjects.Server.Services.DocsServer;
 using VoltProjects.Server.Shared;
 
@@ -20,9 +22,11 @@ public class MainController : Controller
     //private readonly IndexPageModel _pageModel;
 
     private readonly DocsServerService serverService;
+    private readonly VoltProjectsDbContext dbContext;
     
-    public MainController(DocsServerService serverService)
+    public MainController(VoltProjectsDbContext dbContext, DocsServerService serverService)
     {
+        this.dbContext = dbContext;
         this.serverService = serverService;
     }
     
@@ -31,7 +35,7 @@ public class MainController : Controller
     {
         return View(new IndexPageModel
         {
-            Projects = Array.Empty<Project>()
+            Projects = dbContext.Projects.ToArray()
         });
     }
     
