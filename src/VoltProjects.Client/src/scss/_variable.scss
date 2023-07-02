@@ -1,0 +1,26 @@
+$border-radius: .375rem !default;
+$primary: #164268;
+$body-color-dark: white;
+$body-bg-dark: #1c1e21;
+$body-secondary-bg-dark:  #1e1e1e;
+
+$aside-break: 1400px;
+$grid-breakpoints: (
+    xs: 0,
+    sm: 580px,
+    md: 760px,
+    lg: 1100px,
+    xl: 1400px,
+    xxl: 1900px
+) !default;
+$container-max-widths: (
+    sm: 580px,
+    md: 760px,
+    lg: 1150px,
+    xl: 1400px,
+    xxl: 1800px
+) !default;
+
+//Make link decoration default have no decoration
+$link-decoration: none !default;
+$link-hover-decoration: underline !default;

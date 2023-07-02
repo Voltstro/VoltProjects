@@ -1,0 +1,57 @@
+//Setup Fonts
+@import "@fontsource/roboto/400";
+@import "@fontsource/roboto/900";
+$font-family-sans-serif: 'Roboto', sans-serif;
+
+//Main include of Bootstrap
+@import "../variable";
+@import "bootstrap/scss/bootstrap.scss";
+
+//Include our shit
+@import "hero";
+@import "footer";
+@import "icons";
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.navbar {
+  background-color: $primary;
+  color: white;
+}
+
+
+//.btn-outline-secondary {
+//  color: white;
+//  border-color: white;
+//}
+
+.card a {
+  text-decoration: none;
+  color: white;
+  
+  :hover {
+    color: white;
+  }
+}
+
+.contributors {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  padding: 0;
+
+  img {
+    border-radius: 50%;
+  }
+}
+
+.prj-icon {
+  height: 64px;
+  background-size:cover;
+  background-position:center center;
+}

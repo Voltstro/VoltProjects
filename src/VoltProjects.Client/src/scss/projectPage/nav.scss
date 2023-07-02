@@ -1,4 +1,4 @@
-.in-this-article{
+.in-this-article {
   padding-top: .5em;
   font-size: 14px;
 
@@ -36,20 +36,4 @@
   color: #ffffff8c !important;
   border-color: #ffffff1a !important;
   fill: #ffffff1a;
-}
-
-footer {
-  background-color: #f8f8f8;
-  padding: 2rem 0;
-  
-  .github-star-button {
-    display: inline-block;
-    position: relative;
-    top: 5px;
-    margin: 0 10px;
-  }
-
-  @media print {
-    display: none;
-  }
 }

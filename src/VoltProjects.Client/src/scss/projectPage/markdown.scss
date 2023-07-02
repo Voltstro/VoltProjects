@@ -1,22 +1,19 @@
-// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-/* base */
-:not(a):not(pre)>code {
-  background-color: var(--detail-second-color-bg);
+//Code blocks
+:not(a):not(pre) > code {
+  background-color: var(--bs-tertiary-bg);
   padding: .2em .4em;
 }
 
-code,
-pre {
-  border-radius: $border-radius
+code, pre {
+  border-radius: $border-radius;
 }
 
 .hljs {
-  background-color: var(--detail-second-color-bg);
+  background-color: var(--bs-tertiary-bg);
 }
 
-/* Alerts */
+//Alerts Customization
+/*
 .alert {
   border-radius: $border-radius;
   border-width: 0;
@@ -73,69 +70,4 @@ pre {
     }
   }
 }
-
-/* For tabbed content */
-.tabGroup {
-  margin-top: 1rem;
-
-  ul[role="tablist"] {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-
-    & > li {
-      list-style: none;
-      display: inline-block;
-    }
-  }
-
-  a[role="tab"] {
-    color: #6e6e6e;
-    box-sizing: border-box;
-    display: inline-block;
-    padding: 5px 7.5px;
-    text-decoration: none;
-    border-bottom: 3px solid #fff;
-  }
-}
-
-.tabGroup a[role="tab"]:hover,
-.tabGroup a[role="tab"]:focus,
-.tabGroup a[role="tab"][aria-selected="true"] {
-  border-bottom: 3px solid $primary;
-}
-.tabGroup a[role="tab"][aria-selected="true"] {
-  color: #222;
-}
-.tabGroup a[role="tab"]:hover, .tabGroup a[role="tab"]:focus {
-  color: $primary;
-}
-.tabGroup a[role="tab"]:focus {
-  outline: 3px solid $primary;
-  outline-offset: -3px;
-}
-@media (min-width: 768px) {
-  .tabGroup a[role="tab"] {
-    padding: 5px 15px;
-  }
-}
-
-.tabGroup section[role="tabpanel"] {
-  border: 1px solid #e0e0e0;
-  padding: 15px;
-  margin: 0;
-  overflow: hidden;
-
-  & > .codeHeader,
-  & > pre {
-    margin-left: -16px;
-    margin-right: -16px;
-  }
-  & > :first-child {
-    margin-top: 0;
-  }
-  & > pre:last-child {
-    display: block;
-    margin-bottom: -16px;
-  }
-}
+*/

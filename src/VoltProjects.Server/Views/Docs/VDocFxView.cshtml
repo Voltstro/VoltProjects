@@ -43,17 +43,17 @@
 
 @section TopInclude
 {
-    <link rel="stylesheet" href="~/assets/docfx.css" />
+    <link rel="stylesheet" href="~/assets/projectPage.css" />
 }
 
 @section BottomJs 
 {
-    <script type="module" src="~/js/docfx.js"></script>
+    <script type="module" src="~/js/projectPage.js"></script>
 }
 
 @section NavbarSecond
 {
-    <nav class="navbar navbar-dark navbar-expand-md border-top">
+    <nav class="navbar navbar-expand-md border-top">
         <div class="container">
              <a class="navbar-brand" href="@Model.ProjectBasePath">@Model.ProjectName</a>
             <div class="collapse navbar-collapse" id="navbar">
@@ -78,7 +78,7 @@
     @if (Model.Layout == "conceptual")
     {
         <nav class="layout-toc">
-            <div class="sticky-top navbar navbar-expand-lg navbar-light">
+            <div class="sticky-top pt-2 navbar-expand-lg">
                 <a class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#toc-pannel" aria-controls="toc-pannel" aria-expanded="false">
                     Table of Contents
                 </a>

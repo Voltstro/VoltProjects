@@ -1,5 +1,4 @@
 import { defineConfig, UserConfig } from 'vite';
-import { webfontDownload } from 'vite-plugin-webfont-dl';
 import cssnano from 'cssnano';
 import { resolve } from 'path';
 
@@ -7,16 +6,14 @@ export default defineConfig(({ mode }) => {
 
 	//Base vite config
 	const config: UserConfig = {
-		plugins: [webfontDownload(['https://fonts.googleapis.com/css2?family=Roboto:wght@400;900&display=swap'])],
 		build: {
 			//No minify in dev builds, speeds shit up
 			minify: false,
 			emptyOutDir: true,
 			rollupOptions: {
 				input: {
-					main: resolve(__dirname, 'src/main/main.ts'),
-					hero: resolve(__dirname, 'src/hero/hero.ts'),
-					docfx: resolve(__dirname, 'src/docfx/docfx.ts'),
+					main: resolve(__dirname, 'src/main.ts'),
+					projectPage: resolve(__dirname, 'src/projectPage.ts'),
 				},
 				output: {
 					dir: resolve(__dirname, '..', 'VoltProjects.Server', 'wwwroot'),

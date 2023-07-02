@@ -1,7 +1,4 @@
-// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-/* metabar */
+//Metabar
 .metabar {
   color: #999;
   font-size: 14px;
@@ -31,7 +28,7 @@
   }
 }
 
-/* Edit this page */
+//Edit this Page
 .edit-this-page {
   transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out;
   color: var(--bs-nav-link-color);

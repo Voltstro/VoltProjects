@@ -1,6 +1,5 @@
-// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-.pdl>svg {
+
+.pdl > svg {
   fill: rgba(255, 255, 255, 1);
   top: .2em;
   left: .2em;
@@ -18,8 +17,7 @@ div.page-type-reference {
     display: none;
   }
 
-  h2.appliesTo,
-  h3.appliesTo {
+  h2.appliesTo, h3.appliesTo {
     display: none;
   }
 
@@ -64,8 +62,7 @@ div.page-type-reference {
     color: rgb(80, 80, 80);
   }
   
-  .cdlHolder .cdl:last-child:after,
-  .pdlHolder .pdl:last-child:after {
+  .cdlHolder .cdl:last-child:after, .pdlHolder .pdl:last-child:after {
     content: '';
   }
 
