@@ -28,9 +28,11 @@ $bootstrap-icons-map: (
     "github": "\f3ed",
     "globe2": "\f3ef",
     "twitter": "\f5ef",
+    "funnel": "\f3e1",
 ) !default;
 
 .bi-discord::before { content: map-get($bootstrap-icons-map, "discord"); }
 .bi-github::before { content: map-get($bootstrap-icons-map, "github"); }
 .bi-globe2::before { content: map-get($bootstrap-icons-map, "globe2"); }
 .bi-twitter::before { content: map-get($bootstrap-icons-map, "twitter"); }
+.bi-funnel::before { content: map-get($bootstrap-icons-map, "funnel"); }
