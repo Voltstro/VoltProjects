@@ -9,5 +9,5 @@ internal interface IDocView
 {
     public string Name { get; }
     
-    public ViewResult? GetViewFromFile(ViewDataDictionary viewData, IFileProvider fileProvider, string sitePath, string potentialFile, string project);
+    public ViewResult? GetViewFromFile(ViewDataDictionary viewData, IFileProvider fileProvider, string requestPath, string sitePath, string potentialFile, string project);
 }

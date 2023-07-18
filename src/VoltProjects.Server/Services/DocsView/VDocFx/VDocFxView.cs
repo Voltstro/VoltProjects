@@ -1,10 +1,8 @@
-using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Extensions.FileProviders;
-using VoltProjects.Server.Models;
 using VoltProjects.Server.Models.View;
 
 namespace VoltProjects.Server.Services.DocsView.VDocFx;
@@ -13,7 +11,7 @@ public class VDocFxView : IDocView
 {
     public string Name => "vdocfx";
 
-    public ViewResult? GetViewFromFile(ViewDataDictionary viewData, IFileProvider fileProvider, string sitePath, string potentialFile, string project)
+    public ViewResult? GetViewFromFile(ViewDataDictionary viewData, IFileProvider fileProvider, string requestPath, string sitePath, string potentialFile, string project)
     {
         string fileName = Path.GetFileNameWithoutExtension(potentialFile);
         string? filePath = Path.GetDirectoryName(potentialFile);
@@ -52,7 +50,8 @@ public class VDocFxView : IDocView
             menuItems = new VDocFxViewModel.MenuItem[menuJsonObj.Items.Length];
             for (int i = 0; i < menuJsonObj.Items.Length; i++)
             {
-                menuItems[i] = new VDocFxViewModel.MenuItem(menuJsonObj.Items[i].Name, $"/{sitePath}/{menuJsonObj.Items[i].Href}");
+                VDocfxMenuJson.VDocfxMenuItem menuItem = menuJsonObj.Items[i];
+                menuItems[i] = new VDocFxViewModel.MenuItem(menuItem.Name, $"/{sitePath}/{menuItem.Href}", requestPath.Contains(menuItem.Href));
             }
         }
         
@@ -67,7 +66,7 @@ public class VDocFxView : IDocView
                     JsonSerializer.Deserialize<VDocFxTocJson>(File.ReadAllText(menuToc.PhysicalPath));
                 
                 string rel = pageJson.Metadata.TocRel.Replace("toc.json", "");
-                tocItem = BuildItem(tocJsonObj, rel);
+                tocItem = BuildTocItem(tocJsonObj, rel, requestPath);
             }
         }
 
@@ -93,26 +92,37 @@ public class VDocFxView : IDocView
         };
         return view;
     }
-
-    private VDocFxViewModel.TocItem BuildItem(VDocFxTocJson tocJson, string rel)
+    
+    private VDocFxViewModel.TocItem BuildTocItem(VDocFxTocJson tocItem, string rel, string requestPath)
     {
+        bool isActive = false;
         VDocFxViewModel.TocItem[]? children = null;
-        if (tocJson.Items != null)
+
+        //Go through child items first
+        if (tocItem.Items != null)
         {
-            children = new VDocFxViewModel.TocItem[tocJson.Items.Length];
-            for (int i = 0; i < tocJson.Items.Length; i++)
+            children = new VDocFxViewModel.TocItem[tocItem.Items.Length];
+            for (int i = 0; i < tocItem.Items.Length; i++)
             {
-                children[i] = BuildItem(tocJson.Items[i], rel);
+                VDocFxTocJson childItem = tocItem.Items[i];
+                VDocFxViewModel.TocItem item = BuildTocItem(childItem, rel, requestPath);
+                if (item.IsActive)
+                    isActive = true;
+                children[i] = item;
             }
         }
-
-        string? href = tocJson.Href;
+        
+        string? href = tocItem.Href;
         if (href != null)
         {
             if (!href.StartsWith("/"))
                 href = Path.Combine(rel, href);
+
+            if (requestPath.Contains(href.Replace("../", "")))
+                isActive = true;
         }
 
-        return new VDocFxViewModel.TocItem(tocJson.Name, href, false, children);
+        VDocFxViewModel.TocItem newItem = new(tocItem.Name, href, isActive, children);
+        return newItem;
     }
 }

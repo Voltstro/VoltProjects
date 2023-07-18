@@ -16,9 +16,9 @@ public class DocsViewService
         docViews = new List<IDocView> { new VDocFxView() };
     }
 
-    public ViewResult? GetViewFromDocsView(string docsView, ViewDataDictionary viewData, IFileProvider fileProvider, string site, string potentialFile, string project)
+    public ViewResult? GetViewFromDocsView(string docsView, ViewDataDictionary viewData, IFileProvider fileProvider, string requestPath, string site, string potentialFile, string project)
     {
         IDocView? docView = docViews.Find((x) => x.Name == docsView);
-        return docView?.GetViewFromFile(viewData, fileProvider, site, potentialFile, project);
+        return docView?.GetViewFromFile(viewData, fileProvider, requestPath, site, potentialFile, project);
     }
 }

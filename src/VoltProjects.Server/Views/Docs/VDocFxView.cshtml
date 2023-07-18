@@ -1,11 +1,15 @@
 @using VoltProjects.Server.Models.View
+@model VoltProjects.Server.Models.View.VDocFxViewModel
+@{
+    ViewBag.Title = Model.Tile ?? Model.ProjectName;
+}
 
 @{
     void RenderToc(VDocFxViewModel.TocItem toc)
     {
         @if (toc.Name == null && toc.Href == null && toc.TocItems != null)
         {
-            <ul>
+            <ul class="@(toc.IsActive ? "active" : "")">
                 @foreach (VDocFxViewModel.TocItem item in toc.TocItems)
                 {
                     RenderToc(item);
@@ -13,8 +17,8 @@
             </ul>
             return;
         }
-        
-         <li>
+
+        <li class="@(toc.IsActive ? "active" : "")">
             @if (toc.TocItems != null)
             {
                 <i class="toggle">
@@ -23,10 +27,11 @@
                     </svg>
                 </i>
             }
-            <a href="@toc.Href">@toc.Name</a>
+
+            <a class="@(toc.IsActive ? "active" : "")" href="@toc.Href">@toc.Name</a>
             @if (toc.TocItems != null)
             {
-                <ul>
+                <ul class="@(toc.IsActive ? "active" : "")">
                     @foreach (VDocFxViewModel.TocItem item in toc.TocItems)
                     {
                         RenderToc(item);
@@ -35,10 +40,6 @@
             }
         </li>
     }
-}
-@model VoltProjects.Server.Models.View.VDocFxViewModel
-@{
-    ViewBag.Title = Model.Tile ?? Model.ProjectName;
 }
 
 @section TopInclude
@@ -64,7 +65,7 @@
                         foreach (VDocFxViewModel.MenuItem menuItem in Model.MenuItems)
                         {
                             <li>
-                                <a class="nav-link" href="@menuItem.Href">@menuItem.Name</a>
+                                <a class="nav-link @(menuItem.IsActive ? "active" : "")" href="@menuItem.Href">@menuItem.Name</a>
                             </li>
                         }
                     }
