@@ -8,6 +8,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Properties", "Properties", 
 		version.json = version.json
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VoltProjects.Shared", "VoltProjects.Shared\VoltProjects.Shared.csproj", "{9E06DF84-DA57-4F89-9302-5B1F7B97D989}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VoltProjects.Builder", "VoltProjects.Builder\VoltProjects.Builder.csproj", "{7323D371-32F6-46AB-8E62-928BBDF31D7D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,6 +22,14 @@ Global
 		{267760BE-AE59-4404-8D78-5673A000CB9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{267760BE-AE59-4404-8D78-5673A000CB9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{267760BE-AE59-4404-8D78-5673A000CB9C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9E06DF84-DA57-4F89-9302-5B1F7B97D989}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E06DF84-DA57-4F89-9302-5B1F7B97D989}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E06DF84-DA57-4F89-9302-5B1F7B97D989}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E06DF84-DA57-4F89-9302-5B1F7B97D989}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7323D371-32F6-46AB-8E62-928BBDF31D7D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7323D371-32F6-46AB-8E62-928BBDF31D7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7323D371-32F6-46AB-8E62-928BBDF31D7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7323D371-32F6-46AB-8E62-928BBDF31D7D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 	EndGlobalSection
