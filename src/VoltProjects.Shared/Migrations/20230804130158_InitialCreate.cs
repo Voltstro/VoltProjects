@@ -16,7 +16,7 @@ namespace VoltProjects.Shared.Migrations
             //Custom postgre types
             migrationBuilder.Sql(@"
                 CREATE TYPE upsertedtoc AS (rel text, toc jsonb);
-                CREATE TYPE upsertedpage AS (title text, titleDisplay boolean, aside boolean, wordCount int4, tocId int4, path text, pageContent text);
+                CREATE TYPE upsertedpage AS (title text, titleDisplay boolean, aside boolean, wordCount int4, tocId int4, tocRel text, path text, pageContent text);
             ");
             
             migrationBuilder.CreateTable(
@@ -196,6 +196,7 @@ namespace VoltProjects.Shared.Migrations
                     LastModifiedTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     WordCount = table.Column<int>(type: "integer", nullable: false),
                     ProjectTocId = table.Column<int>(type: "integer", nullable: true),
+                    TocRel = table.Column<string>(type: "text", nullable: true),
                     Aside = table.Column<bool>(type: "boolean", nullable: false),
                     Path = table.Column<string>(type: "text", nullable: false),
                     Content = table.Column<string>(type: "text", nullable: false)

@@ -1,0 +1,17 @@
+@model VoltProjects.Server.Models.View.ProjectViewModel
+
+<div class="container layout @(Model.ProjectPage is { ProjectToc: not null, Aside: true } ? "layout-full" : "")">
+    @if (Model.Toc != null)
+    {
+        <partial name="Shared/ProjectToc" model="Model.Toc"/>
+    }
+    
+    <article>
+        @if (Model.ProjectPage.TitleDisplay)
+        {
+            <h1>@Model.ProjectPage.Title</h1>
+        }
+        @Html.Raw(Model.ProjectPage.Content)
+    </article>
+</div>
+

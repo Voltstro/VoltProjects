@@ -1,0 +1,62 @@
+@using VoltProjects.Server.Models
+@model VoltProjects.Server.Models.TocItem
+
+@{
+    void RenderToc(TocItem toc)
+    {
+        @if (toc.Title == null && toc.Href == null && toc.Items != null)
+        {
+            <ul class="@(toc.IsActive ? "active" : "")">
+                @foreach (TocItem item in toc.Items)
+                {
+                    RenderToc(item);
+                }
+            </ul>
+            return;
+        }
+
+        <li class="@(toc.IsActive ? "active" : "")">
+            @if (toc.Items != null)
+            {
+                <i class="toggle">
+                    <svg width="16" height="16" viewBox="0 0 16 16">
+                        <path fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 14l6-6-6-6"></path>
+                    </svg>
+                </i>
+            }
+
+            <a class="@(toc.IsActive ? "active" : "")" href="@toc.Href">@toc.Title</a>
+            @if (toc.Items != null)
+            {
+                <ul class="@(toc.IsActive ? "active" : "")">
+                    @foreach (TocItem item in toc.Items)
+                    {
+                        RenderToc(item);
+                    }
+                </ul>
+            }
+        </li>
+    }
+}
+
+<nav class="layout-toc">
+    <div class="sticky-top pt-2 navbar-expand-lg">
+        <a class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#toc-pannel" aria-controls="toc-pannel" aria-expanded="false">
+            Table of Contents
+        </a>
+        <div class="collapse navbar-collapse" id="toc-pannel">
+            <div>
+                <div class="position-relative filter">
+                    <i class="bi bi-funnel position-absolute filter-icon"></i>
+                    <input class="form-control filter-control" type="text" id="toc-filter" placeholder="Filter" aria-label="Filter">
+                </div>
+                        
+                <div class="toc" id="toc">
+                    @{
+                        RenderToc(Model);
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>

@@ -13,7 +13,6 @@ export default defineConfig(({ mode }) => {
 			rollupOptions: {
 				input: {
 					main: resolve(__dirname, 'src/main.ts'),
-					projectPage: resolve(__dirname, 'src/projectPage.ts'),
 				},
 				output: {
 					dir: resolve(__dirname, '..', 'VoltProjects.Server', 'wwwroot'),

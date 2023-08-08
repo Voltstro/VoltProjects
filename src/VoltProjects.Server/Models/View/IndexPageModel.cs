@@ -1,5 +1,6 @@
 using System;
 using VoltProjects.Server.Shared;
+using VoltProjects.Shared.Models;
 
 namespace VoltProjects.Server.Models;
 

@@ -128,6 +128,8 @@ internal sealed class VDocFxBuilder : Builder
             string relativity = Path.GetRelativePath(builtDocsLocation, pageFile.Replace("index.raw.page.json", ""));
 
             ProjectToc? toc = null;
+            string? tocRel = null;
+            
             bool useAside = false;
             bool useTitle = false;
             string title = "Home";
@@ -151,9 +153,13 @@ internal sealed class VDocFxBuilder : Builder
                 {
                     string basePath = Path.GetDirectoryName(pageFile);
                     string fullTocPath = Path.Combine(basePath, pageModel.Metadata.TocRel);
-                    string tocRel = Path.GetRelativePath(builtDocsLocation, fullTocPath);
+                    string projectTocRel = Path.GetRelativePath(builtDocsLocation, fullTocPath);
 
-                    toc = allTocs.FirstOrDefault(x => x.TocRel == tocRel);
+                    toc = allTocs.FirstOrDefault(x => x.TocRel == projectTocRel);
+                    if (toc != null)
+                    {
+                        tocRel = pageModel.Metadata.TocRel.Replace("toc.json", "");
+                    }
                 }
             }
             
@@ -171,24 +177,26 @@ internal sealed class VDocFxBuilder : Builder
                 Aside = useAside,
                 Path = relativity,
                 Content = minifyResult.MinifiedContent,
-                ProjectTocId = toc?.Id
+                ProjectTocId = toc?.Id,
+                TocRel = tocRel
             };
         }
 
         int pageIndex = 1;
-        object?[] pageParams = new object[1 + pages.Length * 7];
+        object?[] pageParams = new object[1 + pages.Length * 8];
         pageParams[0] = projectVersion.Id;
-        var pageParamsPlaceholder = string.Join(",", pages.Select(x =>
+        string pageParamsPlaceholder = string.Join(",", pages.Select(x =>
         {
             pageParams[pageIndex] = x.Title;
             pageParams[pageIndex + 1] = x.TitleDisplay;
             pageParams[pageIndex + 2] = x.Aside;
             pageParams[pageIndex + 3] = x.WordCount;
             pageParams[pageIndex + 4] = x.ProjectTocId;
-            pageParams[pageIndex + 5] = x.Path;
-            pageParams[pageIndex + 6] = x.Content;
+            pageParams[pageIndex + 5] = x.TocRel;
+            pageParams[pageIndex + 6] = x.Path;
+            pageParams[pageIndex + 7] = x.Content;
                
-            return $"ROW(@p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++})";
+            return $"ROW(@p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++})";
         }));
 
         //Upsert project pages

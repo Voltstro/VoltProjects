@@ -51,6 +51,8 @@ public class ProjectPage
     public int? ProjectTocId { get; set; }
     public ProjectToc? ProjectToc { get; set; }
     
+    public string? TocRel { get; set; }
+    
     /// <summary>
     ///     Display an aside on this page?
     /// </summary>

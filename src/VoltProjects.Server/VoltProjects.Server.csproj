@@ -25,9 +25,9 @@
       <PackageReference Include="Serilog.AspNetCore" Version="7.0.0" />
       <PackageReference Include="Serilog.Enrichers.Thread" Version="3.1.0" />
     </ItemGroup>
-    
+
     <ItemGroup>
-      <Folder Include="Migrations" />
+      <ProjectReference Include="..\VoltProjects.Shared\VoltProjects.Shared.csproj" />
     </ItemGroup>
 
 </Project>
