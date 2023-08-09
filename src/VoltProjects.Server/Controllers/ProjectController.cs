@@ -40,14 +40,21 @@ public class ProjectController : Controller
     public async Task<IActionResult> ProjectView(CancellationToken cancellationToken, string projectName, string version, string? fullPath)
     {
         //Try to get project first
-        Project? project = await dbContext.Projects.FirstOrDefaultAsync(x => x.Name == projectName, cancellationToken);
+        Project? project = await dbContext.Projects
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Name == projectName, cancellationToken);
         if (project == null)
             return NotFound();
         
         //Try to get project version
-        ProjectVersion? projectVersion = await dbContext.ProjectVersions.FirstOrDefaultAsync(x => x.VersionTag == version && x.ProjectId == project.Id, cancellationToken);
+        ProjectVersion? projectVersion = await dbContext.ProjectVersions
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.VersionTag == version && x.ProjectId == project.Id, cancellationToken);
         if (projectVersion == null)
             return GetProjectLatestRedirect(project, fullPath);
+
+        //Set for ease of use in the view
+        projectVersion.Project = project;
 
         //Default path (if none was provided)
         if (string.IsNullOrWhiteSpace(fullPath))
@@ -55,26 +62,52 @@ public class ProjectController : Controller
         
         //Now to find the page
         ProjectPage? projectPage =
-            await dbContext.ProjectPages.Include(x => x.ProjectToc).FirstOrDefaultAsync(x => x.ProjectVersionId == projectVersion.Id && x.Path == fullPath, cancellationToken);
+            await dbContext.ProjectPages
+                .AsNoTracking()
+                .Include(x => x.ProjectToc)
+                .FirstOrDefaultAsync(x => x.ProjectVersionId == projectVersion.Id && x.Path == fullPath, cancellationToken);
 
         //No page was found, all good then
         if (projectPage == null)
             return NotFound();
+
+        //Set for ease of use in the view
+        projectPage.ProjectVersion = projectVersion;
         
         //We have a page, lets do the rest of the work
-        ProjectMenu? projectMenu = await dbContext.ProjectMenus.FirstOrDefaultAsync(x => x.ProjectVersionId == projectVersion.Id, cancellationToken);
+        ProjectMenu? projectMenu = await dbContext.ProjectMenus
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.ProjectVersionId == projectVersion.Id, cancellationToken);
         if (projectMenu == null)
             throw new FileNotFoundException($"Project {project.Name} is missing it menu!");
+
+        string requestPath = Request.Path;
+        string baseProjectPath = $"/{Path.Combine(project.Name, projectVersion.VersionTag)}";
+        
+        //Menu stuff
+        MenuItem[] menuItems = new MenuItem[projectMenu.LinkItem.Items!.Length];
+        for (int i = 0; i < menuItems.Length; i++)
+        {
+            LinkItem linkItem = projectMenu.LinkItem.Items[i];
+            string href = Path.Combine(baseProjectPath, linkItem.Href!);
+            menuItems[i] = new MenuItem
+            {
+                Title = linkItem.Title!,
+                Href = href,
+                IsActive = requestPath.Contains(href)
+            };
+        }
         
         //Figure out TOC stuff
         TocItem? tocItem = null;
         if (projectPage.ProjectToc != null)
-            tocItem = ProcessTocItems(projectPage.ProjectToc.TocItem, projectPage.TocRel!, Request.Path);
+            tocItem = ProcessTocItems(projectPage.ProjectToc.TocItem, projectPage.TocRel!, requestPath);
 
         return View("ProjectView", new ProjectViewModel
         {
+            BasePath = baseProjectPath,
             ProjectPage = projectPage,
-            ProjectMenu = projectMenu,
+            MenuItems = menuItems,
             Toc = tocItem
         });
     }

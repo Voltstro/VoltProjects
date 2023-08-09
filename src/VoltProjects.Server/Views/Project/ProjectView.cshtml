@@ -1,5 +1,11 @@
 @model VoltProjects.Server.Models.View.ProjectViewModel
 
+@section NavbarSecond
+{
+    <partial name="Shared/ProjectNav" model="Model"/>
+}
+
+
 <div class="container layout @(Model.ProjectPage is { ProjectToc: not null, Aside: true } ? "layout-full" : "")">
     @if (Model.Toc != null)
     {

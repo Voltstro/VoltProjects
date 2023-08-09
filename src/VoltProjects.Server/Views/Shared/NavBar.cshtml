@@ -1,0 +1,24 @@
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@using VoltProjects.Server.Shared.Helpers
+
+<nav class="navbar navbar-expand-md">
+    <div class="container">
+        <a class="navbar-brand" asp-controller="Main" asp-action="Index">Volt Projects</a>
+        <button class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbar"
+                aria-controls="navbar"
+                aria-expanded="false"
+                aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbar">
+            <ul class="navbar-nav flex-grow">
+                <li>
+                    <a class="nav-link @Html.ActiveClass("Main", "About")" asp-controller="Main" asp-action="About">About</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>

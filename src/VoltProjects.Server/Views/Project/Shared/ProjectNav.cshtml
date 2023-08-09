@@ -1,0 +1,19 @@
+@using VoltProjects.Server.Models
+@model VoltProjects.Server.Models.View.ProjectViewModel
+
+<nav class="navbar navbar-expand-md border-top">
+    <div class="container">
+        <a class="navbar-brand" href="@Model.BasePath">@Model.ProjectPage.ProjectVersion.Project.Name</a>
+        <div class="collapse navbar-collapse" id="navbar">
+
+            <ul class="navbar-nav flex-grow">
+                @foreach (MenuItem menuItem in Model.MenuItems)
+                {
+                    <li>
+                        <a class="nav-link @(menuItem.IsActive ? "active" : "")" href="@menuItem.Href">@menuItem.Title</a>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</nav>
