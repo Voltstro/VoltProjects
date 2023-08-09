@@ -30,7 +30,6 @@ function createClickFunctionsOnElement(element: HTMLElement): void {
 		if(childrenToc) {
 			createClickFunctionsOnElement(childrenToc.parentElement);
 		}
-
 	});
 }
 

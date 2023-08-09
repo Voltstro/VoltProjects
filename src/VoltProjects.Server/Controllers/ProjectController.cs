@@ -25,19 +25,13 @@ public class ProjectController : Controller
     }
     
     /// <summary>
-    ///     Re-direct project path
+    ///     Main project view route endpoint
     /// </summary>
     /// <param name="projectName"></param>
+    /// <param name="version"></param>
     /// <param name="fullPath"></param>
     /// <returns></returns>
-    [Route("/{projectName}/{**fullPath}")]
-    public IActionResult ProjectView(string projectName, string? fullPath)
-    {
-        //Try to get project first
-        Project? project = dbContext.Projects.FirstOrDefault(x => x.Name == projectName);
-        return project == null ? NotFound() : GetProjectLatestRedirect(project, fullPath);
-    }
-
+    /// <exception cref="FileNotFoundException"></exception>
     [Route("/{projectName}/{version}/{**fullPath}")]
     public IActionResult ProjectView(string projectName, string version, string? fullPath)
     {
@@ -94,7 +88,7 @@ public class ProjectController : Controller
             return NotFound();
         }
             
-        return RedirectToAction("ProjectView", new {project = project, version = latestProjectVersion.VersionTag, catchAll = fullPath});
+        return RedirectToAction("ProjectView", "Project", new {projectName = project.Name, version = latestProjectVersion.VersionTag, fullPath = fullPath});
     }
 
     private static TocItem ProcessTocItems(LinkItem linkItem, string pageRel, string requestPath)

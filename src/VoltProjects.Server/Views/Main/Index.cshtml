@@ -1,6 +1,7 @@
 @using Microsoft.AspNetCore.Mvc.TagHelpers
+@using VoltProjects.Server.Models
 @using VoltProjects.Shared.Models
-@model VoltProjects.Server.Models.IndexPageModel
+@model VoltProjects.Server.Models.ProjectInfo[]
 @{
     ViewBag.Title = "Home";
     ViewBag.Description = "VoltProjects - Find all documentation available related to Voltstro's projects in one place!";
@@ -21,16 +22,13 @@
     <h4 class="pt-1">Listing of all projects documentation that is currently on-hand.</h4>
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3 align-items-start">
         <cache>
-            @foreach (Project project in Model.Projects)
+            @foreach (ProjectInfo project in Model)
             {
                 <div class="col">
                     <div class="card shadow-sm">
-                        <a href="/@project.Name/" class="p-1">
+                        <a href="/@project.Name/@project.DefaultVersion/" class="p-1">
                             <div class="d-inline-flex justify-content-center">
-                                @if (project.IconPath != null)
-                                {
-                                    <img alt="Project Icon" src=@($"/{project.Name}/projecticon{System.IO.Path.GetExtension(project.IconPath)}") width="100em"/>
-                                }
+                               <img alt="Project Icon" src=@($"/{project.Name}/projecticon{System.IO.Path.GetExtension(project.IconPath)}") width="100em"/>
 
                                 @if (project.ShortName != null)
                                 {
