@@ -34,7 +34,8 @@ try
         builder.Configuration.GetSection(VoltProjectsConfig.VoltProjects));
 
     //Support razor pages runtime compilation for hot reloading
-    IMvcBuilder mvcBuilder = builder.Services.AddControllersWithViews();
+    IMvcBuilder mvcBuilder = builder.Services.AddControllersWithViews(
+        mvcOptions => mvcOptions.Filters.Add<OperationCancelledExceptionFilter>());
     mvcBuilder.AddRazorRuntimeCompilation();
 
     //Allows for caching

@@ -1,6 +1,9 @@
 using System;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using VoltProjects.Server.Models;
 using VoltProjects.Server.Models.View;
 using VoltProjects.Shared;
@@ -24,17 +27,19 @@ public class MainController : Controller
     {
         this.dbContext = dbContext;
     }
-    
+
+    [HttpGet]
     [Route("/")]
-    public IActionResult Index()
+    public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
-        Project[] allProjects = dbContext.Projects.ToArray();
+        Project[] allProjects = await dbContext.Projects.ToArrayAsync(cancellationToken);
+        
         ProjectInfo[] projectInfos = new ProjectInfo[allProjects.Length];
         for (int i = 0; i < allProjects.Length; i++)
         {
             Project project = allProjects[i];
             ProjectVersion? latestProjectVersion =
-                dbContext.ProjectVersions.FirstOrDefault(x => x.IsDefault && x.ProjectId == project.Id);
+                await dbContext.ProjectVersions.FirstOrDefaultAsync(x => x.IsDefault && x.ProjectId == project.Id, cancellationToken);
             if (latestProjectVersion == null)
                 throw new ArgumentException($"Project {project.Name} is missing a default project version!");
 
@@ -47,10 +52,10 @@ public class MainController : Controller
                 DefaultVersion = latestProjectVersion.VersionTag
             };
         }
-        
+
         return View(projectInfos);
     }
-    
+
     [Route("/about")]
     public IActionResult About()
     {

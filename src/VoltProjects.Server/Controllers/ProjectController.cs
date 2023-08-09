@@ -1,5 +1,7 @@
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -23,25 +25,27 @@ public class ProjectController : Controller
         this.dbContext = dbContext;
         this.logger = logger;
     }
-    
+
     /// <summary>
     ///     Main project view route endpoint
     /// </summary>
+    /// <param name="cancellationToken"></param>
     /// <param name="projectName"></param>
     /// <param name="version"></param>
     /// <param name="fullPath"></param>
     /// <returns></returns>
     /// <exception cref="FileNotFoundException"></exception>
+    [HttpGet]
     [Route("/{projectName}/{version}/{**fullPath}")]
-    public IActionResult ProjectView(string projectName, string version, string? fullPath)
+    public async Task<IActionResult> ProjectView(CancellationToken cancellationToken, string projectName, string version, string? fullPath)
     {
         //Try to get project first
-        Project? project = dbContext.Projects.FirstOrDefault(x => x.Name == projectName);
+        Project? project = await dbContext.Projects.FirstOrDefaultAsync(x => x.Name == projectName, cancellationToken);
         if (project == null)
             return NotFound();
         
         //Try to get project version
-        ProjectVersion? projectVersion = dbContext.ProjectVersions.FirstOrDefault(x => x.VersionTag == version && x.ProjectId == project.Id);
+        ProjectVersion? projectVersion = await dbContext.ProjectVersions.FirstOrDefaultAsync(x => x.VersionTag == version && x.ProjectId == project.Id, cancellationToken);
         if (projectVersion == null)
             return GetProjectLatestRedirect(project, fullPath);
 
@@ -51,14 +55,14 @@ public class ProjectController : Controller
         
         //Now to find the page
         ProjectPage? projectPage =
-            dbContext.ProjectPages.Include(x => x.ProjectToc).FirstOrDefault(x => x.ProjectVersionId == projectVersion.Id && x.Path == fullPath);
+            await dbContext.ProjectPages.Include(x => x.ProjectToc).FirstOrDefaultAsync(x => x.ProjectVersionId == projectVersion.Id && x.Path == fullPath, cancellationToken);
 
         //No page was found, all good then
         if (projectPage == null)
             return NotFound();
         
         //We have a page, lets do the rest of the work
-        ProjectMenu? projectMenu = dbContext.ProjectMenus.FirstOrDefault(x => x.ProjectVersionId == projectVersion.Id);
+        ProjectMenu? projectMenu = await dbContext.ProjectMenus.FirstOrDefaultAsync(x => x.ProjectVersionId == projectVersion.Id, cancellationToken);
         if (projectMenu == null)
             throw new FileNotFoundException($"Project {project.Name} is missing it menu!");
         
