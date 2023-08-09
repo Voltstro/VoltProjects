@@ -10,6 +10,7 @@ import './scss/main.scss';
 
 //Bootstrap collapse, used by navbar, and as such every page
 import 'bootstrap/js/dist/collapse';
+import 'bootstrap/js/dist/dropdown';
 
 document.addEventListener('DOMContentLoaded', onContentLoad);
 
