@@ -31,6 +31,7 @@ $bootstrap-icons-map: (
     "funnel": "\f3e1",
     "moon-fill": "\f494",
     "brightness-high-fill": "\f1d1",
+    "mastodon": "\f647",
 ) !default;
 
 .bi-discord::before { content: map-get($bootstrap-icons-map, "discord"); }
@@ -40,3 +41,4 @@ $bootstrap-icons-map: (
 .bi-funnel::before { content: map-get($bootstrap-icons-map, "funnel"); }
 .bi-moon-fill::before { content: map-get($bootstrap-icons-map, "moon-fill"); }
 .bi-brightness-high-fill::before { content: map-get($bootstrap-icons-map, "brightness-high-fill"); }
+.bi-mastodon::before { content: map-get($bootstrap-icons-map, "mastodon"); }

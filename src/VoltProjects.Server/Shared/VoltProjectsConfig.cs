@@ -1,4 +1,5 @@
 using System;
+using VoltProjects.Server.Models;
 
 namespace VoltProjects.Server.Shared;
 
@@ -6,11 +7,39 @@ public sealed class VoltProjectsConfig
 {
     public const string VoltProjects = "VoltProjects";
     
-    public string SitesServingDir { get; set; } = "Sites/";
+    public SocialLink[] SocialLinks { get; init; }= new SocialLink[]
+    {
+        new()
+        {
+            Name = "GitHub",
+            Icon = "github",
+            Href = "https://github.com/Voltstro"
+        },
+        new()
+        {
+            Name = "Twitter",
+            Icon = "twitter",
+            Href = "https://twitter.com/Voltstro"
+        },
+        new()
+        {
+            Name = "Mastodon",
+            Icon = "mastodon",
+            Href = "https://mastodon.gamedev.place/@voltstro"
+        },
+        new()
+        {
+            Name = "Discord",
+            Icon = "discord",
+            Href = "https://discord.voltstro.dev"
+        },
+        new()
+        {
+            Name = "Website",
+            Icon = "globe2",
+            Href = "https://voltstro.dev"
+        }
+    };
 
-    public string WorkingPath { get; set; } = "Working/";
-    
-    public int SitesRebuildTimeSeconds { get; set; }
-    
-    public int SitesServingCacheHeaderTimeSeconds { get; set; } = 60 * 60 * 24 * 15;
+    public bool FunnyMode { get; init; } = true;
 }

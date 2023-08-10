@@ -11,6 +11,7 @@
   "devDependencies": {
     "@types/anchor-js": "^5.0.0",
     "@types/bootstrap": "^5.2.6",
+    "@types/js-cookie": "^3.0.3",
     "@types/node": "^18.14.1",
     "@typescript-eslint/eslint-plugin": "^5.53.0",
     "@typescript-eslint/parser": "^5.53.0",
@@ -28,6 +29,7 @@
     "bootstrap": "^5.3.0",
     "bootstrap-icons": "^1.10.3",
     "highlight.js": "^11.7.0",
+    "js-cookie": "^3.0.5",
     "jsx-dom": "^8.0.5"
   }
 }

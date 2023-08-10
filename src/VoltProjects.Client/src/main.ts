@@ -1,3 +1,4 @@
+import { getPreferredTheme, setTheme } from './theme';
 import { renderAside } from './scripts/nav';
 import { renderToc } from './scripts/toc';
 
@@ -12,9 +13,19 @@ import './scss/main.scss';
 import 'bootstrap/js/dist/collapse';
 import 'bootstrap/js/dist/dropdown';
 
+declare global {
+    interface Window { vGlobal: any; }
+}
+
 document.addEventListener('DOMContentLoaded', onContentLoad);
 
 function onContentLoad(): void {
+	setTheme(getPreferredTheme());
+
 	renderAside();
 	renderToc();
 }
+
+window.vGlobal = {
+	setTheme: setTheme
+};
