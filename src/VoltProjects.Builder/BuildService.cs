@@ -1,6 +1,5 @@
-using System.Reflection;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -15,25 +14,14 @@ internal sealed class BuildService : BackgroundService
     private readonly ILogger<BuildService> logger;
     private readonly IDbContextFactory<VoltProjectDbContext> contextFactory;
     private readonly VoltProjectsBuilderConfig config;
-    private readonly Dictionary<string, Builder> builders;
+    private readonly BuildManager buildManager;
 
-    public BuildService(ILogger<BuildService> logger, IDbContextFactory<VoltProjectDbContext> contextFactory, IOptions<VoltProjectsBuilderConfig> configOptions, IServiceProvider serviceProvider)
+    public BuildService(ILogger<BuildService> logger, IDbContextFactory<VoltProjectDbContext> contextFactory, IOptions<VoltProjectsBuilderConfig> config, BuildManager buildManager)
     {
         this.logger = logger;
         this.contextFactory = contextFactory;
-        config = configOptions.Value;
-        
-        builders = new Dictionary<string, Builder>();
-        IEnumerable<Type> foundBuilders = ReflectionHelper.GetInheritedTypes<Builder>();
-
-        foreach (Type foundBuilder in foundBuilders)
-        {
-            BuilderNameAttribute attribute = (BuilderNameAttribute)Attribute.GetCustomAttribute(foundBuilder, typeof(BuilderNameAttribute))!;
-
-            Builder builder = (Builder)ActivatorUtilities.CreateInstance(serviceProvider, foundBuilder);
-            builders.Add(attribute.Name, builder);
-            this.logger.LogDebug("Created builder {Builder}", attribute.Name);
-        }
+        this.config = config.Value;
+        this.buildManager = buildManager;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -47,26 +35,65 @@ internal sealed class BuildService : BackgroundService
                 await using VoltProjectDbContext context = await contextFactory.CreateDbContextAsync(stoppingToken);
                 ProjectVersion[] project = await context.ProjectVersions
                     .Include(x => x.Project)
-                    .Include(x => x.DocBuilder)
+                    .AsNoTracking()
                     .ToArrayAsync(cancellationToken: stoppingToken);
                 
                 logger.LogDebug("Found {ProjectCount} projects to build...", project.Length);
-                foreach (ProjectVersion projectVersion in project)
+                await Parallel.ForEachAsync(project, stoppingToken, async (version, token) =>
                 {
+                    logger.LogInformation("Started building of project {Project}...", version.Project.Name);
+                    
+                    //Create a new DB Context
+                    await using VoltProjectDbContext projectContext =
+                        await contextFactory.CreateDbContextAsync(token);
+                    
+                    //Create a transaction, and a savepoint
+                    IDbContextTransaction transaction = await projectContext.Database.BeginTransactionAsync(token);
+                    await transaction.CreateSavepointAsync("BeforeUpdate", token);
+
                     try
                     {
-                        //Get project builder
-                        KeyValuePair<string, Builder>? builder = builders.FirstOrDefault(x => x.Key == projectVersion.DocBuilder.Name);
-                        if (builder == null)
-                            throw new Exception($"Builder {projectVersion.DocBuilder.Name} doesn't exist!");
+                        buildManager.BuildProject(projectContext, version);
                         
-                        builder.Value.Value.BuildProject(projectVersion, context);
+                        //Add build message
+                        projectContext.ProjectBuildEvents.Add(new ProjectBuildEvent
+                        {
+                            ProjectVersionId = version.Id,
+                            Successful = true,
+                            Date = DateTime.UtcNow,
+                            Message = "Successfully Built Project",
+                            GitHash = ""
+                        });
+
+                        await projectContext.SaveChangesAsync(token);
+                        await transaction.CommitAsync(token);
                     }
                     catch (Exception ex)
                     {
-                        logger.LogError(ex, "Error building project {Project}!", projectVersion.Project.Name);
+                        //We always want this to be written to the DB!
+                        // ReSharper disable MethodHasAsyncOverloadWithCancellation
+                        transaction.RollbackToSavepoint("BeforeUpdate");
+                        logger.LogError(ex, "Error occured while building project {Project}!", version.Project.Name);
+                        
+                        //Add build error message
+                        projectContext.ProjectBuildEvents.Add(new ProjectBuildEvent
+                        {
+                            ProjectVersionId = version.Id,
+                            Successful = false,
+                            Date = DateTime.UtcNow,
+                            Message = $"Failed to build project! Error: {ex.Message}",
+                            GitHash = ""
+                        });
+
+                        projectContext.SaveChanges();
+                        transaction.Commit();
+                        // ReSharper restore MethodHasAsyncOverloadWithCancellation
+                        
+                        return;
                     }
-                }
+                    
+                    logger.LogInformation("Successfully finished building project {Project}!", version.Project.Name);
+                });
             }
             catch (Exception ex)
             {

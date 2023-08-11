@@ -9,12 +9,16 @@ using VoltProjects.Shared;
 using WebMarkupMin.Core;
 
 //Create host
-using IHost host = Host.CreateDefaultBuilder(args).ConfigureServices(((context, collection) =>
+using IHost host = Host.CreateDefaultBuilder(args).ConfigureServices((context, collection) =>
     {
-        collection.AddSingleton<HtmlMinifier>();
-        
         //Setup Config
         collection.Configure<VoltProjectsBuilderConfig>(context.Configuration.GetSection("Config"));
+        
+        //Our singletons
+        collection.AddSingleton<HtmlMinifier>();
+        collection.AddSingleton<BuildManager>();
+        
+        //Background services
         collection.AddHostedService<BuildService>();
     
         //Setup DB
@@ -22,7 +26,7 @@ using IHost host = Host.CreateDefaultBuilder(args).ConfigureServices(((context, 
         {
             options.UseNpgsql(context.Configuration.GetConnectionString("DefaultConnection"));
         });
-    }))
+    })
     .Build();
 
 //Get logger factory and env
