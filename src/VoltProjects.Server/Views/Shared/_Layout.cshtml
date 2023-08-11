@@ -22,10 +22,9 @@
 <link rel="stylesheet" href="~/assets/main.css" />
 @await RenderSectionAsync("TopInclude", false)
 <body>
-<header>
+<header class="shadow-sm">
   <partial name="NavBar"/>
   @await RenderSectionAsync("NavbarSecond", false)
-  
 </header>
 <main>
   @RenderBody()
