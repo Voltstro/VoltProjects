@@ -5,8 +5,7 @@
     <partial name="Shared/ProjectNav" model="Model"/>
 }
 
-
-<div class="container layout @(Model.ProjectPage is { ProjectToc: not null, Aside: true } ? "layout-full" : "")">
+<div class="container layout @(Model.ProjectPage is { ProjectToc: not null, Aside: true } ? "layout-full" : "") @(Model.ProjectPage is { ProjectToc: null, Aside: true } ? "layout-aside" : "")">
     @if (Model.Toc != null)
     {
         <partial name="Shared/ProjectToc" model="Model.Toc"/>
@@ -17,13 +16,17 @@
         {
             <h1>@Model.ProjectPage.Title</h1>
         }
+        <!-- Project Page Content -->
         @Html.Raw(Model.ProjectPage.Content)
     </article>
     
-    <aside>
-        <div class="sticky-top">
-            <nav id="in-this-article" class="in-this-article"></nav>
-        </div>
-    </aside>
+    @if (Model.ProjectPage.Aside)
+    {
+        <aside>
+            <div class="sticky-top">
+                <nav id="in-this-article" class="in-this-article"></nav>
+            </div>
+        </aside>
+    }
 </div>
 

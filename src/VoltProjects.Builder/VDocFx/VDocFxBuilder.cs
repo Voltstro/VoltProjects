@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Diagnostics;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
@@ -169,34 +170,39 @@ internal sealed class VDocFxBuilder : Builder
             pages[i] = new ProjectPage
             {
                 ProjectVersionId = projectVersion.Id,
+                Path = relativity,
                 Published = true,
+                PublishedDate = DateTime.UtcNow,
                 Title = title,
                 TitleDisplay = useTitle,
-                LastModifiedTime = DateTime.UtcNow,
                 WordCount = pageModel.Metadata.WordCount ?? 0,
-                Aside = useAside,
-                Path = relativity,
-                Content = minifyResult.MinifiedContent,
                 ProjectTocId = toc?.Id,
-                TocRel = tocRel
+                TocRel = tocRel,
+                Aside = useAside,
+                Description = "Test",
+                Content = minifyResult.MinifiedContent,
+                LastUpdateTime = DateTime.UtcNow,
             };
         }
 
         int pageIndex = 1;
-        object?[] pageParams = new object[1 + pages.Length * 8];
+        int pageItemsCount = 10;
+        object?[] pageParams = new object[1 + pages.Length * pageItemsCount];
         pageParams[0] = projectVersion.Id;
         string pageParamsPlaceholder = string.Join(",", pages.Select(x =>
         {
-            pageParams[pageIndex] = x.Title;
-            pageParams[pageIndex + 1] = x.TitleDisplay;
-            pageParams[pageIndex + 2] = x.Aside;
-            pageParams[pageIndex + 3] = x.WordCount;
-            pageParams[pageIndex + 4] = x.ProjectTocId;
-            pageParams[pageIndex + 5] = x.TocRel;
-            pageParams[pageIndex + 6] = x.Path;
-            pageParams[pageIndex + 7] = x.Content;
-               
-            return $"ROW(@p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++})";
+            pageParams[pageIndex] = x.PublishedDate;
+            pageParams[pageIndex + 1] = x.Title;
+            pageParams[pageIndex + 2] = x.TitleDisplay;
+            pageParams[pageIndex + 3] = x.Aside;
+            pageParams[pageIndex + 4] = x.WordCount;
+            pageParams[pageIndex + 5] = x.ProjectTocId;
+            pageParams[pageIndex + 6] = x.TocRel;
+            pageParams[pageIndex + 7] = x.Path;
+            pageParams[pageIndex + 8] = x.Description;
+            pageParams[pageIndex + 9] = x.Content;
+
+            return $"ROW(@p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++})";
         }));
 
         //Upsert project pages

@@ -26,15 +26,15 @@ public class ProjectToc
     ///     Toc item's relativity in the project
     /// </summary>
     public string TocRel { get; set; }
-    
-    /// <summary>
-    ///     When was the last time this TOC was updated
-    /// </summary>
-    public DateTime LastUpdateTime { get; set; }
-    
+
     /// <summary>
     ///     Project's TOC
     /// </summary>
     [Column(TypeName = "jsonb")]
     public LinkItem TocItem { get; set; }
+    
+    /// <summary>
+    ///     When was the last time this TOC was updated
+    /// </summary>
+    public DateTime LastUpdateTime { get; set; }
 }

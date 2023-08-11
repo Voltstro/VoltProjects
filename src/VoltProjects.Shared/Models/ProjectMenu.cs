@@ -18,15 +18,15 @@ public class ProjectMenu
     [ForeignKey("ProjectVersion")]
     public int ProjectVersionId { get; set; }
     public virtual ProjectVersion ProjectVersion { get; set; }
-    
-    /// <summary>
-    ///     When was the last time this menu was updated
-    /// </summary>
-    public DateTime LastUpdateTime { get; set; }
-    
+
     /// <summary>
     ///     Project menu items
     /// </summary>
     [Column(TypeName = "jsonb")]
     public LinkItem LinkItem { get; set; }
+    
+    /// <summary>
+    ///     When was the last time this menu was updated
+    /// </summary>
+    public DateTime LastUpdateTime { get; set; }
 }

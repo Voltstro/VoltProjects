@@ -17,8 +17,17 @@ public class ProjectVersion
     ///     Version tag.
     ///     <para>'latest' for latest</para>
     /// </summary>
-    [Required]
     public string VersionTag { get; set; }
+    
+    /// <summary>
+    ///     What git branch does this version use?
+    /// </summary>
+    public string GitBranch { get; set; }
+    
+    /// <summary>
+    ///     What git tag does this version use?
+    /// </summary>
+    public string? GitTag { get; set; }
 
     /// <summary>
     ///     What doc builder does this doc version use
@@ -30,21 +39,19 @@ public class ProjectVersion
     /// <summary>
     ///     Where are the docs stored?
     /// </summary>
-    [Required]
     public string DocsPath { get; set; }
     
     /// <summary>
     ///     Where are the docs built to?
     /// </summary>
-    [Required]
     public string DocsBuiltPath { get; set; }
     
     /// <summary>
     ///     What language does this doc use?
     /// </summary>
-    [ForeignKey("DocsLang")]
-    public int DocsLangId { get; set; }
-    public virtual Language DocsLang { get; set; }
+    [ForeignKey("Language")]
+    public int LanguageId { get; set; }
+    public virtual Language Language { get; set; }
     
     /// <summary>
     ///     Is this a default fallback doc version?
@@ -54,7 +61,7 @@ public class ProjectVersion
     /// <summary>
     ///     Pre-build commands that this project version should do
     /// </summary>
-    public virtual ICollection<PreBuildCommand> PreBuildCommands { get; set; } = new List<PreBuildCommand>();
+    public virtual ICollection<ProjectPreBuild> PreBuildCommands { get; set; } = new List<ProjectPreBuild>();
 
     /// <summary>
     ///     Project menu items

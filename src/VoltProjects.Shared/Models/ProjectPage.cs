@@ -13,16 +13,26 @@ public class ProjectPage
     ///     <see cref="ProjectPage"/> primary key.
     /// </summary>
     [Key]
-    public int Id { get; set; }
+    public int Id { get; init; }
     
     [ForeignKey("ProjectVersion")]
     public int ProjectVersionId { get; set; }
     public virtual ProjectVersion ProjectVersion { get; set; }
+
+    /// <summary>
+    ///     Page path
+    /// </summary>
+    public string Path { get; set; }
     
     /// <summary>
     ///     Is this page published? (Can it be accessed?)
     /// </summary>
     public bool Published { get; set; }
+    
+    /// <summary>
+    ///     The date to display as published
+    /// </summary>
+    public DateTime PublishedDate { get; set; }
     
     /// <summary>
     ///     Page Title
@@ -35,15 +45,10 @@ public class ProjectPage
     public bool TitleDisplay { get; set; }
     
     /// <summary>
-    ///     When was this page last modified?
-    /// </summary>
-    public DateTime LastModifiedTime { get; set; }
-    
-    /// <summary>
     ///     How many words does this page include?
     /// </summary>
     public int WordCount { get; set; }
-    
+
     /// <summary>
     ///     Project page's TOC
     /// </summary>
@@ -51,6 +56,9 @@ public class ProjectPage
     public int? ProjectTocId { get; set; }
     public ProjectToc? ProjectToc { get; set; }
     
+    /// <summary>
+    ///     What is the toc relativity for this page?
+    /// </summary>
     public string? TocRel { get; set; }
     
     /// <summary>
@@ -59,13 +67,18 @@ public class ProjectPage
     public bool Aside { get; set; }
     
     /// <summary>
-    ///     Page path
+    ///     Page's description
     /// </summary>
-    public string Path { get; set; }
-    
+    public string Description { get; set; }
+
     /// <summary>
     ///     Raw HTMl Content of the page
     ///     <para>Should be using bootstrap CSS</para>
     /// </summary>
     public string Content { get; set; }
+    
+    /// <summary>
+    ///     When was this page last updated?
+    /// </summary>
+    public DateTime LastUpdateTime { get; set; }
 }

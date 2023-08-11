@@ -31,7 +31,7 @@ public class VoltProjectDbContext : DbContext
 
     public DbSet<Language> Languages { get; set; }
 
-    public DbSet<PreBuildCommand> PreBuildCommands { get; set; }
+    public DbSet<ProjectPreBuild> PreBuildCommands { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -47,11 +47,11 @@ public class VoltProjectDbContext : DbContext
         
         //Project Version Unique Keys
         modelBuilder.Entity<ProjectVersion>()
-            .HasIndex(p => new { p.ProjectId, p.VersionTag, p.DocsLangId })
+            .HasIndex(p => new { p.ProjectId, p.VersionTag, p.LanguageId })
             .IsUnique();
         
         modelBuilder.Entity<ProjectVersion>()
-            .HasIndex(p => new { p.ProjectId, p.VersionTag, p.DocsLangId, p.IsDefault })
+            .HasIndex(p => new { p.ProjectId, p.VersionTag, p.LanguageId, p.IsDefault })
             .HasFilter("\"IsDefault\" = true")
             .IsUnique();
         

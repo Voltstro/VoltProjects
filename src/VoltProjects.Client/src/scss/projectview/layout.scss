@@ -29,6 +29,11 @@
     grid-template-areas: 'toc article aside';
 }
 
+.layout-aside {
+    grid-template-columns: minmax(0, auto) minmax(12em, 15%);
+    grid-template-areas: 'article aside';
+}
+
 .layout-toc {
     grid-area: toc;
 
