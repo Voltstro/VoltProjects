@@ -16,6 +16,7 @@ using IHost host = Host.CreateDefaultBuilder(args).ConfigureServices((context, c
         
         //Our singletons
         collection.AddSingleton<HtmlMinifier>();
+        collection.AddSingleton<HtmlHighlightService>();
         collection.AddSingleton<BuildManager>();
         
         //Background services

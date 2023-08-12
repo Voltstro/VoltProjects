@@ -1,4 +1,6 @@
 using System.Text.Json;
+using System.Web;
+using HtmlAgilityPack;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -15,12 +17,16 @@ public sealed class BuildManager
 {
     private readonly ILogger<BuildManager> logger;
     private readonly HtmlMinifier htmlMinifier;
+    private readonly HtmlHighlightService highlightService;
     private readonly Dictionary<string, Builder> builders;
-    
-    public BuildManager(ILogger<BuildManager> logger, HtmlMinifier htmlMinifier, IServiceProvider serviceProvider)
+
+    private static string[] supportedLangs = new[] { "csharp" };
+
+    public BuildManager(ILogger<BuildManager> logger, HtmlMinifier htmlMinifier, HtmlHighlightService highlightService, IServiceProvider serviceProvider)
     {
         this.logger = logger;
         this.htmlMinifier = htmlMinifier;
+        this.highlightService = highlightService;
         builders = new Dictionary<string, Builder>();
         IEnumerable<Type> foundBuilders = ReflectionHelper.GetInheritedTypes<Builder>();
 
@@ -109,15 +115,46 @@ public sealed class BuildManager
 
         //Pre-Process pages
         ProjectPage[] pages = buildResult.ProjectPages;
-        for (int i = 0; i < pages.Length; i++)
+        Parallel.ForEach(pages, page =>
         {
-            ProjectPage page = pages[i];
+            HtmlDocument doc = new();
+            doc.LoadHtml(page.Content);
 
-            //TODO: Syntax highlighting
-            
+            //Parse code blocks
+            HtmlNodeCollection? codeBlocks = doc.DocumentNode.SelectNodes("//pre/code");
+            if (codeBlocks != null)
+            {
+                foreach (HtmlNode codeBlock in codeBlocks)
+                {
+                    string? text = codeBlock.InnerHtml;
+                    string? language = null;
+
+                    //Try to pick-up on the language
+                    HtmlAttribute? languageAttribute = codeBlock.Attributes["class"];
+                    if (languageAttribute != null)
+                    {
+                        language = languageAttribute.Value.Replace("lang-", "");
+                        if (!supportedLangs.Contains(language))
+                            language = null; //use autodetect
+                    }
+
+                    if (text != null)
+                    {
+                        string parsedCodeBlock =
+                            highlightService.ParseCodeBlock(HttpUtility.HtmlDecode(text), language);
+                        codeBlock.InnerHtml = parsedCodeBlock;
+                    }
+
+                    codeBlock.SetAttributeValue("class", "hljs shadow");
+                }
+            }
+
+            //New HTML Content
+            string content = doc.DocumentNode.OuterHtml;
+
             //Minify HTML
-            page.Content = htmlMinifier.Minify(page.Content).MinifiedContent;
-            
+            page.Content = htmlMinifier.Minify(content).MinifiedContent;
+
             //Handle TOC
             if (page.ProjectToc != null)
             {
@@ -125,9 +162,7 @@ public sealed class BuildManager
                 page.ProjectTocId = toc.Id;
                 page.ProjectToc = null;
             }
-
-            pages[i] = page;
-        }
+        });
         
         //Upsert pages
         int pageIndex = 1;
