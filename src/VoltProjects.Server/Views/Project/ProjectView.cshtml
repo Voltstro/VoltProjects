@@ -7,7 +7,7 @@
 
 @section NavbarSecond
 {
-    <partial name="Shared/ProjectNav" model="Model"/>
+    <partial name="ProjectNav" model="Model.ProjectNavModel"/>
 }
 
 <div class="container layout @(Model.ProjectPage is { Aside: true } ? "layout-article" : "") @(Model.ProjectPage is {ProjectToc: null, Aside: true} ? "layout-aside" : "")">

@@ -15,9 +15,9 @@ public sealed class ProjectViewModel
     public ProjectPage ProjectPage { get; init; }
     
     /// <summary>
-    ///     Project's menu itmes
+    ///     Model for the project nav
     /// </summary>
-    public MenuItem[] MenuItems { get; init; }
+    public ProjectNavModel ProjectNavModel { get; init; }
     
     /// <summary>
     ///     Project's TOC

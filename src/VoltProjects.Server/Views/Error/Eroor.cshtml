@@ -1,30 +1,41 @@
 @using System.Net
-@model VoltProjects.Server.Models.ErrorPageModel
+@model VoltProjects.Server.Models.View.ErrorViewModel
 @{
     ViewBag.Title = "Error";
     ViewBag.Description = "VoltProjects - Error...";
 }
+
+@if (Model.ProjectNavModel != null)
+{
+@section NavbarSecond
+{
+    <partial name="ProjectNav" model="Model.ProjectNavModel"/>
+}
+}
+
 <!-- 01000101 01110010 01101111 01101111 01110010 -->
 <div class="container">
     <div class="hero container">
         <div class="hero-content">
-            <h1>Something happened...</h1>
+            @if (Model.ErrorCode == null)
+            {
+                <h1>An Unknown Error Has Occured!</h1>
+            }
+            else
+            {
+                <h1>@Model.ErrorCode - @Model.ErrorMessage</h1>
+            }
             <div class="lead">
-                @{
-                    if (Model.ErrorCode == HttpStatusCode.NotFound)
-                    {
-                        <p>404 - Yea, I don't have that file on hand!</p>
-                    }
-                    else
-                    {
-                        <p>@((int)Model.ErrorCode) - @Model.ErrorCode.ToString()</p>
-                    }
-                }
+                <p>@Model.ErrorMessageDetailed</p>
             </div>
             @if (Model.ErrorCode == HttpStatusCode.NotFound)
             {
                 <div class="actions">
-                    <input type="button" class="btn btn-primary btn-lg" onclick="history.go(-1)" value="Go Back..."/>
+                    @if (Model is { Project: not null,ProjectVersion: not null })
+                    {
+                        <a class="btn btn-primary btn-lg" href="/@Model.Project/@Model.ProjectVersion/">Go to Project Index</a>
+                    }
+                    <a class="btn btn-primary btn-lg" href="/">Go to Index</a>
                 </div>
             }
         </div>

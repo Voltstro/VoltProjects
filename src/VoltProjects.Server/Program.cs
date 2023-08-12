@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using Figgle;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Rewrite;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
+using VoltProjects.Server.Services;
 using VoltProjects.Server.Shared;
 using VoltProjects.Shared;
 
@@ -32,6 +34,7 @@ try
     //Setup services
     builder.Services.Configure<VoltProjectsConfig>(
         builder.Configuration.GetSection(VoltProjectsConfig.VoltProjects));
+    builder.Services.AddScoped<ProjectMenuService>();
 
     //Support razor pages runtime compilation for hot reloading
     IMvcBuilder mvcBuilder = builder.Services.AddControllersWithViews(

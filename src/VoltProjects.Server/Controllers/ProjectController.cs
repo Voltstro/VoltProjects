@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using VoltProjects.Server.Models;
 using VoltProjects.Server.Models.View;
+using VoltProjects.Server.Services;
 using VoltProjects.Shared;
 using VoltProjects.Shared.Models;
 
@@ -18,11 +19,13 @@ namespace VoltProjects.Server.Controllers;
 public class ProjectController : Controller
 {
     private readonly VoltProjectDbContext dbContext;
+    private readonly ProjectMenuService projectMenuService;
     private readonly ILogger<ProjectController> logger;
 
-    public ProjectController(VoltProjectDbContext dbContext, ILogger<ProjectController> logger)
+    public ProjectController(VoltProjectDbContext dbContext, ProjectMenuService projectMenuService, ILogger<ProjectController> logger)
     {
         this.dbContext = dbContext;
+        this.projectMenuService = projectMenuService;
         this.logger = logger;
     }
 
@@ -74,29 +77,12 @@ public class ProjectController : Controller
         //Set for ease of use in the view
         projectPage.ProjectVersion = projectVersion;
         
-        //We have a page, lets do the rest of the work
-        ProjectMenu? projectMenu = await dbContext.ProjectMenus
-            .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.ProjectVersionId == projectVersion.Id, cancellationToken);
-        if (projectMenu == null)
-            throw new FileNotFoundException($"Project {project.Name} is missing it menu!");
-
         string requestPath = Request.Path;
         string baseProjectPath = $"/{Path.Combine(project.Name, projectVersion.VersionTag)}";
-        
-        //Menu stuff
-        MenuItem[] menuItems = new MenuItem[projectMenu.LinkItem.Items!.Length];
-        for (int i = 0; i < menuItems.Length; i++)
-        {
-            LinkItem linkItem = projectMenu.LinkItem.Items[i];
-            string href = Path.Combine(baseProjectPath, linkItem.Href!);
-            menuItems[i] = new MenuItem
-            {
-                Title = linkItem.Title!,
-                Href = href,
-                IsActive = requestPath.Contains(href)
-            };
-        }
+
+        //Get project menu
+        ProjectNavModel navModel =
+            await projectMenuService.GetProjectMenu(requestPath, baseProjectPath, projectVersion, cancellationToken);
         
         //Figure out TOC stuff
         TocItem? tocItem = null;
@@ -107,7 +93,7 @@ public class ProjectController : Controller
         {
             BasePath = baseProjectPath,
             ProjectPage = projectPage,
-            MenuItems = menuItems,
+            ProjectNavModel = navModel,
             Toc = tocItem
         });
     }
