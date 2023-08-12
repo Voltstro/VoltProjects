@@ -114,15 +114,11 @@ article {
 }
   
 //Code blocks
-:not(a):not(pre) > code {
-    background-color: var(--bs-tertiary-bg);
-    padding: .2em .4em;
-}
+//:not(a):not(pre) > code {
+//    background-color: var(--bs-tertiary-bg);
+//    padding: .2em .4em;
+//}
 
-code, pre {
-    border-radius: $border-radius;
-}
-
-.hljs {
-    background-color: var(--bs-tertiary-bg);
-}
+//code, pre {
+//    border-radius: $border-radius;
+//}

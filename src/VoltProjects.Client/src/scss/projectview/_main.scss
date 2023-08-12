@@ -1,8 +1,7 @@
-
-@import "highlight.js/scss/github-dark";
 @import "layout";
 @import "nav";
 @import "toc";
+@import "syntaxHighlight";
 
 // Ideally we would get rid of the dotnet/docfx specific stuff
 @import "dotnet";

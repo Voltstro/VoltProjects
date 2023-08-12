@@ -1,5 +1,4 @@
 import { defineConfig, UserConfig } from 'vite';
-import cssnano from 'cssnano';
 import { resolve } from 'path';
 
 export default defineConfig(({ mode }) => {
@@ -23,35 +22,23 @@ export default defineConfig(({ mode }) => {
 				}
 			}
 		},
-		css: {
-			postcss: {
-				plugins: [cssnano()],
-			}
-		}
 	};
     
 	//In non-dev builds, we will use terser to minify everything
 	if (mode != 'development') {
 		console.log('Non-dev build, using terser...');
+		config.build!.cssMinify = 'esbuild';
 		config.build!.minify = 'terser';
 		config.build!.terserOptions = {
 			format: {
-				comments: false
+				comments: false,
 			},
 			compress: {
 				defaults: true,
 				drop_console: true,
 				drop_debugger: true
 			},
-			mangle: {
-				eval: true,
-				keep_classnames: false,
-				keep_fnames: false,
-				module: false,
-				properties: false,
-				safari10: false,
-				toplevel: false,
-			},
+			mangle: true,
 			ecma: 2020
 		};
 	}
