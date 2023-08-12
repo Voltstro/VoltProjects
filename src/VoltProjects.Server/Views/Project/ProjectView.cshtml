@@ -1,5 +1,10 @@
 @model VoltProjects.Server.Models.View.ProjectViewModel
 
+@{
+    ViewBag.Title = $"{Model.ProjectPage.Title} - {Model.ProjectPage.ProjectVersion.Project.Name}";
+    ViewBag.Description = Model.ProjectPage.Description;
+}
+
 @section NavbarSecond
 {
     <partial name="Shared/ProjectNav" model="Model"/>

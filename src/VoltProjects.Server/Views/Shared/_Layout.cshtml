@@ -1,7 +1,7 @@
 @using VoltProjects.Server.Shared
 @using VoltProjects.Server.Shared.Helpers
 @{
-  string pageTitle = $"{ViewBag.Title} - VoltProjects";
+  string pageTitle = $"{ViewBag.Title} | VoltProjects";
 }
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="@MvcHelper.GetUserTheme(Context.Request)">
@@ -22,7 +22,7 @@
 <link rel="stylesheet" href="~/assets/main.css" />
 @await RenderSectionAsync("TopInclude", false)
 <body>
-<header class="shadow-sm">
+<header class="shadow-sm d-print-none">
   <partial name="NavBar"/>
   @await RenderSectionAsync("NavbarSecond", false)
 </header>

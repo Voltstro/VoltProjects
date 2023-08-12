@@ -8,14 +8,14 @@
             <div class="col-md-10 col-sm-12">
                 <p class="text-body-secondary">Copyright (c) 2022-2023 Voltstro</p>
                 
-                <p>
+                <p class="d-print-none">
                     VoltProjects is licensed under the <a class="text-decoration-none" href="https://github.com/Voltstro/VoltProjects/blob/master/LICENSE">GPL-3.0 License</a>. The content served may be licensed under a different license.
                     <br />
                     @Model.UsingWording VoltProjects v@(Versioning.Version) - <a class="text-muted text-decoration-none" href="@($"https://github.com/Voltstro/VoltProjects/commit/{Versioning.GitHashFull}")">@Versioning.GitHashSmall</a>
                 </p>
                 
             </div>
-            <div class="col-md-2 col-sm-12 text-end">
+            <div class="col-md-2 col-sm-12 text-end d-print-none">
                 <div class="row h-100">
                     <div class="col-12 dropup dropup-center"> 
                         <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
