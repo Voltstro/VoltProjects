@@ -5,7 +5,7 @@
     <partial name="Shared/ProjectNav" model="Model"/>
 }
 
-<div class="container layout @(Model.ProjectPage is { ProjectToc: not null, Aside: true } ? "layout-full" : "") @(Model.ProjectPage is { ProjectToc: null, Aside: true } ? "layout-aside" : "")">
+<div class="container layout @(Model.ProjectPage is { Aside: true } ? "layout-article" : "") @(Model.ProjectPage is {ProjectToc: null, Aside: true} ? "layout-aside" : "")">
     @if (Model.Toc != null)
     {
         <partial name="Shared/ProjectToc" model="Model.Toc"/>
