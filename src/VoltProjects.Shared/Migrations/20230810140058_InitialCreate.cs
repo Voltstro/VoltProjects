@@ -394,6 +394,42 @@ $function$
 COMMENT ON FUNCTION public.""UpsertProjectPages"" IS 'Upserts a project''s pages.
 Marks all un-edited pages as not published!';
             ");
+
+            //Permissions
+            migrationBuilder.Sql(@"
+--Project
+GRANT SELECT ON TABLE public.""Project"" TO vpbuilder, vpserver;
+
+--ProjectVersion
+GRANT SELECT ON TABLE public.""ProjectVersion"" TO vpbuilder, vpserver;
+
+-- ProjectBuildEvent
+GRANT SELECT, INSERT ON TABLE public.""ProjectBuildEvent"" TO vpbuilder;
+GRANT SELECT ON TABLE public.""ProjectBuildEvent"" TO vpserver;
+
+--ProjectMenu
+GRANT UPDATE, SELECT, INSERT ON TABLE public.""ProjectMenu"" TO vpbuilder;
+GRANT SELECT ON TABLE public.""ProjectMenu"" TO vpserver;
+
+--ProjectPage
+GRANT UPDATE, SELECT, INSERT ON TABLE public.""ProjectPage"" TO vpbuilder;
+GRANT SELECT ON TABLE public.""ProjectPage"" TO vpserver;
+
+--ProjectPageContributor
+GRANT UPDATE, SELECT, INSERT ON TABLE public.""ProjectPageContributor"" TO vpbuilder;
+GRANT SELECT ON TABLE public.""ProjectPageContributor"" TO voltweb;
+
+--ProjectToc
+GRANT UPDATE, SELECT, INSERT ON TABLE public.""ProjectToc"" TO vpbuilder;
+GRANT SELECT ON TABLE public.""ProjectToc"" TO vpserver;
+
+--ProjectPreBuild
+GRANT SELECT ON TABLE public.""ProjectPreBuild"" TO vpbuilder;
+
+--Functions
+GRANT EXECUTE ON FUNCTION public.""UpsertProjectPages"" TO vpbuilder;
+GRANT EXECUTE ON FUNCTION public.""UpsertProjectTOCs"" TO vpbuilder;
+");
         }
 
         /// <inheritdoc />
