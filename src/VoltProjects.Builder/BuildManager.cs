@@ -46,7 +46,7 @@ public sealed class BuildManager
     /// </summary>
     /// <param name="dbContext"></param>
     /// <param name="projectVersion"></param>
-    public void BuildProject(VoltProjectDbContext dbContext, ProjectVersion projectVersion)
+    public void BuildProject(VoltProjectDbContext dbContext, ProjectVersion projectVersion, string projectPath)
     {
         //First, get the builder
         KeyValuePair<string, Builder>? buildFindResult = builders.FirstOrDefault(x => x.Key == projectVersion.DocBuilderId);
@@ -55,19 +55,7 @@ public sealed class BuildManager
 
         //We have a builder
         Builder builder = buildFindResult.Value.Value;
-        
-        string projectPath = projectVersion.Project.GitUrl;
-        bool isGitUrl = projectPath.StartsWith("https://");
-        if (isGitUrl)
-        {
-            //TODO: Support git URLS
-            throw new NotImplementedException();
-        }
 
-        //Check that project exists
-        if (!Directory.Exists(projectPath))
-            throw new DirectoryNotFoundException("Project directory not found!");
-        
         //Check that docs exist
         string docsLocation = Path.Combine(projectPath, projectVersion.DocsPath);
         if (!Directory.Exists(docsLocation))
