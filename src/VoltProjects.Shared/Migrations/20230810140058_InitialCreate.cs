@@ -417,7 +417,7 @@ GRANT SELECT ON TABLE public.""ProjectPage"" TO vpserver;
 
 --ProjectPageContributor
 GRANT UPDATE, SELECT, INSERT ON TABLE public.""ProjectPageContributor"" TO vpbuilder;
-GRANT SELECT ON TABLE public.""ProjectPageContributor"" TO voltweb;
+GRANT SELECT ON TABLE public.""ProjectPageContributor"" TO vpserver;
 
 --ProjectToc
 GRANT UPDATE, SELECT, INSERT ON TABLE public.""ProjectToc"" TO vpbuilder;
