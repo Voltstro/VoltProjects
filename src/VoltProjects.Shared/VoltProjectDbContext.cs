@@ -89,7 +89,10 @@ public class VoltProjectDbContext : DbContext
         modelBuilder.Entity<DocBuilder>().HasData(new DocBuilder
         {
             Id = "vdocfx",
-            Name = "VDocFx"
+            Name = "VDocFx",
+            Application = "vdocfx",
+            Arguments = new []{"build", "--output-type PageJson", "--output {0}"},
+            EnvironmentVariables = new []{"DOCS_GITHUB_TOKEN="}
         });
     }
 }

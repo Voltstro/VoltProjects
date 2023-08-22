@@ -15,8 +15,8 @@ namespace VoltProjects.Shared.Migrations
         {
             //Custom types
             migrationBuilder.Sql(@"
-                CREATE TYPE upsertedtoc AS (rel text, toc jsonb);
-                CREATE TYPE upsertedpage AS (publisheddate timestamptz, title text, titleDisplay boolean, aside boolean, wordCount int4, tocId int4, tocRel text, path text, description text, pageContent text);
+CREATE TYPE upsertedtoc AS (rel text, toc jsonb);
+CREATE TYPE upsertedpage AS (publisheddate timestamptz, title text, titleDisplay boolean, aside boolean, wordCount int4, tocId int4, tocRel text, path text, description text, pageContent text);
             ");
             
             migrationBuilder.CreateTable(
@@ -24,7 +24,10 @@ namespace VoltProjects.Shared.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: false)
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Application = table.Column<string>(type: "text", nullable: false),
+                    Arguments = table.Column<string[]>(type: "text[]", nullable: true),
+                    EnvironmentVariables = table.Column<string[]>(type: "text[]", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -151,6 +154,7 @@ namespace VoltProjects.Shared.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     ProjectVersionId = table.Column<int>(type: "integer", nullable: false),
+                    Order = table.Column<int>(type: "integer", nullable: false),
                     Command = table.Column<string>(type: "text", nullable: false),
                     Arguments = table.Column<string>(type: "text", nullable: true)
                 },
@@ -245,8 +249,8 @@ namespace VoltProjects.Shared.Migrations
 
             migrationBuilder.InsertData(
                 table: "DocBuilder",
-                columns: new[] { "Id", "Name" },
-                values: new object[] { "vdocfx", "VDocFx" });
+                columns: new[] { "Id", "Application", "Arguments", "EnvironmentVariables", "Name" },
+                values: new object[] { "vdocfx", "vdocfx", new[] { "build", "--output-type PageJson", "--output {0}" }, new[] { "DOCS_GITHUB_TOKEN=" }, "VDocFx" });
 
             migrationBuilder.InsertData(
                 table: "Language",
@@ -368,6 +372,7 @@ BEGIN
         DO UPDATE SET 
             ""LastUpdateTime"" = NOW(),
             ""Published"" = EXCLUDED.""Published"",
+            ""PublishedDate"" = EXCLUDED.""PublishedDate"",
             ""Title"" = EXCLUDED.""Title"",
             ""TitleDisplay"" = EXCLUDED.""TitleDisplay"",
             ""WordCount"" = EXCLUDED.""WordCount"",
@@ -397,6 +402,9 @@ Marks all un-edited pages as not published!';
 
             //Permissions
             migrationBuilder.Sql(@"
+--DocBuilder
+GRANT SELECT ON TABLE public.""DocBuilder"" TO vpbuilder;
+
 --Project
 GRANT SELECT ON TABLE public.""Project"" TO vpbuilder, vpserver;
 

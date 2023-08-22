@@ -34,7 +34,7 @@ public struct Metadata
     public struct GitContributorInfo
     {
         [JsonPropertyName("updated_at_date_time")]
-        public DateTime UpdateDate { get; init; }
+        public DateTime? UpdateDate { get; init; }
 
         [JsonPropertyName("contributors")] public GitContributor[]? Contributors { get; init; }
     }

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json;
 using System.Web;
 using HtmlAgilityPack;
@@ -63,11 +64,9 @@ public sealed class BuildManager
         
         //We will check this after the build
         string builtDocsLocation = Path.Combine(projectPath, projectVersion.DocsBuiltPath);
-        
-        //TODO: Run Pre-Build commands
-        
+
         //First, run the build process
-        builder.RunBuildProcess(docsLocation, builtDocsLocation);
+        ExecuteDocBuilderProcess(builder, projectVersion, docsLocation, builtDocsLocation);
         
         //Now check that built docs exist
         if (!Directory.Exists(builtDocsLocation))
@@ -177,5 +176,42 @@ public sealed class BuildManager
         //No return needed on this one, so we will use dbContext.Database
         dbContext.Database.ExecuteSqlRaw(
             $"SELECT public.\"UpsertProjectPages\"(@p0, ARRAY[{pageParamsPlaceholder}]::upsertedpage[]);", pageParams);
+    }
+
+    private void ExecuteDocBuilderProcess(Builder builder, ProjectVersion projectVersion, string docsLocation, string docsBuiltLocation)
+    {
+        DocBuilder docBuilder = projectVersion.DocBuilder;
+
+        string[]? arguments = docBuilder.Arguments;
+        builder.PrepareBuilder(ref arguments, docsLocation, docsBuiltLocation);
+
+        arguments ??= Array.Empty<string>();
+
+        ProcessStartInfo processStartInfo = new ProcessStartInfo(docBuilder.Application)
+        {
+            Arguments = string.Join(' ', arguments),
+            WorkingDirectory = docsLocation
+        };
+        
+        //TODO: Better way of doing this, please...
+        if(docBuilder.EnvironmentVariables != null)
+            foreach (string environmentVariable in docBuilder.EnvironmentVariables)
+            {
+                string[] splitEnv = environmentVariable.Split('=');
+                if (splitEnv.Length != 2)
+                    throw new ArgumentOutOfRangeException("Doc build environment variables do not equal to two split!");
+
+                processStartInfo.EnvironmentVariables[splitEnv[0]] = splitEnv[1];
+            }
+
+        Process process = new();
+        process.StartInfo = processStartInfo;
+        process.Start();
+        process.WaitForExit();
+
+        if (process.ExitCode != 0)
+            throw new Exception("Docfx failed to exit cleanly!");
+        
+        process.Dispose();
     }
 }

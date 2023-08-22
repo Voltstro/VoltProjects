@@ -18,26 +18,22 @@ internal sealed class VDocFxBuilder : Builder
         this.logger = logger;
     }
 
-    public override void RunBuildProcess(string docsPath, string docsBuiltPath)
+    public override void PrepareBuilder(ref string[]? arguments, string docsPath, string docsBuiltPath)
     {
         string docsConfigPath = Path.Combine(docsPath, "vdocfx.yml");
         if (!File.Exists(docsConfigPath))
             throw new FileNotFoundException($"vdocfx.yml file was not found in {docsPath}!");
 
-        ProcessStartInfo startInfo = new("vdocfx", "build --output-type PageJson")
+        //Format arguments (if provided)
+        if (arguments != null)
         {
-            WorkingDirectory = docsPath
-        };
+            string sitePath = Path.Combine(docsPath, "_site");
 
-        Process process = new();
-        process.StartInfo = startInfo;
-        process.Start();
-        process.WaitForExit();
-
-        if (process.ExitCode != 0)
-            throw new Exception("Docfx failed to exit cleanly!");
-        
-        process.Dispose();
+            for (int i = 0; i < arguments.Length; i++)
+            {
+                arguments[i] = string.Format(arguments[i], sitePath);
+            }
+        }
     }
 
     public override BuildResult BuildProject(ProjectVersion projectVersion, string docsPath, string docsBuiltPath)
@@ -136,12 +132,14 @@ internal sealed class VDocFxBuilder : Builder
                     }
                 }
             }
+
+            DateTime publishedDate = pageModel.Metadata.ContributorInfo.UpdateDate ?? DateTime.UtcNow;
             
             pages[i] = new ProjectPage
             {
                 Path = relativity,
                 Published = true,
-                PublishedDate = DateTime.UtcNow,
+                PublishedDate = publishedDate,
                 Title = title,
                 TitleDisplay = useTitle,
                 WordCount = pageModel.Metadata.WordCount ?? 0,

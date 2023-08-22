@@ -28,6 +28,18 @@ namespace VoltProjects.Shared.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("text");
 
+                    b.Property<string>("Application")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string[]>("Arguments")
+                        .HasColumnType("text[]")
+                        .HasColumnName("Arguments");
+
+                    b.Property<string[]>("EnvironmentVariables")
+                        .HasColumnType("text[]")
+                        .HasColumnName("EnvironmentVariables");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
@@ -40,6 +52,9 @@ namespace VoltProjects.Shared.Migrations
                         new
                         {
                             Id = "vdocfx",
+                            Application = "vdocfx",
+                            Arguments = new[] { "build", "--output-type PageJson", "--output {0}" },
+                            EnvironmentVariables = new[] { "DOCS_GITHUB_TOKEN=" },
                             Name = "VDocFx"
                         });
                 });
@@ -261,6 +276,9 @@ namespace VoltProjects.Shared.Migrations
                     b.Property<string>("Command")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("integer");
 
                     b.Property<int>("ProjectVersionId")
                         .HasColumnType("integer");

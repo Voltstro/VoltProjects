@@ -55,6 +55,7 @@ internal sealed class BuildService : BackgroundService
 
                     ProjectVersion[] projectVersions = await projectContext.ProjectVersions
                         .AsNoTracking()
+                        .Include(x => x.DocBuilder)
                         .Where(x => x.ProjectId == project.Id)
                         .ToArrayAsync(token);
 
@@ -74,11 +75,11 @@ internal sealed class BuildService : BackgroundService
                             repoManager.SetProjectRepoBranch(project, projectVersion.GitBranch);
 
                             //TODO: Check commits
-
-                            //TODO: Execute pre-build commands
+                            
                             ProjectPreBuild[] prebuildCommands = await projectContext.PreBuildCommands
                                 .AsNoTracking()
                                 .Where(x => x.ProjectVersionId == projectVersion.Id)
+                                .OrderBy(x => x.Order)
                                 .ToArrayAsync(token);
                             foreach (ProjectPreBuild prebuildCommand in prebuildCommands)
                             {
