@@ -1,4 +1,4 @@
-namespace VoltProjects.Builder.Data;
+namespace VoltProjects.Builder.Core;
 
 /// <summary>
 ///     Configuration for VoltProjects.Builder to use

@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using VoltProjects.Builder.Core;
 using VoltProjects.Shared.Models;
 
 namespace VoltProjects.Builder.VDocFx;
@@ -9,7 +10,7 @@ namespace VoltProjects.Builder.VDocFx;
 ///     <see cref="Builder"/> for VDocFx
 /// </summary>
 [BuilderName(Name = "vdocfx")]
-internal sealed class VDocFxBuilder : Builder
+internal sealed class VDocFxBuilder : Core.Builder
 {
     private readonly ILogger<VDocFxBuilder> logger;
 

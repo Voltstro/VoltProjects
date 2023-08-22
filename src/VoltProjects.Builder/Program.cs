@@ -3,8 +3,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using VoltProjects.Builder;
-using VoltProjects.Builder.Data;
+using VoltProjects.Builder.Core;
+using VoltProjects.Builder.Services;
 using VoltProjects.Shared;
 using WebMarkupMin.Core;
 
@@ -17,7 +17,7 @@ using IHost host = Host.CreateDefaultBuilder(args).ConfigureServices((context, c
         //Our singletons
         collection.AddSingleton<HtmlMinifier>();
         collection.AddSingleton<HtmlHighlightService>();
-        collection.AddSingleton<ProjectRepoManager>();
+        collection.AddSingleton<ProjectRepoService>();
         collection.AddSingleton<BuildManager>();
         
         //Background services

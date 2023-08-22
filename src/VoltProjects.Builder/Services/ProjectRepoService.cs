@@ -1,17 +1,25 @@
 using LibGit2Sharp;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using VoltProjects.Builder.Data;
+using VoltProjects.Builder.Core;
 using VoltProjects.Shared.Models;
 
-namespace VoltProjects.Builder;
+namespace VoltProjects.Builder.Services;
 
-public class ProjectRepoManager
+/// <summary>
+///     Handles a <see cref="Project"/>'s git repo
+/// </summary>
+public sealed class ProjectRepoService
 {
-    private readonly ILogger<ProjectRepoManager> logger;
+    private readonly ILogger<ProjectRepoService> logger;
     private readonly VoltProjectsBuilderConfig config;
     
-    public ProjectRepoManager(ILogger<ProjectRepoManager> logger, IOptions<VoltProjectsBuilderConfig> config)
+    /// <summary>
+    ///     Creates a new <see cref="ProjectRepoService"/>
+    /// </summary>
+    /// <param name="logger"></param>
+    /// <param name="config"></param>
+    public ProjectRepoService(ILogger<ProjectRepoService> logger, IOptions<VoltProjectsBuilderConfig> config)
     {
         this.logger = logger;
         this.config = config.Value;
@@ -51,6 +59,11 @@ public class ProjectRepoManager
         return projectRepoPath;
     }
 
+    /// <summary>
+    ///     Set's a project's repo branch
+    /// </summary>
+    /// <param name="project"></param>
+    /// <param name="branch"></param>
     public void SetProjectRepoBranch(Project project, string branch)
     {
         string projectRepoPath = Path.GetFullPath(Path.Combine(config.RepoStoreLocation, project.Name));

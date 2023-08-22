@@ -5,11 +5,12 @@ using HtmlAgilityPack;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using VoltProjects.Builder.Services;
 using VoltProjects.Shared;
 using VoltProjects.Shared.Models;
 using WebMarkupMin.Core;
 
-namespace VoltProjects.Builder;
+namespace VoltProjects.Builder.Core;
 
 /// <summary>
 ///     Global build manager
