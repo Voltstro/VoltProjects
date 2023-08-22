@@ -1,8 +1,6 @@
 using System;
 using System.Diagnostics;
-using Figgle;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Rewrite;
 using Microsoft.EntityFrameworkCore;
@@ -13,22 +11,17 @@ using Serilog;
 using VoltProjects.Server.Services;
 using VoltProjects.Server.Shared;
 using VoltProjects.Shared;
+using VoltProjects.Shared.Logging;
 
+//Create application
 WebApplicationBuilder builder = WebApplication.CreateBuilder();
 
 //Setup logger
-Log.Logger = new LoggerConfiguration()
-    .ReadFrom.Configuration(builder.Configuration)
-    .CreateLogger();
-
-//NOTE: We are adding a new line due to all the stuff at the start of each log message
-Log.Information($"\n{FiggleFonts.Graffiti.Render("VoltProjects")}");
-Log.Information("VoltProjects starting...");
+Logger logger = builder.Services.SetupLogger(builder.Configuration);
 
 try
 {
-    //Setup host
-    builder.Host.UseSerilog();
+    //Setup web host
     builder.WebHost.ConfigureKestrel(kestrel => kestrel.AddServerHeader = false);
 
     //Setup services
@@ -90,7 +83,7 @@ catch (Exception ex)
 }
 finally
 {
-    Log.CloseAndFlush();
+    logger.Dispose();
 }
 
 return 0;

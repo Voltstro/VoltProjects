@@ -1,45 +1,60 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Diagnostics;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using Serilog;
 using VoltProjects.Builder.Core;
 using VoltProjects.Builder.Services;
 using VoltProjects.Shared;
+using VoltProjects.Shared.Logging;
 using WebMarkupMin.Core;
 
-//Create host
-using IHost host = Host.CreateDefaultBuilder(args).ConfigureServices((context, collection) =>
-    {
-        //Setup Config
-        collection.Configure<VoltProjectsBuilderConfig>(context.Configuration.GetSection("Config"));
-        
-        //Our singletons
-        collection.AddSingleton<HtmlMinifier>();
-        collection.AddSingleton<HtmlHighlightService>();
-        collection.AddSingleton<ProjectRepoService>();
-        collection.AddSingleton<BuildManager>();
-        
-        //Background services
-        collection.AddHostedService<BuildService>();
+//Create application
+HostApplicationBuilder builder = Host.CreateApplicationBuilder();
+
+//Setup logger
+Logger logger = builder.Services.SetupLogger(builder.Configuration);
+
+try
+{
+    //Setup Config
+    builder.Services.Configure<VoltProjectsBuilderConfig>(builder.Configuration.GetSection("Config"));
     
-        //Setup DB
-        collection.AddDbContextFactory<VoltProjectDbContext>(options =>
-        {
-            options.UseNpgsql(context.Configuration.GetConnectionString("DefaultConnection"));
-        });
-    })
-    .Build();
+    //Our singletons
+    builder.Services.AddSingleton<HtmlMinifier>();
+    builder.Services.AddSingleton<HtmlHighlightService>();
+    builder.Services.AddSingleton<ProjectRepoService>();
+    builder.Services.AddSingleton<BuildManager>();
 
-//Get logger factory and env
-ILoggerFactory loggerFactory = host.Services.GetRequiredService<ILoggerFactory>();
-IHostEnvironment hostEnvironment = host.Services.GetRequiredService<IHostEnvironment>();
+    //Background services
+    builder.Services.AddHostedService<BuildService>();
 
-//Print some details
-ILogger mainLogger = loggerFactory.CreateLogger(typeof(Program));
-mainLogger.LogInformation("Starting VoltProject builder at {Time} running in {Mode} mode.", DateTime.Now.ToString("dd/MM/yyyy hh:mm tt"), hostEnvironment.EnvironmentName);
+    //Setup DB
+    builder.Services.AddDbContextFactory<VoltProjectDbContext>(options =>
+    {
+        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+    });
 
-//Start
-await host.RunAsync();
+    //Setup app
+    IHost host = builder.Build();
+    
+    //Start
+    await host.RunAsync();
+}
+catch (Exception ex)
+{
+    Log.Error(ex, "An uncaught error occured!");
+#if DEBUG
+    if (Debugger.IsAttached)
+        throw;
+#endif
+    
+    return 1;
+}
+finally
+{
+    logger.Dispose();
+}
 
-mainLogger.LogInformation("Shutting down at {Time}", DateTime.Now.ToString("dd/MM/yyyy hh:mm tt"));
+return 0;
