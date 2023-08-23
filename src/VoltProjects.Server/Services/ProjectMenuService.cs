@@ -61,7 +61,8 @@ public sealed class ProjectMenuService
         {
             BasePath = baseProjectPath,
             ProjectName = project.Project.Name,
-            MenuItems = menuItems
+            MenuItems = menuItems,
+            GitUrl = $"{project.Project.GitUrl}/tree/{project.GitTag ?? project.GitBranch}"
         };
     }
 }
