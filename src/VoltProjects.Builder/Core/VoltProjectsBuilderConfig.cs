@@ -14,4 +14,6 @@ public sealed class VoltProjectsBuilderConfig
     ///     Where to store project git repos?
     /// </summary>
     public string RepoStoreLocation { get; init; } = "Data/Repos/";
+    
+    public StorageConfig StorageConfig { get; init; }
 }

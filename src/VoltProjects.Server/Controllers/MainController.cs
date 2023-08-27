@@ -1,11 +1,14 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using VoltProjects.Server.Models;
 using VoltProjects.Server.Models.View;
+using VoltProjects.Server.Shared;
 using VoltProjects.Shared;
 using VoltProjects.Shared.Models;
 
@@ -19,13 +22,13 @@ namespace VoltProjects.Server.Controllers;
 #endif
 public class MainController : Controller
 {
-    //private readonly IndexPageModel _pageModel;
-    
     private readonly VoltProjectDbContext dbContext;
+    private readonly VoltProjectsConfig config;
     
-    public MainController(VoltProjectDbContext dbContext)
+    public MainController(VoltProjectDbContext dbContext, IOptions<VoltProjectsConfig> config)
     {
         this.dbContext = dbContext;
+        this.config = config.Value;
     }
 
     [HttpGet]
@@ -48,7 +51,7 @@ public class MainController : Controller
                 Name = project.Name,
                 ShortName = project.ShortName,
                 Description = project.Description,
-                IconPath = project.IconPath,
+                IconPath = Path.Combine(config.CdnUrl, project.Name, project.IconPath),
                 DefaultVersion = latestProjectVersion.VersionTag
             };
         }

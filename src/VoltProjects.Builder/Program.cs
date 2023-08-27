@@ -20,8 +20,9 @@ try
 {
     //Setup Config
     builder.Services.Configure<VoltProjectsBuilderConfig>(builder.Configuration.GetSection("Config"));
-    
+
     //Our singletons
+    builder.Services.AddSingleton<GoogleStorageService>();
     builder.Services.AddSingleton<HtmlMinifier>();
     builder.Services.AddSingleton<HtmlHighlightService>();
     builder.Services.AddSingleton<ProjectRepoService>();

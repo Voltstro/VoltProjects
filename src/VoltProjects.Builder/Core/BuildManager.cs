@@ -1,10 +1,12 @@
 using System.Diagnostics;
 using System.Text.Json;
 using System.Web;
+using Force.Crc32;
 using HtmlAgilityPack;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using VoltProjects.Builder.Services;
 using VoltProjects.Shared;
 using VoltProjects.Shared.Models;
@@ -20,15 +22,25 @@ public sealed class BuildManager
     private readonly ILogger<BuildManager> logger;
     private readonly HtmlMinifier htmlMinifier;
     private readonly HtmlHighlightService highlightService;
+    private readonly GoogleStorageService storageService;
+    private readonly VoltProjectsBuilderConfig config;
     private readonly Dictionary<string, Builder> builders;
 
     private static string[] supportedLangs = new[] { "csharp" };
 
-    public BuildManager(ILogger<BuildManager> logger, HtmlMinifier htmlMinifier, HtmlHighlightService highlightService, IServiceProvider serviceProvider)
+    public BuildManager(
+        ILogger<BuildManager> logger,
+        HtmlMinifier htmlMinifier,
+        HtmlHighlightService highlightService,
+        GoogleStorageService storageService,
+        IOptions<VoltProjectsBuilderConfig> config,
+        IServiceProvider serviceProvider)
     {
         this.logger = logger;
         this.htmlMinifier = htmlMinifier;
         this.highlightService = highlightService;
+        this.storageService = storageService;
+        this.config = config.Value;
         builders = new Dictionary<string, Builder>();
         IEnumerable<Type> foundBuilders = ReflectionHelper.GetInheritedTypes<Builder>();
 
@@ -42,6 +54,8 @@ public sealed class BuildManager
             this.logger.LogDebug("Created builder {Builder}", attribute.Name);
         }
     }
+    
+    //TODO: Make these methods async
     
     /// <summary>
     ///     Builds a select project
@@ -105,6 +119,8 @@ public sealed class BuildManager
         ProjectPage[] pages = buildResult.ProjectPages;
         Parallel.ForEach(pages, page =>
         {
+            string pageCurrentPath = Path.Combine(builtDocsLocation, page.Path);
+            
             HtmlDocument doc = new();
             doc.LoadHtml(page.Content);
 
@@ -134,6 +150,96 @@ public sealed class BuildManager
                     }
 
                     codeBlock.SetAttributeValue("class", "hljs shadow");
+                }
+            }
+            
+            //Parse Images
+            HtmlNodeCollection? images = doc.DocumentNode.SelectNodes("//img");
+            if (images != null)
+            {
+                foreach (HtmlNode imageNode in images)
+                {
+                    HtmlAttribute? srcAttribute = imageNode.Attributes["src"];
+                    
+                    //Src attribute is invalid, weird
+                    if (srcAttribute == null)
+                    {
+                        logger.LogWarning("Image found on page {PageTitle} doesn't have a src attribute!", page.Title);
+                        continue;
+                    }
+                    
+                    //Get image file
+                    string imageSrc = srcAttribute.Value;
+                    
+                    //Off-Site Image, don't care about it
+                    if(imageSrc.StartsWith("http"))
+                        continue;
+
+                    string imagePath = Path.Combine(pageCurrentPath, imageSrc);
+                    if (!File.Exists(imagePath))
+                    {
+                        logger.LogWarning("Could not found image on page {PageTitle} at location {Path}!", page.Title, imagePath);
+                        continue;
+                    }
+
+                    string imagePathInProject = Path.GetRelativePath(builtDocsLocation, imagePath);
+                    string fileExtension = Path.GetExtension(imagePathInProject);
+
+                    try
+                    {
+                        //We have the image file, now pre-process it and upload to online storage
+                        Image image = Image.Load(imagePath);
+
+                        MemoryStream imageMemoryStream = new();
+                        image.SaveAsWebp(imageMemoryStream);
+                        image.Dispose();
+                        
+                        imageMemoryStream.Position = 0;
+                        
+                        //Path in storage service that the file should live at
+                        string path = Path.Combine(projectVersion.Project.Name, projectVersion.VersionTag,
+                            $"{imagePathInProject[..^fileExtension.Length]}.webp");
+                        
+                        //Try to get file
+                        uint? existingFileHash = storageService.GetFileHashAsync(path).GetAwaiter().GetResult();
+                        string filePublicUrl;
+                        if (existingFileHash != null)
+                        {
+                            //TODO: Looks like .NET 8 seems to have some CRC32C hash methods
+                            Crc32CAlgorithm crc = new();
+                            byte[] hash = crc.ComputeHash(imageMemoryStream);
+                            crc.Dispose();
+                            
+                            uint crc32 = BitConverter.ToUInt32(hash);
+
+                            //Compare hashes, if they are the same, leave it alone, otherwise, re-upload
+                            if (crc32 != existingFileHash)
+                            {
+                                logger.LogDebug("Storage file {File} hashes were not the same, re-uploading...", path);
+                                filePublicUrl = storageService.UploadFileAsync(imageMemoryStream, path, "image/webp").GetAwaiter().GetResult();
+                            }
+                            else
+                            {
+                                logger.LogDebug("Storage file {File} hashes are still the same. Not touching...", path);
+                                filePublicUrl = Path.Combine(config.StorageConfig.PublicUrl, path);
+                            }
+                        }
+                        else
+                        {
+                            //Upload image to storage
+                            logger.LogDebug("Uploading file {File} to storage...", path);
+                            filePublicUrl = storageService.UploadFileAsync(imageMemoryStream, path, "image/webp").GetAwaiter().GetResult();
+                        }
+                        
+                        imageNode.SetAttributeValue("src", filePublicUrl);
+                        
+                        //Cleanup
+                        imageMemoryStream.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, "Error occured while processing an image on page {PageTitle}!", page.Title);
+                    }
                 }
             }
 

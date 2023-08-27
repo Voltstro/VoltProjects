@@ -28,7 +28,7 @@
                     <div class="card shadow-sm">
                         <a href="/@project.Name/@project.DefaultVersion/" class="p-1">
                             <div class="d-inline-flex justify-content-center">
-                               <img alt="Project Icon" src=@($"/{project.Name}/projecticon{System.IO.Path.GetExtension(project.IconPath)}") width="100em"/>
+                               <img alt="Project Icon" src="@project.IconPath" width="100em"/>
 
                                 @if (project.ShortName != null)
                                 {
