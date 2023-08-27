@@ -28,6 +28,15 @@ public sealed class BuildManager
 
     private static string[] supportedLangs = new[] { "csharp" };
 
+    /// <summary>
+    ///     Creates a new <see cref="BuildManager"/> instance
+    /// </summary>
+    /// <param name="logger"></param>
+    /// <param name="htmlMinifier"></param>
+    /// <param name="highlightService"></param>
+    /// <param name="storageService"></param>
+    /// <param name="config"></param>
+    /// <param name="serviceProvider"></param>
     public BuildManager(
         ILogger<BuildManager> logger,
         HtmlMinifier htmlMinifier,
@@ -54,15 +63,14 @@ public sealed class BuildManager
             this.logger.LogDebug("Created builder {Builder}", attribute.Name);
         }
     }
-    
-    //TODO: Make these methods async
-    
+
     /// <summary>
     ///     Builds a select project
     /// </summary>
     /// <param name="dbContext"></param>
     /// <param name="projectVersion"></param>
-    public void BuildProject(VoltProjectDbContext dbContext, ProjectVersion projectVersion, string projectPath)
+    /// <param name="projectPath"></param>
+    public async Task BuildProject(VoltProjectDbContext dbContext, ProjectVersion projectVersion, string projectPath, CancellationToken cancellationToken)
     {
         //First, get the builder
         KeyValuePair<string, Builder>? buildFindResult = builders.FirstOrDefault(x => x.Key == projectVersion.DocBuilderId);
@@ -94,9 +102,9 @@ public sealed class BuildManager
         //Upsert project menu
         ProjectMenu projectMenu = buildResult.ProjectMenu;
         string json = JsonSerializer.Serialize(projectMenu.LinkItem);
-        dbContext.Database
-            .ExecuteSql(
-                $"INSERT INTO public.\"ProjectMenu\" (\"ProjectVersionId\", \"LastUpdateTime\", \"LinkItem\") VALUES ({projectMenu.ProjectVersionId}, {projectMenu.LastUpdateTime}, {json}::jsonb) ON CONFLICT (\"ProjectVersionId\") DO UPDATE SET \"LastUpdateTime\" = EXCLUDED.\"LastUpdateTime\", \"LinkItem\" = EXCLUDED.\"LinkItem\" RETURNING *;");
+        await dbContext.Database
+            .ExecuteSqlAsync(
+                $"INSERT INTO public.\"ProjectMenu\" (\"ProjectVersionId\", \"LastUpdateTime\", \"LinkItem\") VALUES ({projectMenu.ProjectVersionId}, {projectMenu.LastUpdateTime}, {json}::jsonb) ON CONFLICT (\"ProjectVersionId\") DO UPDATE SET \"LastUpdateTime\" = EXCLUDED.\"LastUpdateTime\", \"LinkItem\" = EXCLUDED.\"LinkItem\" RETURNING *;", cancellationToken);
         
         //Upsert project TOCs
         ProjectToc[] tocItems = buildResult.ProjectTocs;
@@ -113,11 +121,14 @@ public sealed class BuildManager
         }));
         
         //Upset project TOCs
-        tocItems = dbContext.ProjectTocs.FromSqlRaw($"SELECT * FROM public.\"UpsertProjectTOCs\"(@p0, ARRAY[{tocParamsPlaceholder}]::upsertedtoc[]);", tocParams).ToArray();
+        tocItems = await dbContext.ProjectTocs
+            .FromSqlRaw($"SELECT * FROM public.\"UpsertProjectTOCs\"(@p0, ARRAY[{tocParamsPlaceholder}]::upsertedtoc[]);", tocParams)
+            .AsNoTracking()
+            .ToArrayAsync(cancellationToken);
 
         //Pre-Process pages
         ProjectPage[] pages = buildResult.ProjectPages;
-        Parallel.ForEach(pages, page =>
+        await Parallel.ForEachAsync(pages, cancellationToken, async (page, token) =>
         {
             string pageCurrentPath = Path.Combine(builtDocsLocation, page.Path);
             
@@ -188,10 +199,10 @@ public sealed class BuildManager
                     try
                     {
                         //We have the image file, now pre-process it and upload to online storage
-                        Image image = Image.Load(imagePath);
+                        Image image = await Image.LoadAsync(imagePath, token);
 
                         MemoryStream imageMemoryStream = new();
-                        image.SaveAsWebp(imageMemoryStream);
+                        await image.SaveAsWebpAsync(imageMemoryStream, token);
                         image.Dispose();
                         
                         imageMemoryStream.Position = 0;
@@ -201,13 +212,13 @@ public sealed class BuildManager
                             $"{imagePathInProject[..^fileExtension.Length]}.webp");
                         
                         //Try to get file
-                        uint? existingFileHash = storageService.GetFileHashAsync(path).GetAwaiter().GetResult();
+                        uint? existingFileHash = await storageService.GetFileHashAsync(path, token);
                         string filePublicUrl;
                         if (existingFileHash != null)
                         {
                             //TODO: Looks like .NET 8 seems to have some CRC32C hash methods
                             Crc32CAlgorithm crc = new();
-                            byte[] hash = crc.ComputeHash(imageMemoryStream);
+                            byte[] hash = await crc.ComputeHashAsync(imageMemoryStream, token);
                             crc.Dispose();
                             
                             uint crc32 = BitConverter.ToUInt32(hash);
@@ -216,7 +227,7 @@ public sealed class BuildManager
                             if (crc32 != existingFileHash)
                             {
                                 logger.LogDebug("Storage file {File} hashes were not the same, re-uploading...", path);
-                                filePublicUrl = storageService.UploadFileAsync(imageMemoryStream, path, "image/webp").GetAwaiter().GetResult();
+                                filePublicUrl = await storageService.UploadFileAsync(imageMemoryStream, path, "image/webp", token);
                             }
                             else
                             {
@@ -228,13 +239,13 @@ public sealed class BuildManager
                         {
                             //Upload image to storage
                             logger.LogDebug("Uploading file {File} to storage...", path);
-                            filePublicUrl = storageService.UploadFileAsync(imageMemoryStream, path, "image/webp").GetAwaiter().GetResult();
+                            filePublicUrl = await storageService.UploadFileAsync(imageMemoryStream, path, "image/webp");
                         }
                         
                         imageNode.SetAttributeValue("src", filePublicUrl);
                         
                         //Cleanup
-                        imageMemoryStream.Dispose();
+                        await imageMemoryStream.DisposeAsync();
                     }
                     catch (Exception ex)
                     {
@@ -281,7 +292,7 @@ public sealed class BuildManager
 
         //Upsert project pages
         //No return needed on this one, so we will use dbContext.Database
-        dbContext.Database.ExecuteSqlRaw(
+        await dbContext.Database.ExecuteSqlRawAsync(
             $"SELECT public.\"UpsertProjectPages\"(@p0, ARRAY[{pageParamsPlaceholder}]::upsertedpage[]);", pageParams);
     }
 
@@ -314,6 +325,7 @@ public sealed class BuildManager
         Process process = new();
         process.StartInfo = processStartInfo;
         process.Start();
+
         process.WaitForExit();
 
         if (process.ExitCode != 0)

@@ -7,11 +7,19 @@ using Object = Google.Apis.Storage.v1.Data.Object;
 
 namespace VoltProjects.Builder.Services;
 
+/// <summary>
+///     Provides API access to Google Cloud Storage
+/// </summary>
 public sealed class GoogleStorageService
 {
     private readonly StorageConfig config;
     private readonly StorageClient storageClient;
     
+    /// <summary>
+    ///     Creates a new <see cref="GoogleStorageService"/>
+    /// </summary>
+    /// <param name="config"></param>
+    /// <exception cref="FileNotFoundException"></exception>
     public GoogleStorageService(IOptions<VoltProjectsBuilderConfig> config)
     {
         this.config = config.Value.StorageConfig;
@@ -24,11 +32,17 @@ public sealed class GoogleStorageService
         storageClient = StorageClient.Create(credential);
     }
 
-    public async Task<uint?> GetFileHashAsync(string filePath)
+    /// <summary>
+    ///     Gets a file's CRC32C hash
+    ///     <para>Null if the file is not found</para>
+    /// </summary>
+    /// <param name="filePath"></param>
+    /// <returns></returns>
+    public async Task<uint?> GetFileHashAsync(string filePath, CancellationToken cancellationToken = default)
     {
         try
         {
-            Object? foundObject = await storageClient.GetObjectAsync(config.BucketName, filePath);
+            Object? foundObject = await storageClient.GetObjectAsync(config.BucketName, filePath, cancellationToken: cancellationToken);
             if (foundObject == null)
                 return null;
 
@@ -45,9 +59,16 @@ public sealed class GoogleStorageService
         }
     }
 
-    public async Task<string> UploadFileAsync(Stream fileStream, string fileName, string contentType)
+    /// <summary>
+    ///     Uploads a file
+    /// </summary>
+    /// <param name="fileStream"></param>
+    /// <param name="fileName"></param>
+    /// <param name="contentType"></param>
+    /// <returns></returns>
+    public async Task<string> UploadFileAsync(Stream fileStream, string fileName, string contentType, CancellationToken cancellationToken = default)
     {
-        Object? result = await storageClient.UploadObjectAsync(config.BucketName, fileName, contentType, fileStream);
+        Object? result = await storageClient.UploadObjectAsync(config.BucketName, fileName, contentType, fileStream, cancellationToken: cancellationToken);
         return Path.Combine(config.PublicUrl, fileName);
     }
 }

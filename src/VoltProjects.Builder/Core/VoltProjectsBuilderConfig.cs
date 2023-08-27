@@ -15,5 +15,8 @@ public sealed class VoltProjectsBuilderConfig
     /// </summary>
     public string RepoStoreLocation { get; init; } = "Data/Repos/";
     
+    /// <summary>
+    ///     Configuration for Cloud storage
+    /// </summary>
     public StorageConfig StorageConfig { get; init; }
 }

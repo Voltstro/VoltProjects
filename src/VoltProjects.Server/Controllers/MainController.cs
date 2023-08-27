@@ -51,7 +51,7 @@ public class MainController : Controller
                 Name = project.Name,
                 ShortName = project.ShortName,
                 Description = project.Description,
-                IconPath = Path.Combine(config.CdnUrl, project.Name, project.IconPath),
+                IconPath = Path.Combine(config.PublicUrl, project.Name, project.IconPath),
                 DefaultVersion = latestProjectVersion.VersionTag
             };
         }

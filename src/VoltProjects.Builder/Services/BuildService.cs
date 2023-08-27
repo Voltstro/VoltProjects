@@ -141,7 +141,7 @@ public sealed class BuildService : BackgroundService
             }
 
             //Build the project, and add deds to DB
-            buildManager.BuildProject(projectContext, projectVersion, repoPath);
+            await buildManager.BuildProject(projectContext, projectVersion, repoPath, token);
             
             //Add build message
             projectContext.ProjectBuildEvents.Add(new ProjectBuildEvent

@@ -43,5 +43,5 @@ public sealed class VoltProjectsConfig
 
     public bool FunnyMode { get; init; } = true;
     
-    public string CdnUrl { get; init; }
+    public string PublicUrl { get; init; }
 }
