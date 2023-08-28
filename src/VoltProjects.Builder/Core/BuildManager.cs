@@ -134,6 +134,10 @@ public sealed class BuildManager
             
             HtmlDocument doc = new();
             doc.LoadHtml(page.Content);
+            
+            //Get first p block to get page description from
+            HtmlNode? node = doc.DocumentNode.SelectSingleNode("//p[not(*)]");
+            page.Description = node?.InnerText ?? page.Title;
 
             //Parse code blocks
             HtmlNodeCollection? codeBlocks = doc.DocumentNode.SelectNodes("//pre/code");
@@ -165,6 +169,7 @@ public sealed class BuildManager
             }
             
             //Parse Images
+            //TODO: Perhaps optimize this xpath to only include elements with src attribute
             HtmlNodeCollection? images = doc.DocumentNode.SelectNodes("//img");
             if (images != null)
             {

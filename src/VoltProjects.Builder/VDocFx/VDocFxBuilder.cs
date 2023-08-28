@@ -147,7 +147,6 @@ internal sealed class VDocFxBuilder : Core.Builder
                 ProjectToc = toc,
                 TocRel = tocRel,
                 Aside = useAside,
-                Description = "Test",
                 Content = pageModel.Content,
             };
         }
