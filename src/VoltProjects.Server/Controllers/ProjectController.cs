@@ -39,8 +39,8 @@ public class ProjectController : Controller
     /// <returns></returns>
     /// <exception cref="FileNotFoundException"></exception>
     [HttpGet]
-    [Route("/{projectName}/{version}/{**fullPath}")]
-    public async Task<IActionResult> ProjectView(CancellationToken cancellationToken, string projectName, string version, string? fullPath)
+    [Route("/{projectName}/{version?}/{**fullPath}")]
+    public async Task<IActionResult> ProjectView(CancellationToken cancellationToken, string projectName, string? version, string? fullPath)
     {
         //Try to get project first
         Project? project = await dbContext.Projects
@@ -48,13 +48,17 @@ public class ProjectController : Controller
             .FirstOrDefaultAsync(x => x.Name == projectName, cancellationToken);
         if (project == null)
             return NotFound();
-        
+
+        //No version? Goto latest
+        if (string.IsNullOrWhiteSpace(version))
+            return GetProjectLatestRedirect(project, version, fullPath);
+
         //Try to get project version
         ProjectVersion? projectVersion = await dbContext.ProjectVersions
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.VersionTag == version && x.ProjectId == project.Id, cancellationToken);
         if (projectVersion == null)
-            return GetProjectLatestRedirect(project, fullPath);
+            return GetProjectLatestRedirect(project, version, fullPath);
 
         //Set for ease of use in the view
         projectVersion.Project = project;
@@ -98,7 +102,7 @@ public class ProjectController : Controller
         });
     }
 
-    private IActionResult GetProjectLatestRedirect(Project project, string? fullPath)
+    private IActionResult GetProjectLatestRedirect(Project project, string? previousVersion, string? fullPath)
     {
         //Find default version
         ProjectVersion? latestProjectVersion =
@@ -110,6 +114,9 @@ public class ProjectController : Controller
             logger.LogError("Project {ProjectName} has no default project version!", project.Name);
             return NotFound();
         }
+
+        if (!string.IsNullOrWhiteSpace(fullPath) && !string.IsNullOrWhiteSpace(previousVersion))
+            fullPath = Path.Combine(previousVersion, fullPath);
             
         return RedirectToAction("ProjectView", "Project", new {projectName = project.Name, version = latestProjectVersion.VersionTag, fullPath = fullPath});
     }

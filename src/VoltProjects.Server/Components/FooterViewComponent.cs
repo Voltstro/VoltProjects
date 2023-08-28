@@ -12,7 +12,7 @@ namespace VoltProjects.Server.Components;
 public class FooterViewComponent : ViewComponent
 {
     private static string[] handingWithWords = new[]
-        { "Using", "Rolling with", "Chilling with", "Hanging out with", "Employing", "Hooked up with", "Lovin", "Consuming time with", "Socializing with", "Not touching grass with", "Gay with" };
+        { "Using", "Rolling with", "Chilling with", "Hanging out with", "Employing", "Hooked up with", "Lovin", "Consuming time with", "Socializing with", "Not touching grass with" };
 
     private readonly VoltProjectsConfig config;
     

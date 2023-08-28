@@ -9,6 +9,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="description" content="@ViewBag.Description">
 <meta name="keywords" content="Voltstro,Voltstro-Studios,Docs,Documentation">
+<!-- Why do I get the impression that AIbros are just not gonna care about this tag? -->
+<meta name="robots" content="noai, noimageai">
 <!-- Social Media Tags -->
 <meta name="og:type" content="website" />
 <meta name="og:title" content="@pageTitle" />
@@ -19,7 +21,7 @@
 <!-- Links & other stuff -->
 <title>@pageTitle</title>
 <link rel="icon" type="image/x-icon" href="~/favicon.ico"/>
-<link rel="stylesheet" href="~/assets/main.css" />
+<link rel="stylesheet" href="~/assets/main.css" asp-append-version="true" />
 @await RenderSectionAsync("TopInclude", false)
 <body>
 <header class="shadow-sm d-print-none">
@@ -31,6 +33,6 @@
   @await RenderSectionAsync("BottomJs", false)
 </main>
 @await Component.InvokeAsync("Footer")
-<script type="module" src="~/js/main.js"></script>
+<script type="module" src="~/js/main.js" asp-append-version="true"></script>
 </body>
 </html>

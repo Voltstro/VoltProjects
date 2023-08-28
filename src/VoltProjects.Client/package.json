@@ -24,6 +24,7 @@
     "@fontsource/roboto": "^5.0.3",
     "bootstrap": "^5.3.0",
     "bootstrap-icons": "^1.10.3",
+    "firacode": "^6.2.0",
     "js-cookie": "^3.0.5",
     "jsx-dom": "^8.0.5"
   }
