@@ -1,9 +1,11 @@
+using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using VoltProjects.Server.Models;
 using VoltProjects.Server.Models.View;
@@ -20,12 +22,18 @@ public class ProjectController : Controller
 {
     private readonly VoltProjectDbContext dbContext;
     private readonly ProjectMenuService projectMenuService;
+    private readonly IMemoryCache memoryCache;
     private readonly ILogger<ProjectController> logger;
 
-    public ProjectController(VoltProjectDbContext dbContext, ProjectMenuService projectMenuService, ILogger<ProjectController> logger)
+    public ProjectController(
+        VoltProjectDbContext dbContext,
+        ProjectMenuService projectMenuService,
+        IMemoryCache memoryCache,
+        ILogger<ProjectController> logger)
     {
         this.dbContext = dbContext;
         this.projectMenuService = projectMenuService;
+        this.memoryCache = memoryCache;
         this.logger = logger;
     }
 
@@ -71,7 +79,6 @@ public class ProjectController : Controller
         ProjectPage? projectPage =
             await dbContext.ProjectPages
                 .AsNoTracking()
-                .Include(x => x.ProjectToc)
                 .FirstOrDefaultAsync(x => x.ProjectVersionId == projectVersion.Id && x.Path == fullPath, cancellationToken);
 
         //No page was found, all good then
@@ -90,8 +97,23 @@ public class ProjectController : Controller
         
         //Figure out TOC stuff
         TocItem? tocItem = null;
-        if (projectPage.ProjectToc != null)
-            tocItem = ProcessTocItems(projectPage.ProjectToc.TocItem, projectPage.TocRel!, requestPath);
+        if (projectPage.ProjectTocId != null)
+        {
+            int tocId = projectPage.ProjectTocId.Value;
+            string tocMemoryCacheKeyName = $"ProjectToc-{tocId}";
+            ProjectToc? projectToc = await memoryCache.GetOrCreateAsync(tocMemoryCacheKeyName, async entry =>
+            {
+                ProjectToc? projectToc = await dbContext.ProjectTocs
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.Id == tocId, cancellationToken: cancellationToken);
+                
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(6);
+                return projectToc;
+            });
+            
+            if (projectToc != null)
+                tocItem = ProcessTocItems(projectToc.TocItem, projectPage.TocRel!, requestPath);
+        }
 
         return View("ProjectView", new ProjectViewModel
         {
