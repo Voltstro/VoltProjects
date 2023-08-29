@@ -1,7 +1,9 @@
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using VoltProjects.Server.Models;
 using VoltProjects.Server.Models.View;
 using VoltProjects.Shared;
@@ -15,14 +17,17 @@ namespace VoltProjects.Server.Services;
 public sealed class ProjectMenuService
 {
     private readonly VoltProjectDbContext dbContext;
+    private readonly IMemoryCache memoryCache;
 
     /// <summary>
     ///     Creates a new <see cref="ProjectMenuService"/>
     /// </summary>
     /// <param name="dbContext"></param>
-    public ProjectMenuService(VoltProjectDbContext dbContext)
+    /// <param name="memoryCache"></param>
+    public ProjectMenuService(VoltProjectDbContext dbContext, IMemoryCache memoryCache)
     {
         this.dbContext = dbContext;
+        this.memoryCache = memoryCache;
     }
 
     /// <summary>
@@ -36,10 +41,17 @@ public sealed class ProjectMenuService
     /// <exception cref="FileNotFoundException"></exception>
     public async Task<ProjectNavModel> GetProjectMenu(string requestPath, string baseProjectPath, ProjectVersion project, CancellationToken cancellationToken)
     {
-        //We have a page, lets do the rest of the work
-        ProjectMenu? projectMenu = await dbContext.ProjectMenus
-            .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.ProjectVersionId == project.Id, cancellationToken);
+        string memoryCacheKeyName = $"ProjectMenu-{project.Id}";
+        ProjectMenu? projectMenu = await memoryCache.GetOrCreateAsync(memoryCacheKeyName, async entry =>
+        {
+            ProjectMenu? projectMenu = await dbContext.ProjectMenus
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.ProjectVersionId == project.Id, cancellationToken);
+
+            entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(6);
+            return projectMenu;
+        });
+        
         if (projectMenu == null)
             throw new FileNotFoundException($"Project {project.Project.Name} is missing it menu!");
         
