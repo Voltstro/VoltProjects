@@ -6,7 +6,7 @@ namespace VoltProjects.Shared.Models;
 /// <summary>
 ///     A project that we serve docs for
 /// </summary>
-[Table("Project")]
+[Table("project")]
 public class Project
 {
     /// <summary>
@@ -20,10 +20,10 @@ public class Project
     public string? ShortName { get; set; }
     
     public string Description { get; set; }
-    
-    public string GitUrl { get; set; }
+
+    public string GitUrl { get; set; } = "https://github.com/";
 
     public bool GitIsUrl => GitUrl.StartsWith("https://");
 
-    public string? IconPath { get; set; }
+    public string? IconPath { get; set; } = "icon.svg";
 }

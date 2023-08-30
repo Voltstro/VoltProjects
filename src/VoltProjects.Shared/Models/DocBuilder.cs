@@ -6,7 +6,7 @@ namespace VoltProjects.Shared.Models;
 /// <summary>
 ///     Application that builds docs
 /// </summary>
-[Table("DocBuilder")]
+[Table("doc_builder")]
 public class DocBuilder
 {
     /// <summary>
@@ -28,12 +28,12 @@ public class DocBuilder
     /// <summary>
     ///     Arguments for the program
     /// </summary>
-    [Column("Arguments", TypeName = "text[]")]
+    [Column("arguments", TypeName = "text[]")]
     public string[]? Arguments { get; set; }
     
     /// <summary>
     ///     Environment variables to use
     /// </summary>
-    [Column("EnvironmentVariables", TypeName = "text[]")]
+    [Column("environment_variables", TypeName = "text[]")]
     public string[]? EnvironmentVariables { get; set; }
 }

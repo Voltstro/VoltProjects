@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace VoltProjects.Shared.Models;
 
-[Table("ProjectPageContributor")]
+[Table("project_page_contributor")]
 public class ProjectPageContributor
 {
     [Key]

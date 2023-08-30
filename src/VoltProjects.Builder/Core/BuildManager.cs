@@ -104,7 +104,7 @@ public sealed class BuildManager
         string json = JsonSerializer.Serialize(projectMenu.LinkItem);
         await dbContext.Database
             .ExecuteSqlAsync(
-                $"INSERT INTO public.\"ProjectMenu\" (\"ProjectVersionId\", \"LastUpdateTime\", \"LinkItem\") VALUES ({projectMenu.ProjectVersionId}, {projectMenu.LastUpdateTime}, {json}::jsonb) ON CONFLICT (\"ProjectVersionId\") DO UPDATE SET \"LastUpdateTime\" = EXCLUDED.\"LastUpdateTime\", \"LinkItem\" = EXCLUDED.\"LinkItem\" RETURNING *;", cancellationToken);
+                $"INSERT INTO public.project_menu (project_version_id, last_update_time, link_item) VALUES ({projectMenu.ProjectVersionId}, {projectMenu.LastUpdateTime}, {json}::jsonb) ON CONFLICT (project_version_id) DO UPDATE SET last_update_time = EXCLUDED.last_update_time, link_item = EXCLUDED.link_item RETURNING *;", cancellationToken);
         
         //Upsert project TOCs
         ProjectToc[] tocItems = buildResult.ProjectTocs;
@@ -122,7 +122,7 @@ public sealed class BuildManager
         
         //Upset project TOCs
         tocItems = await dbContext.ProjectTocs
-            .FromSqlRaw($"SELECT * FROM public.\"UpsertProjectTOCs\"(@p0, ARRAY[{tocParamsPlaceholder}]::upsertedtoc[]);", tocParams)
+            .FromSqlRaw($"SELECT * FROM public.upsert_project_tocs(@p0, ARRAY[{tocParamsPlaceholder}]::upsertedtoc[]);", tocParams)
             .AsNoTracking()
             .ToArrayAsync(cancellationToken);
 
@@ -244,7 +244,7 @@ public sealed class BuildManager
                         {
                             //Upload image to storage
                             logger.LogDebug("Uploading file {File} to storage...", path);
-                            filePublicUrl = await storageService.UploadFileAsync(imageMemoryStream, path, "image/webp");
+                            filePublicUrl = await storageService.UploadFileAsync(imageMemoryStream, path, "image/webp", token);
                         }
                         
                         imageNode.SetAttributeValue("src", filePublicUrl);
@@ -276,7 +276,7 @@ public sealed class BuildManager
         
         //Upsert pages
         int pageIndex = 1;
-        int pageItemsCount = 10;
+        int pageItemsCount = 11;
         object?[] pageParams = new object[1 + pages.Length * pageItemsCount];
         pageParams[0] = projectVersion.Id;
         string pageParamsPlaceholder = string.Join(",", pages.Select(x =>
@@ -284,21 +284,22 @@ public sealed class BuildManager
             pageParams[pageIndex] = x.PublishedDate;
             pageParams[pageIndex + 1] = x.Title;
             pageParams[pageIndex + 2] = x.TitleDisplay;
-            pageParams[pageIndex + 3] = x.Aside;
-            pageParams[pageIndex + 4] = x.WordCount;
-            pageParams[pageIndex + 5] = x.ProjectTocId;
-            pageParams[pageIndex + 6] = x.TocRel;
-            pageParams[pageIndex + 7] = x.Path;
-            pageParams[pageIndex + 8] = x.Description;
-            pageParams[pageIndex + 9] = x.Content;
+            pageParams[pageIndex + 3] = x.GitUrl;
+            pageParams[pageIndex + 4] = x.Aside;
+            pageParams[pageIndex + 5] = x.WordCount;
+            pageParams[pageIndex + 6] = x.ProjectTocId;
+            pageParams[pageIndex + 7] = x.TocRel;
+            pageParams[pageIndex + 8] = x.Path;
+            pageParams[pageIndex + 9] = x.Description;
+            pageParams[pageIndex + 10] = x.Content;
 
-            return $"ROW(@p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++})";
+            return $"ROW(@p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++})";
         }));
 
         //Upsert project pages
         //No return needed on this one, so we will use dbContext.Database
         await dbContext.Database.ExecuteSqlRawAsync(
-            $"SELECT public.\"UpsertProjectPages\"(@p0, ARRAY[{pageParamsPlaceholder}]::upsertedpage[]);", pageParams);
+            $"SELECT public.upsert_project_pages(@p0, ARRAY[{pageParamsPlaceholder}]::upsertedpage[]);", pageParams);
     }
 
     private void ExecuteDocBuilderProcess(Builder builder, ProjectVersion projectVersion, string docsLocation, string docsBuiltLocation)

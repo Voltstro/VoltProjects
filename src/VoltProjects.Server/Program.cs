@@ -40,6 +40,8 @@ try
     //Db
     if (builder.Environment.IsDevelopment())
         builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
+    builder.Services.UseVoltProjectDbContext(builder.Configuration);
     
     builder.Services.AddDbContextFactory<VoltProjectDbContext>(options =>
         options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));

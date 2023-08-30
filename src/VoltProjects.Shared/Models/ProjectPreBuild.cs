@@ -6,7 +6,7 @@ namespace VoltProjects.Shared.Models;
 /// <summary>
 ///     Command to execute before building the docs
 /// </summary>
-[Table("ProjectPreBuild")]
+[Table("project_pre_build")]
 public class ProjectPreBuild
 {
     [Key]
@@ -15,12 +15,12 @@ public class ProjectPreBuild
     [ForeignKey("ProjectVersion")]
     public int ProjectVersionId { get; set; }
     public virtual ProjectVersion ProjectVersion { get; set; }
-    
+
     /// <summary>
     ///     Sort order of this command
     /// </summary>
-    public int Order { get; set; }
-    
-    public string Command { get; set; }
-    public string? Arguments { get; set; }
+    public int Order { get; set; } = 1;
+
+    public string Command { get; set; } = "dotnet";
+    public string? Arguments { get; set; } = "build";
 }

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace VoltProjects.Shared.Models;
 
-[Table("ProjectMenu")]
+[Table("project_menu")]
 public class ProjectMenu
 {
     /// <summary>

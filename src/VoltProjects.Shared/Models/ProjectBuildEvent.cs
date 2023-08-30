@@ -6,7 +6,7 @@ namespace VoltProjects.Shared.Models;
 /// <summary>
 ///     A build event for a project
 /// </summary>
-[Table("ProjectBuildEvent")]
+[Table("project_build_event")]
 public class ProjectBuildEvent
 {
     /// <summary>

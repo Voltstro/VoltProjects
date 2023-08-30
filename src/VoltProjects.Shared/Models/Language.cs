@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace VoltProjects.Shared.Models;
 
-[Table("Language")]
+[Table("language")]
 public class Language
 {
     [Key]

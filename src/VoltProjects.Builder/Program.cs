@@ -1,6 +1,4 @@
 ﻿using System.Diagnostics;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
@@ -32,10 +30,7 @@ try
     builder.Services.AddHostedService<BuildService>();
 
     //Setup DB
-    builder.Services.AddDbContextFactory<VoltProjectDbContext>(options =>
-    {
-        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
-    });
+    builder.Services.UseVoltProjectDbContext(builder.Configuration);
 
     //Setup app
     IHost host = builder.Build();

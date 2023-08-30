@@ -6,7 +6,7 @@ namespace VoltProjects.Shared.Models;
 /// <summary>
 ///     A project page
 /// </summary>
-[Table("ProjectPage")]
+[Table("project_page")]
 public class ProjectPage
 {
     /// <summary>
@@ -35,6 +35,17 @@ public class ProjectPage
     public DateTime PublishedDate { get; set; }
     
     /// <summary>
+    ///     The ID of the parent page
+    /// </summary>
+    [ForeignKey("ParentPage")]
+    public int? ParentPageId { get; set; }
+    
+    /// <summary>
+    ///     The parent page
+    /// </summary>
+    public ProjectPage? ParentPage { get; set; }
+
+    /// <summary>
     ///     Page Title
     /// </summary>
     public string Title { get; set; }
@@ -47,7 +58,7 @@ public class ProjectPage
     /// <summary>
     ///     How many words does this page include?
     /// </summary>
-    public int WordCount { get; set; }
+    public int? WordCount { get; set; }
 
     /// <summary>
     ///     Project page's TOC
@@ -60,6 +71,11 @@ public class ProjectPage
     ///     What is the toc relativity for this page?
     /// </summary>
     public string? TocRel { get; set; }
+    
+    /// <summary>
+    ///     Original git URL
+    /// </summary>
+    public string? GitUrl { get; set; }
     
     /// <summary>
     ///     Display an aside on this page?

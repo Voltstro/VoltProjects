@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace VoltProjects.Shared.Models;
 
-[Table("ProjectVersion")]
+[Table("project_version")]
 public class ProjectVersion
 {
     [Key]
@@ -12,17 +12,17 @@ public class ProjectVersion
     [ForeignKey("Project")]
     public int ProjectId { get; set; }
     public virtual Project Project { get; set; }
-    
+
     /// <summary>
     ///     Version tag.
     ///     <para>'latest' for latest</para>
     /// </summary>
-    public string VersionTag { get; set; }
-    
+    public string VersionTag { get; set; } = "latest";
+
     /// <summary>
     ///     What git branch does this version use?
     /// </summary>
-    public string GitBranch { get; set; }
+    public string GitBranch { get; set; } = "master";
     
     /// <summary>
     ///     What git tag does this version use?
@@ -39,24 +39,24 @@ public class ProjectVersion
     /// <summary>
     ///     Where are the docs stored?
     /// </summary>
-    public string DocsPath { get; set; }
-    
+    public string DocsPath { get; set; } = "docs/";
+
     /// <summary>
     ///     Where are the docs built to?
     /// </summary>
-    public string DocsBuiltPath { get; set; }
-    
+    public string DocsBuiltPath { get; set; } = "docs/_site/";
+
     /// <summary>
     ///     What language does this doc use?
     /// </summary>
     [ForeignKey("Language")]
-    public int LanguageId { get; set; }
+    public int LanguageId { get; set; } = 1;
     public virtual Language Language { get; set; }
-    
+
     /// <summary>
     ///     Is this a default fallback doc version?
     /// </summary>
-    public bool IsDefault { get; set; }
+    public bool IsDefault { get; set; } = true;
     
     /// <summary>
     ///     Pre-build commands that this project version should do

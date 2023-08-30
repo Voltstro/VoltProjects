@@ -6,7 +6,7 @@ namespace VoltProjects.Shared.Models;
 /// <summary>
 ///     A project's TOC item
 /// </summary>
-[Table("ProjectToc")]
+[Table("project_toc")]
 public class ProjectToc
 {
     /// <summary>
