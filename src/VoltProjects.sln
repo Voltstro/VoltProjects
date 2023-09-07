@@ -12,6 +12,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VoltProjects.Shared", "Volt
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VoltProjects.Builder", "VoltProjects.Builder\VoltProjects.Builder.csproj", "{7323D371-32F6-46AB-8E62-928BBDF31D7D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VoltProjects.Tests", "VoltProjects.Tests\VoltProjects.Tests.csproj", "{23D663F7-F172-4E2D-944E-D958141FCC2D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,6 +32,10 @@ Global
 		{7323D371-32F6-46AB-8E62-928BBDF31D7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7323D371-32F6-46AB-8E62-928BBDF31D7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7323D371-32F6-46AB-8E62-928BBDF31D7D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23D663F7-F172-4E2D-944E-D958141FCC2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23D663F7-F172-4E2D-944E-D958141FCC2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23D663F7-F172-4E2D-944E-D958141FCC2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23D663F7-F172-4E2D-944E-D958141FCC2D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 	EndGlobalSection

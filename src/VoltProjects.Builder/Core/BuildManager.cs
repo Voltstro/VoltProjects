@@ -107,24 +107,7 @@ public sealed class BuildManager
                 $"INSERT INTO public.project_menu (project_version_id, last_update_time, link_item) VALUES ({projectMenu.ProjectVersionId}, {projectMenu.LastUpdateTime}, {json}::jsonb) ON CONFLICT (project_version_id) DO UPDATE SET last_update_time = EXCLUDED.last_update_time, link_item = EXCLUDED.link_item RETURNING *;", cancellationToken);
         
         //Upsert project TOCs
-        ProjectToc[] tocItems = buildResult.ProjectTocs;
-        
-        int tocIndex = 1;
-        object[] tocParams = new object[1 + tocItems.Length * 2];
-        tocParams[0] = projectVersion.Id;
-        string tocParamsPlaceholder = string.Join(",", tocItems.Select(x =>
-        {
-            tocParams[tocIndex] = x.TocRel;
-            tocParams[tocIndex + 1] = JsonSerializer.Serialize(x.TocItem);
-               
-            return $"ROW(@p{tocIndex++}, @p{tocIndex++}::jsonb)";
-        }));
-        
-        //Upset project TOCs
-        tocItems = await dbContext.ProjectTocs
-            .FromSqlRaw($"SELECT * FROM public.upsert_project_tocs(@p0, ARRAY[{tocParamsPlaceholder}]::upsertedtoc[]);", tocParams)
-            .AsNoTracking()
-            .ToArrayAsync(cancellationToken);
+        ProjectToc[] tocItems = await dbContext.UpsertProjectTOCs(buildResult.ProjectTocs, projectVersion);
 
         //Pre-Process pages
         ProjectPage[] pages = buildResult.ProjectPages;
@@ -273,33 +256,8 @@ public sealed class BuildManager
                 page.ProjectToc = null;
             }
         });
-        
-        //Upsert pages
-        int pageIndex = 1;
-        int pageItemsCount = 11;
-        object?[] pageParams = new object[1 + pages.Length * pageItemsCount];
-        pageParams[0] = projectVersion.Id;
-        string pageParamsPlaceholder = string.Join(",", pages.Select(x =>
-        {
-            pageParams[pageIndex] = x.PublishedDate;
-            pageParams[pageIndex + 1] = x.Title;
-            pageParams[pageIndex + 2] = x.TitleDisplay;
-            pageParams[pageIndex + 3] = x.GitUrl;
-            pageParams[pageIndex + 4] = x.Aside;
-            pageParams[pageIndex + 5] = x.WordCount;
-            pageParams[pageIndex + 6] = x.ProjectTocId;
-            pageParams[pageIndex + 7] = x.TocRel;
-            pageParams[pageIndex + 8] = x.Path;
-            pageParams[pageIndex + 9] = x.Description;
-            pageParams[pageIndex + 10] = x.Content;
 
-            return $"ROW(@p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++}, @p{pageIndex++})";
-        }));
-
-        //Upsert project pages
-        //No return needed on this one, so we will use dbContext.Database
-        await dbContext.Database.ExecuteSqlRawAsync(
-            $"SELECT public.upsert_project_pages(@p0, ARRAY[{pageParamsPlaceholder}]::upsertedpage[]);", pageParams);
+        await dbContext.UpsertProjectPages(pages, projectVersion);
     }
 
     private void ExecuteDocBuilderProcess(Builder builder, ProjectVersion projectVersion, string docsLocation, string docsBuiltLocation)

@@ -41,7 +41,42 @@ public sealed class VoltProjectDbContext : DbContext
     public DbSet<Language> Languages { get; set; }
 
     public DbSet<ProjectPreBuild> PreBuildCommands { get; set; }
+    
+    /// <summary>
+    ///     Upserts <see cref="ProjectToc"/>s
+    /// </summary>
+    /// <param name="tocs"></param>
+    /// <param name="projectVersion"></param>
+    /// <returns></returns>
+    public async Task<ProjectToc[]> UpsertProjectTOCs(ProjectToc[] tocs, ProjectVersion projectVersion)
+    {
+        (object?[] objectValues, string[] objectPlaceholders) = DbContextExtensions.GenerateParams(tocs, x => new { x.TocRel, x.TocItem }, 1);
+        objectValues[0] = projectVersion.Id;
+        
+        string paramsPlaceholder = string.Join(",", objectPlaceholders);
 
+        return await ProjectTocs.FromSqlRaw(
+                $"SELECT * FROM public.upsert_project_tocs(@p0, ARRAY[{paramsPlaceholder}]::upsertedtoc[]);", objectValues)
+            .AsNoTracking()
+            .ToArrayAsync();
+    }
+
+    /// <summary>
+    ///     Upserts <see cref="ProjectPage"/>
+    /// </summary>
+    /// <param name="pages"></param>
+    /// <param name="projectVersion"></param>
+    public async Task UpsertProjectPages(ProjectPage[] pages, ProjectVersion projectVersion)
+    {
+        (object?[] objectValues, string[] objectPlaceholders) = DbContextExtensions.GenerateParams(pages, x => new { x.PublishedDate, x.Title, x.TitleDisplay, x.GitUrl, x.Aside, x.WordCount, x.ProjectTocId, x.TocRel, x.Path, x.Description, x.Content }, 1);
+        objectValues[0] = projectVersion.Id;
+        
+        string paramsPlaceholder = string.Join(",", objectPlaceholders);
+
+        await Database.ExecuteSqlRawAsync(
+            $"SELECT public.upsert_project_pages(@p0, ARRAY[{paramsPlaceholder}]::upsertedpage[]);", objectValues);
+    }
+    
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder
