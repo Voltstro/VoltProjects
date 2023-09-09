@@ -60,6 +60,20 @@ public sealed class ProjectRepoService
     }
 
     /// <summary>
+    ///     Gets a <see cref="Project"/>'s currently set commit hash
+    /// </summary>
+    /// <param name="project"></param>
+    /// <returns></returns>
+    /// <exception cref="NullReferenceException"></exception>
+    public string GetProjectRepoGitHash(Project project)
+    {
+        string projectRepoPath = Path.GetFullPath(Path.Combine(config.RepoStoreLocation, project.Name));
+        
+        using Repository repo = new(projectRepoPath);
+        return repo.Head.Tip.Sha;
+    }
+
+    /// <summary>
     ///     Set's a project's repo branch
     /// </summary>
     /// <param name="project"></param>

@@ -104,15 +104,32 @@ public sealed class BuildService : BackgroundService
         IDbContextTransaction transaction = await projectContext.Database.BeginTransactionAsync(token);
         string transactionName = $"BeforeUpdate-{project.Name}";
         await transaction.CreateSavepointAsync(transactionName, token);
-        
+
+        string projectCommitHash = string.Empty;
         try
         {
             logger.LogDebug("Setting {Project} branch to {Branch}...", project.Name,
                 projectVersion.GitBranch);
             repoService.SetProjectRepoBranch(project, projectVersion.GitBranch);
+            projectCommitHash = repoService.GetProjectRepoGitHash(project);
 
-            //TODO: Check commits
-            
+            ProjectBuildEvent? lastBuildEvent = await projectContext.ProjectBuildEvents
+                .AsNoTracking()
+                .Where(x => x.ProjectVersionId == projectVersion.ProjectId)
+                .OrderByDescending(x => x.Date)
+                .FirstOrDefaultAsync(token);
+
+            //Check commit hash is not the same
+            if (lastBuildEvent is { Successful: true })
+            {
+                //Hashes are the same, no need to rebuild
+                if (lastBuildEvent.GitHash == projectCommitHash)
+                {
+                    logger.LogInformation("Project is already using latest build. Not re-building...");
+                    return;
+                }
+            }
+
             ProjectPreBuild[] prebuildCommands = await projectContext.PreBuildCommands
                 .AsNoTracking()
                 .Where(x => x.ProjectVersionId == projectVersion.Id)
@@ -142,7 +159,7 @@ public sealed class BuildService : BackgroundService
 
             //Build the project, and add deds to DB
             await buildManager.BuildProject(projectContext, projectVersion, repoPath, token);
-            
+
             //Add build message
             projectContext.ProjectBuildEvents.Add(new ProjectBuildEvent
             {
@@ -150,19 +167,16 @@ public sealed class BuildService : BackgroundService
                 Successful = true,
                 Date = DateTime.UtcNow,
                 Message = "Successfully Built Project",
-                GitHash = ""
+                GitHash = projectCommitHash
             });
-
-            await projectContext.SaveChangesAsync(token);
-            await transaction.CommitAsync(token);
         }
         catch (Exception ex)
         {
             //We always want this to be written to the DB!
-            // ReSharper disable MethodHasAsyncOverloadWithCancellation
+            // ReSharper disable once MethodHasAsyncOverloadWithCancellation
             transaction.RollbackToSavepoint(transactionName);
             logger.LogError(ex, "Error occured while building project {Project}!", project.Name);
-    
+
             //Add build error message
             projectContext.ProjectBuildEvents.Add(new ProjectBuildEvent
             {
@@ -170,14 +184,18 @@ public sealed class BuildService : BackgroundService
                 Successful = false,
                 Date = DateTime.UtcNow,
                 Message = $"Failed to build project! Error: {ex.Message}",
-                GitHash = ""
+                GitHash = projectCommitHash
             });
 
+            return;
+        }
+        finally
+        {
+            //We always want this to be written to the DB!
+            // ReSharper disable MethodHasAsyncOverloadWithCancellation
             projectContext.SaveChanges();
             transaction.Commit();
             // ReSharper restore MethodHasAsyncOverloadWithCancellation
-    
-            return;
         }
         
         logger.LogInformation("Successfully finished building project {Project} version {Version}!", project.Name, projectVersion.VersionTag);
