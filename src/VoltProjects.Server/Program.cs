@@ -29,6 +29,9 @@ try
         builder.Configuration.GetSection(VoltProjectsConfig.VoltProjects));
     builder.Services.AddScoped<ProjectMenuService>();
 
+    builder.Services.AddSingleton<SitemapService>();
+    builder.Services.AddHostedService<SitemapBackgroundService>();
+
     //Support razor pages runtime compilation for hot reloading
     IMvcBuilder mvcBuilder = builder.Services.AddControllersWithViews(
         mvcOptions => mvcOptions.Filters.Add<OperationCancelledExceptionFilter>());

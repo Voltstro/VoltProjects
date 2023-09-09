@@ -44,4 +44,8 @@ public sealed class VoltProjectsConfig
     public bool FunnyMode { get; init; } = true;
     
     public string PublicUrl { get; init; }
+
+    public TimeSpan SitemapGenerationDelayTime = new TimeSpan(6, 0, 0);
+    
+    public string SiteUrl { get; init; }
 }
