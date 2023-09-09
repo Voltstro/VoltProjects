@@ -32,7 +32,7 @@ jobs:
       workingDirectory: src/VoltProjects.Client/
 
     # Build VoltProjects.Shared, VoltProjects.Builder and VoltProjects.Server
-    - script: dotnet restore src/VoltProjects.sln
+    - script: dotnet restore
       displayName: Restore .NET Packages
       workingDirectory: src/
 
