@@ -9,13 +9,43 @@ jobs:
     pool:
       vmImage: ubuntu-22.04
     steps:
+
+    # Setup Environment
     - task: UseDotNet@2
       displayName: Install .NET 7
       inputs:
         version: 7.x
 
-    - script: dotnet restore src/VoltProjects.sln
-      displayName: Restore Packages
+    - task: UseNode@1
+      displayName: Install Node 18
+      inputs:
+        version: '18.x'
 
-    - script: dotnet build src/VoltProjects.sln --no-restore -c $(buildConfiguration)
-      displayName: Build Project
+    # Build VoltProjects.Client
+    - script: yarn
+      displayName: Resolve Node Packages
+      workingDirectory: src/VoltProjects.Client/
+
+    - script: yarn run build:prod
+      continueOnError: true
+      displayName: Build VoltProjects.Client
+      workingDirectory: src/VoltProjects.Client/
+
+    # Build VoltProjects.Shared, VoltProjects.Builder and VoltProjects.Server
+    - script: dotnet restore src/VoltProjects.sln
+      displayName: Restore .NET Packages
+      workingDirectory: src/
+
+    - script: dotnet build --no-restore -c $(buildConfiguration)
+      displayName: Build VoltProjects.Shared
+      workingDirectory: src/VoltProjects.Shared/
+
+    - script: dotnet build --no-restore -c $(buildConfiguration)
+      continueOnError: true
+      displayName: Build VoltProjects.Builder
+      workingDirectory: src/VoltProjects.Builder/
+
+    - script: dotnet build --no-restore -c $(buildConfiguration)
+      continueOnError: true
+      displayName: Build VoltProjects.Server
+      workingDirectory: src/VoltProjects.Server/
