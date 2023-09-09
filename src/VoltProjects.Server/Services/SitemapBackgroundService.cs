@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -56,7 +57,7 @@ public sealed class SitemapBackgroundService : BackgroundService
             
             //Setup index sitemap
             XElement indexSitemapRoot = new(xmlns + "sitemapindex");
-            indexSitemapRoot.Add(CreatePageLoc(xmlns, "sitemap.xml.gz", "sitemap"));
+            indexSitemapRoot.Add(CreatePageLoc(xmlns, "sitemap.xml.gz", null, "sitemap"));
             
             //Add VoltProject's main pages
             VoltProjectDbContext context = await contextFactory.CreateDbContextAsync(stoppingToken);
@@ -75,7 +76,7 @@ public sealed class SitemapBackgroundService : BackgroundService
                 foreach (ProjectVersion version in versions)
                 {
                     //Add Project's sitemap URL to root one
-                    indexSitemapRoot.Add(CreatePageLoc(xmlns, Path.Combine(project.Name, version.VersionTag, "sitemap.xml.gz"), "sitemap"));
+                    indexSitemapRoot.Add(CreatePageLoc(xmlns, Path.Combine(project.Name, version.VersionTag, "sitemap.xml.gz"), null, "sitemap"));
                     
                     //And generate project's sitemap
                     XElement projectRoot = new(xmlns + "urlset");
@@ -85,7 +86,9 @@ public sealed class SitemapBackgroundService : BackgroundService
                         .ToArrayAsync(stoppingToken);
                     foreach (ProjectPage page in pages)
                     {
-                        projectRoot.Add(CreatePageLoc(xmlns, Path.Combine(project.Name, version.VersionTag, page.Path)));
+                        string pagePath = page.Path == "." ? string.Empty : $"{page.Path}";
+                        string fullPath = $"{project.Name}/{version.VersionTag}/{pagePath}";
+                        projectRoot.Add(CreatePageLoc(xmlns, fullPath, page.PublishedDate));
                     }
 
                     string projectKey = $"{project.Name}/{version.VersionTag}";
@@ -104,13 +107,15 @@ public sealed class SitemapBackgroundService : BackgroundService
         }    
     }
     
-    private XElement CreatePageLoc(XNamespace xNamespace, string url, string element = "url")
+    private XElement CreatePageLoc(XNamespace xNamespace, string url, DateTime? lastModTime = null, string element = "url")
     {
         string fullUrl = Path.Combine(config.SiteUrl, url);
         
-        XElement urlElement = new(
-            xNamespace + element,
-            new XElement(xNamespace + "loc", fullUrl));
+        XElement urlElement = new(xNamespace + element);
+        urlElement.Add(new XElement(xNamespace + "loc", fullUrl));
+        if(lastModTime.HasValue)
+            urlElement.Add(new XElement(xNamespace + "lastmod", lastModTime.Value.ToString("yyyy-MM-dd")));
+        
         return urlElement;
     }
 }
