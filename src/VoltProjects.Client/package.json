@@ -1,7 +1,7 @@
 {
-  "name": "clientapp",
+  "name": "voltprojects.client",
   "version": "1.0.0",
-  "license": "AGPL-3.0",
+  "license": "GPL-3.0",
   "scripts": {
     "build:dev": "tsc && vite build --mode development",
     "build:prod": "tsc && vite build",
