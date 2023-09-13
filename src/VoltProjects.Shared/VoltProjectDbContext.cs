@@ -33,10 +33,14 @@ public sealed class VoltProjectDbContext : DbContext
     public DbSet<ProjectPage> ProjectPages { get; set; }
     
     public DbSet<ProjectPageContributor> ProjectPageContributors { get; set; }
+    
+    public DbSet<ProjectPageStorageItem> ProjectPageStorageItems { get; set; }
 
     public DbSet<ProjectMenu> ProjectMenus { get; set; }
     
     public DbSet<ProjectToc> ProjectTocs { get; set; }
+    
+    public DbSet<ProjectStorageItem> ProjectStorageItems { get; set; }
 
     public DbSet<Language> Languages { get; set; }
 
@@ -50,7 +54,7 @@ public sealed class VoltProjectDbContext : DbContext
     /// <returns></returns>
     public async Task<ProjectToc[]> UpsertProjectTOCs(ProjectToc[] tocs, ProjectVersion projectVersion)
     {
-        (object?[] objectValues, string[] objectPlaceholders) = DbContextExtensions.GenerateParams(tocs, x => new { x.TocRel, x.TocItem }, 1);
+        (object?[] objectValues, string[] objectPlaceholders) = DbContextExtensions.GenerateParams(tocs, x => new { x.TocRel, x.TocItem }, true, 1);
         objectValues[0] = projectVersion.Id;
         
         string paramsPlaceholder = string.Join(",", objectPlaceholders);
@@ -68,13 +72,29 @@ public sealed class VoltProjectDbContext : DbContext
     /// <param name="projectVersion"></param>
     public async Task UpsertProjectPages(ProjectPage[] pages, ProjectVersion projectVersion)
     {
-        (object?[] objectValues, string[] objectPlaceholders) = DbContextExtensions.GenerateParams(pages, x => new { x.PublishedDate, x.Title, x.TitleDisplay, x.GitUrl, x.Aside, x.WordCount, x.ProjectTocId, x.TocRel, x.Path, x.Description, x.Content }, 1);
+        (object?[] objectValues, string[] objectPlaceholders) = DbContextExtensions.GenerateParams(pages, x => new { x.PublishedDate, x.Title, x.TitleDisplay, x.GitUrl, x.Aside, x.WordCount, x.ProjectTocId, x.TocRel, x.Path, x.Description, x.Content }, true, 1);
         objectValues[0] = projectVersion.Id;
         
         string paramsPlaceholder = string.Join(",", objectPlaceholders);
 
         await Database.ExecuteSqlRawAsync(
             $"SELECT public.upsert_project_pages(@p0, ARRAY[{paramsPlaceholder}]::upsertedpage[]);", objectValues);
+    }
+
+    public async Task UpsertProjectStorageAssets(ProjectStorageItem[] storageItems)
+    {
+        (object?[] objectValues, string[] objectPlaceholders)  = DbContextExtensions.GenerateParams(storageItems, x => new { x.ProjectVersionId, x.Path, x.Hash, x.CreationTime, x.LastUpdateTime }, false);
+        string paramsPlaceholder = string.Join(",", objectPlaceholders);
+        
+        await Database.ExecuteSqlRawAsync(@$"
+INSERT INTO public.project_storage_item 
+(project_version_id, path, hash, creation_time, last_update_time)
+VALUES {paramsPlaceholder}
+ON CONFLICT (project_version_id, path)
+DO UPDATE SET 
+	hash = EXCLUDED.hash,
+	last_update_time = EXCLUDED.last_update_time;
+", objectValues);
     }
     
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -151,6 +171,11 @@ public sealed class VoltProjectDbContext : DbContext
         //Project Pre Build
         modelBuilder.Entity<ProjectPreBuild>()
             .Property(p => p.Id).UseIdentityAlwaysColumn();
+        
+        //Storage Item
+        modelBuilder.Entity<ProjectStorageItem>()
+            .HasIndex(p => new { p.ProjectVersionId, p.Path })
+            .IsUnique();
 
         //Project TOC
         modelBuilder.Entity<ProjectToc>()

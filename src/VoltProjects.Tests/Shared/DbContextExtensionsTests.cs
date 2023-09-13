@@ -33,7 +33,7 @@ public class DbContextExtensionsTests
         page.PublishedDate = new DateTime(2004);
         page.Title = "Test";
         
-        (object?[], string[]) values = DbContextExtensions.GenerateParams(new []{page}, p => new {p.PublishedDate, p.Title}, 1);
+        (object?[], string[]) values = DbContextExtensions.GenerateParams(new []{page}, p => new {p.PublishedDate, p.Title}, true, 1);
         Assert.That(values.Item1, Has.Length.EqualTo(3));
         Assert.That(values.Item2, Has.Length.EqualTo(1));
 

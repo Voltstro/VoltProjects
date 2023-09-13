@@ -4,9 +4,11 @@ using Microsoft.Extensions.Hosting;
 using Serilog;
 using VoltProjects.Builder.Core;
 using VoltProjects.Builder.Services;
+using VoltProjects.Builder.Services.Storage;
 using VoltProjects.Shared;
 using VoltProjects.Shared.Logging;
 using WebMarkupMin.Core;
+using IStorageService = VoltProjects.Builder.Services.Storage.IStorageService;
 
 //Create application
 HostApplicationBuilder builder = Host.CreateApplicationBuilder();
@@ -20,7 +22,7 @@ try
     builder.Services.Configure<VoltProjectsBuilderConfig>(builder.Configuration.GetSection("Config"));
 
     //Our singletons
-    builder.Services.AddSingleton<GoogleStorageService>();
+    builder.Services.AddSingleton<IStorageService, AzureStorageService>();
     builder.Services.AddSingleton<HtmlMinifier>();
     builder.Services.AddSingleton<HtmlHighlightService>();
     builder.Services.AddSingleton<ProjectRepoService>();

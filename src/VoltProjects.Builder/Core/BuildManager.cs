@@ -1,14 +1,16 @@
 using System.Diagnostics;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Web;
-using Force.Crc32;
 using HtmlAgilityPack;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VoltProjects.Builder.Services;
+using VoltProjects.Builder.Services.Storage;
 using VoltProjects.Shared;
+using VoltProjects.Shared.Collections;
 using VoltProjects.Shared.Models;
 using WebMarkupMin.Core;
 
@@ -22,8 +24,8 @@ public sealed class BuildManager
     private readonly ILogger<BuildManager> logger;
     private readonly HtmlMinifier htmlMinifier;
     private readonly HtmlHighlightService highlightService;
-    private readonly GoogleStorageService storageService;
     private readonly VoltProjectsBuilderConfig config;
+    private readonly IStorageService storageService;
     private readonly Dictionary<string, Builder> builders;
 
     private static string[] supportedLangs = new[] { "csharp" };
@@ -34,22 +36,22 @@ public sealed class BuildManager
     /// <param name="logger"></param>
     /// <param name="htmlMinifier"></param>
     /// <param name="highlightService"></param>
-    /// <param name="storageService"></param>
     /// <param name="config"></param>
+    /// <param name="storageService"></param>
     /// <param name="serviceProvider"></param>
     public BuildManager(
         ILogger<BuildManager> logger,
         HtmlMinifier htmlMinifier,
         HtmlHighlightService highlightService,
-        GoogleStorageService storageService,
         IOptions<VoltProjectsBuilderConfig> config,
+        IStorageService storageService,
         IServiceProvider serviceProvider)
     {
         this.logger = logger;
         this.htmlMinifier = htmlMinifier;
         this.highlightService = highlightService;
-        this.storageService = storageService;
         this.config = config.Value;
+        this.storageService = storageService;
         builders = new Dictionary<string, Builder>();
         IEnumerable<Type> foundBuilders = ReflectionHelper.GetInheritedTypes<Builder>();
 
@@ -70,6 +72,7 @@ public sealed class BuildManager
     /// <param name="dbContext"></param>
     /// <param name="projectVersion"></param>
     /// <param name="projectPath"></param>
+    /// <param name="cancellationToken"></param>
     public async Task BuildProject(VoltProjectDbContext dbContext, ProjectVersion projectVersion, string projectPath, CancellationToken cancellationToken)
     {
         //First, get the builder
@@ -111,7 +114,8 @@ public sealed class BuildManager
 
         //Pre-Process pages
         ProjectPage[] pages = buildResult.ProjectPages;
-        await Parallel.ForEachAsync(pages, cancellationToken, async (page, token) =>
+        ListBuilder<string> projectImages = new();
+        Parallel.ForEach(pages, (page, _) =>
         {
             string pageCurrentPath = Path.Combine(builtDocsLocation, page.Path);
             
@@ -180,65 +184,16 @@ public sealed class BuildManager
                         logger.LogWarning("Could not found image on page {PageTitle} at location {Path}!", page.Title, imagePath);
                         continue;
                     }
-
+                    projectImages.Add(imagePath);
+                    
+                    //TODO: Not do all of this shit
                     string imagePathInProject = Path.GetRelativePath(builtDocsLocation, imagePath);
-                    string fileExtension = Path.GetExtension(imagePathInProject);
+                    string fileExtension = Path.GetExtension(imagePath);
+                    string path = Path.Combine(projectVersion.Project.Name, projectVersion.VersionTag,
+                        $"{imagePathInProject[..^fileExtension.Length]}.webp");
 
-                    try
-                    {
-                        //We have the image file, now pre-process it and upload to online storage
-                        Image image = await Image.LoadAsync(imagePath, token);
-
-                        MemoryStream imageMemoryStream = new();
-                        await image.SaveAsWebpAsync(imageMemoryStream, token);
-                        image.Dispose();
-                        
-                        imageMemoryStream.Position = 0;
-                        
-                        //Path in storage service that the file should live at
-                        string path = Path.Combine(projectVersion.Project.Name, projectVersion.VersionTag,
-                            $"{imagePathInProject[..^fileExtension.Length]}.webp");
-                        
-                        //Try to get file
-                        uint? existingFileHash = await storageService.GetFileHashAsync(path, token);
-                        string filePublicUrl;
-                        if (existingFileHash != null)
-                        {
-                            //TODO: Looks like .NET 8 seems to have some CRC32C hash methods
-                            Crc32CAlgorithm crc = new();
-                            byte[] hash = await crc.ComputeHashAsync(imageMemoryStream, token);
-                            crc.Dispose();
-                            
-                            uint crc32 = BitConverter.ToUInt32(hash);
-
-                            //Compare hashes, if they are the same, leave it alone, otherwise, re-upload
-                            if (crc32 != existingFileHash)
-                            {
-                                logger.LogDebug("Storage file {File} hashes were not the same, re-uploading...", path);
-                                filePublicUrl = await storageService.UploadFileAsync(imageMemoryStream, path, "image/webp", token);
-                            }
-                            else
-                            {
-                                logger.LogDebug("Storage file {File} hashes are still the same. Not touching...", path);
-                                filePublicUrl = Path.Combine(config.StorageConfig.PublicUrl, path);
-                            }
-                        }
-                        else
-                        {
-                            //Upload image to storage
-                            logger.LogDebug("Uploading file {File} to storage...", path);
-                            filePublicUrl = await storageService.UploadFileAsync(imageMemoryStream, path, "image/webp", token);
-                        }
-                        
-                        imageNode.SetAttributeValue("src", filePublicUrl);
-                        
-                        //Cleanup
-                        await imageMemoryStream.DisposeAsync();
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.LogError(ex, "Error occured while processing an image on page {PageTitle}!", page.Title);
-                    }
+                    string newUrl = Path.Combine(config.StorageConfig.PublicUrl, path);
+                    imageNode.SetAttributeValue("src", newUrl);
                 }
             }
 
@@ -256,7 +211,54 @@ public sealed class BuildManager
                 page.ProjectToc = null;
             }
         });
+        
+        //Process images
+        List<StorageItem> imagesNeededToBeUploaded = new();
+        IReadOnlyList<string> allProjectImages = projectImages.AsList();
+        foreach (string projectImage in allProjectImages)
+        {
+            string imagePathInProject = Path.GetRelativePath(builtDocsLocation, projectImage);
+            FileStream fileStream = File.OpenRead(projectImage);
+            
+            byte[] hash = await MD5.HashDataAsync(fileStream, cancellationToken);
+            fileStream.Position = 0;
+            string hashCombined = string.Join("", hash);
+            
+            ProjectStorageItem? foundResult = dbContext.ProjectStorageItems.AsNoTracking()
+                .FirstOrDefault(x => x.ProjectVersionId == projectVersion.Id && x.Path == imagePathInProject);
+            if (foundResult == null)
+            {
+                imagesNeededToBeUploaded.Add(await CreateImageWebp(fileStream, imagePathInProject, hashCombined, projectVersion, cancellationToken));
+                continue;
+            }
+            
+            //Compare hashes
+            if (!string.Equals(hashCombined, foundResult.Hash, StringComparison.InvariantCultureIgnoreCase))
+                imagesNeededToBeUploaded.Add(await CreateImageWebp(fileStream, imagePathInProject, hashCombined, projectVersion, cancellationToken));
+        }
+        
+        //Now, to actually upload images
+        await storageService.UploadBulkFileAsync(imagesNeededToBeUploaded.ToArray(), "image/webp", cancellationToken);
 
+        //Add storage items to db for tracking
+        if (imagesNeededToBeUploaded.Count > 0)
+        {
+            ProjectStorageItem[] upsertStorageItems = new ProjectStorageItem[imagesNeededToBeUploaded.Count];
+            for (int i = 0; i < upsertStorageItems.Length; i++)
+            {
+                upsertStorageItems[i] = new ProjectStorageItem
+                {
+                    ProjectVersionId = projectVersion.Id,
+                    CreationTime = DateTime.UtcNow,
+                    LastUpdateTime = DateTime.UtcNow,
+                    Hash = imagesNeededToBeUploaded[i].Hash,
+                    Path = imagesNeededToBeUploaded[i].OriginalFilePath
+                };
+            }
+
+            await dbContext.UpsertProjectStorageAssets(upsertStorageItems);
+        }
+       
         await dbContext.UpsertProjectPages(pages, projectVersion);
     }
 
@@ -269,7 +271,7 @@ public sealed class BuildManager
 
         arguments ??= Array.Empty<string>();
 
-        ProcessStartInfo processStartInfo = new ProcessStartInfo(docBuilder.Application)
+        ProcessStartInfo processStartInfo = new(docBuilder.Application)
         {
             Arguments = string.Join(' ', arguments),
             WorkingDirectory = docsLocation
@@ -293,8 +295,34 @@ public sealed class BuildManager
         process.WaitForExit();
 
         if (process.ExitCode != 0)
-            throw new Exception("Docfx failed to exit cleanly!");
+            throw new Exception("Builder failed to exit cleanly!");
         
         process.Dispose();
+    }
+
+    private async Task<StorageItem> CreateImageWebp(Stream imageStream, string imagePathProjectRel, string imageHash, ProjectVersion projectVersion, CancellationToken cancellationToken)
+    {
+        string fileExtension = Path.GetExtension(imagePathProjectRel);
+        
+        //We have the image file, convert to webp
+        Image image = await Image.LoadAsync(imageStream, cancellationToken);
+
+        MemoryStream imageMemoryStream = new();
+        await image.SaveAsWebpAsync(imageMemoryStream, cancellationToken);
+        image.Dispose();
+                        
+        imageMemoryStream.Position = 0;
+        
+        //Path in storage service that the file should live at
+        string path = Path.Combine(projectVersion.Project.Name, projectVersion.VersionTag,
+            $"{imagePathProjectRel[..^fileExtension.Length]}.webp");
+
+        return new StorageItem
+        {
+            FileName = path,
+            ItemStream = imageMemoryStream,
+            Hash = imageHash,
+            OriginalFilePath = imagePathProjectRel
+        };
     }
 }

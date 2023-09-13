@@ -6,9 +6,9 @@ namespace VoltProjects.Builder.Core;
 public sealed class StorageConfig
 {
     /// <summary>
-    ///     Name of the bucket to upload assets to
+    ///     Name of the container to upload assets to
     /// </summary>
-    public string BucketName { get; set; }
+    public string ContainerName { get; set; }
     
     /// <summary>
     ///     What is the public base URL of the bucket

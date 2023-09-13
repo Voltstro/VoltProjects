@@ -23,6 +23,11 @@ public class ProjectBuildEvent
     public virtual ProjectVersion Project { get; set; }
     
     /// <summary>
+    ///     Internal builder version number
+    /// </summary>
+    public int BuilderVer { get; set; }
+    
+    /// <summary>
     ///     Was this build event a success?
     /// </summary>
     public bool Successful { get; set; }

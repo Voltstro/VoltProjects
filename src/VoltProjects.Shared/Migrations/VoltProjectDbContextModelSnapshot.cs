@@ -141,6 +141,10 @@ namespace VoltProjects.Shared.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("BuilderVer")
+                        .HasColumnType("integer")
+                        .HasColumnName("builder_ver");
+
                     b.Property<DateTime>("Date")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("date");
@@ -325,6 +329,35 @@ namespace VoltProjects.Shared.Migrations
                     b.ToTable("project_page_contributor", (string)null);
                 });
 
+            modelBuilder.Entity("VoltProjects.Shared.Models.ProjectPageStorageItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("PageId")
+                        .HasColumnType("integer")
+                        .HasColumnName("page_id");
+
+                    b.Property<int>("StorageItemId")
+                        .HasColumnType("integer")
+                        .HasColumnName("storage_item_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_project_page_storage_item");
+
+                    b.HasIndex("PageId")
+                        .HasDatabaseName("ix_project_page_storage_item_page_id");
+
+                    b.HasIndex("StorageItemId")
+                        .HasDatabaseName("ix_project_page_storage_item_storage_item_id");
+
+                    b.ToTable("project_page_storage_item", (string)null);
+                });
+
             modelBuilder.Entity("VoltProjects.Shared.Models.ProjectPreBuild", b =>
                 {
                     b.Property<int>("Id")
@@ -358,6 +391,47 @@ namespace VoltProjects.Shared.Migrations
                         .HasDatabaseName("ix_project_pre_build_project_version_id");
 
                     b.ToTable("project_pre_build", (string)null);
+                });
+
+            modelBuilder.Entity("VoltProjects.Shared.Models.ProjectStorageItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creation_time");
+
+                    b.Property<string>("Hash")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("hash");
+
+                    b.Property<DateTime>("LastUpdateTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_update_time");
+
+                    b.Property<string>("Path")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("path");
+
+                    b.Property<int>("ProjectVersionId")
+                        .HasColumnType("integer")
+                        .HasColumnName("project_version_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_project_storage_item");
+
+                    b.HasIndex("ProjectVersionId", "Path")
+                        .IsUnique()
+                        .HasDatabaseName("ix_project_storage_item_project_version_id_path");
+
+                    b.ToTable("project_storage_item", (string)null);
                 });
 
             modelBuilder.Entity("VoltProjects.Shared.Models.ProjectToc", b =>
@@ -530,6 +604,27 @@ namespace VoltProjects.Shared.Migrations
                     b.Navigation("Page");
                 });
 
+            modelBuilder.Entity("VoltProjects.Shared.Models.ProjectPageStorageItem", b =>
+                {
+                    b.HasOne("VoltProjects.Shared.Models.ProjectPage", "Page")
+                        .WithMany()
+                        .HasForeignKey("PageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_project_page_storage_item_project_page_page_id");
+
+                    b.HasOne("VoltProjects.Shared.Models.ProjectStorageItem", "StorageItem")
+                        .WithMany()
+                        .HasForeignKey("StorageItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_project_page_storage_item_project_storage_item_storage_item");
+
+                    b.Navigation("Page");
+
+                    b.Navigation("StorageItem");
+                });
+
             modelBuilder.Entity("VoltProjects.Shared.Models.ProjectPreBuild", b =>
                 {
                     b.HasOne("VoltProjects.Shared.Models.ProjectVersion", "ProjectVersion")
@@ -538,6 +633,18 @@ namespace VoltProjects.Shared.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_project_pre_build_project_version_project_version_id");
+
+                    b.Navigation("ProjectVersion");
+                });
+
+            modelBuilder.Entity("VoltProjects.Shared.Models.ProjectStorageItem", b =>
+                {
+                    b.HasOne("VoltProjects.Shared.Models.ProjectVersion", "ProjectVersion")
+                        .WithMany()
+                        .HasForeignKey("ProjectVersionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_project_storage_item_project_version_project_version_id");
 
                     b.Navigation("ProjectVersion");
                 });

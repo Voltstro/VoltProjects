@@ -122,6 +122,7 @@ CREATE TYPE public.upsertedpage AS (
                     id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityAlwaysColumn),
                     project_version_id = table.Column<int>(type: "integer", nullable: false),
+                    builder_ver = table.Column<int>(type: "integer", nullable: false),
                     successful = table.Column<bool>(type: "boolean", nullable: false),
                     message = table.Column<string>(type: "text", nullable: true),
                     git_hash = table.Column<string>(type: "character varying(41)", maxLength: 41, nullable: false),
@@ -175,6 +176,29 @@ CREATE TYPE public.upsertedpage AS (
                     table.PrimaryKey("pk_project_pre_build", x => x.id);
                     table.ForeignKey(
                         name: "fk_project_pre_build_project_version_project_version_id",
+                        column: x => x.project_version_id,
+                        principalTable: "project_version",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "project_storage_item",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    project_version_id = table.Column<int>(type: "integer", nullable: false),
+                    path = table.Column<string>(type: "text", nullable: false),
+                    hash = table.Column<string>(type: "text", nullable: false),
+                    creation_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    last_update_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_project_storage_item", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_project_storage_item_project_version_project_version_id",
                         column: x => x.project_version_id,
                         principalTable: "project_version",
                         principalColumn: "id",
@@ -266,6 +290,32 @@ CREATE TYPE public.upsertedpage AS (
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "project_page_storage_item",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    page_id = table.Column<int>(type: "integer", nullable: false),
+                    storage_item_id = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_project_page_storage_item", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_project_page_storage_item_project_page_page_id",
+                        column: x => x.page_id,
+                        principalTable: "project_page",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "fk_project_page_storage_item_project_storage_item_storage_item",
+                        column: x => x.storage_item_id,
+                        principalTable: "project_storage_item",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.InsertData(
                 table: "doc_builder",
                 columns: new[] { "id", "application", "arguments", "environment_variables", "name" },
@@ -322,9 +372,25 @@ CREATE TYPE public.upsertedpage AS (
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "ix_project_page_storage_item_page_id",
+                table: "project_page_storage_item",
+                column: "page_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_project_page_storage_item_storage_item_id",
+                table: "project_page_storage_item",
+                column: "storage_item_id");
+
+            migrationBuilder.CreateIndex(
                 name: "ix_project_pre_build_project_version_id",
                 table: "project_pre_build",
                 column: "project_version_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_project_storage_item_project_version_id_path",
+                table: "project_storage_item",
+                columns: new[] { "project_version_id", "path" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "ix_project_toc_project_version_id_toc_rel",
@@ -453,6 +519,9 @@ GRANT SELECT ON TABLE public.project_page TO vpserver;
 GRANT UPDATE, SELECT, INSERT ON TABLE public.project_page_contributor TO vpbuilder;
 GRANT SELECT ON TABLE public.project_page_contributor TO vpserver;
 
+--ProjectStorageItem
+GRANT UPDATE, SELECT, INSERT ON TABLE public.project_storage_item TO vpbuilder;
+
 --ProjectToc
 GRANT UPDATE, SELECT, INSERT ON TABLE public.project_toc TO vpbuilder;
 GRANT SELECT ON TABLE public.project_toc TO vpserver;
@@ -479,10 +548,16 @@ GRANT EXECUTE ON FUNCTION public.upsert_project_tocs TO vpbuilder;
                 name: "project_page_contributor");
 
             migrationBuilder.DropTable(
+                name: "project_page_storage_item");
+
+            migrationBuilder.DropTable(
                 name: "project_pre_build");
 
             migrationBuilder.DropTable(
                 name: "project_page");
+
+            migrationBuilder.DropTable(
+                name: "project_storage_item");
 
             migrationBuilder.DropTable(
                 name: "project_toc");

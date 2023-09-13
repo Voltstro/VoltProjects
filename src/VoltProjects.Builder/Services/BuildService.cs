@@ -12,13 +12,20 @@ namespace VoltProjects.Builder.Services;
 
 public sealed class BuildService : BackgroundService
 {
+    private const int BuildVer = 1;
+    
     private readonly ILogger<BuildService> logger;
     private readonly IDbContextFactory<VoltProjectDbContext> contextFactory;
     private readonly VoltProjectsBuilderConfig config;
     private readonly ProjectRepoService repoService;
     private readonly BuildManager buildManager;
 
-    public BuildService(ILogger<BuildService> logger, IDbContextFactory<VoltProjectDbContext> contextFactory, IOptions<VoltProjectsBuilderConfig> config, ProjectRepoService repoService, BuildManager buildManager)
+    public BuildService(
+        ILogger<BuildService> logger,
+        IDbContextFactory<VoltProjectDbContext> contextFactory,
+        IOptions<VoltProjectsBuilderConfig> config,
+        ProjectRepoService repoService,
+        BuildManager buildManager)
     {
         this.logger = logger;
         this.contextFactory = contextFactory;
@@ -115,7 +122,7 @@ public sealed class BuildService : BackgroundService
 
             ProjectBuildEvent? lastBuildEvent = await projectContext.ProjectBuildEvents
                 .AsNoTracking()
-                .Where(x => x.ProjectVersionId == projectVersion.ProjectId)
+                .Where(x => x.ProjectVersionId == projectVersion.ProjectId && x.BuilderVer == BuildVer)
                 .OrderByDescending(x => x.Date)
                 .FirstOrDefaultAsync(token);
 
@@ -167,7 +174,8 @@ public sealed class BuildService : BackgroundService
                 Successful = true,
                 Date = DateTime.UtcNow,
                 Message = "Successfully Built Project",
-                GitHash = projectCommitHash
+                GitHash = projectCommitHash,
+                BuilderVer = BuildVer
             });
         }
         catch (Exception ex)
@@ -184,7 +192,8 @@ public sealed class BuildService : BackgroundService
                 Successful = false,
                 Date = DateTime.UtcNow,
                 Message = $"Failed to build project! Error: {ex.Message}",
-                GitHash = projectCommitHash
+                GitHash = projectCommitHash,
+                BuilderVer = BuildVer
             });
 
             return;

@@ -37,10 +37,11 @@ public static class DbContextExtensions
     /// </summary>
     /// <param name="values"></param>
     /// <param name="paramsExpression"></param>
+    /// <param name="includeRow"></param>
     /// <param name="paramCountAllocStartIndex"></param>
     /// <typeparam name="TEntity"></typeparam>
     /// <returns></returns>
-    internal static (object?[], string[]) GenerateParams<TEntity>(TEntity[] values, Expression<Func<TEntity, object?>> paramsExpression, int paramCountAllocStartIndex = 0)
+    internal static (object?[], string[]) GenerateParams<TEntity>(TEntity[] values, Expression<Func<TEntity, object?>> paramsExpression, bool includeRow = true, int paramCountAllocStartIndex = 0)
     {
         IReadOnlyList<PropertyInfo> properties = paramsExpression.GetPropertyAccessList();
         int propertiesCount = properties.Count;
@@ -53,7 +54,7 @@ public static class DbContextExtensions
         {
             TEntity value = values[i];
             
-            rows[i] = $"ROW({string.Join(",", Enumerable.Range(startIndex, propertiesCount).Select(x => $"@p{x}"))})";
+            rows[i] = $"{(includeRow ? "ROW" : "")}({string.Join(",", Enumerable.Range(startIndex, propertiesCount).Select(x => $"@p{x}"))})";
             
             for (int j = 0; j < propertiesCount; j++)
             {
