@@ -13,7 +13,7 @@
     
     <ItemGroup>
         <PackageReference Include="Azure.Storage.Blobs" Version="12.18.0" />
-        <PackageReference Include="Azure.Storage.Blobs.Batch" Version="12.14.0" />
+        <PackageReference Include="Azure.Storage.Blobs.Batch" Version="12.15.0" />
         <PackageReference Include="HtmlAgilityPack" Version="1.11.53" />
         <PackageReference Include="Jint" Version="3.0.0-beta-2051" />
         <PackageReference Include="LibGit2Sharp" Version="0.27.2" />
