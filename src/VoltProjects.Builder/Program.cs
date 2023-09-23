@@ -32,7 +32,7 @@ try
     builder.Services.AddHostedService<BuildService>();
 
     //Setup DB
-    builder.Services.UseVoltProjectDbContext(builder.Configuration);
+    builder.Services.UseVoltProjectDbContext(builder.Configuration, "Builder");
 
     //Setup app
     IHost host = builder.Build();

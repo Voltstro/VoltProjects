@@ -5,6 +5,7 @@
         <Nullable>enable</Nullable>
         <UserSecretsId>d9871dfb-1dcf-46da-8f0c-df096479ebaa</UserSecretsId>
         <ClientApp>ClientApp/</ClientApp>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     </PropertyGroup>
 
     <ItemGroup>
@@ -18,6 +19,12 @@
 
     <ItemGroup>
       <ProjectReference Include="..\VoltProjects.Shared\VoltProjects.Shared.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="..\.dockerignore">
+        <Link>.dockerignore</Link>
+      </Content>
     </ItemGroup>
 
 </Project>

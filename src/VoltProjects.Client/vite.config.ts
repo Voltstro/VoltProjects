@@ -9,6 +9,7 @@ export default defineConfig(({ mode }) => {
 			//No minify in dev builds, speeds shit up
 			minify: false,
 			emptyOutDir: true,
+			sourcemap: 'inline',
 			rollupOptions: {
 				input: {
 					main: resolve(__dirname, 'src/main.ts'),
@@ -17,8 +18,7 @@ export default defineConfig(({ mode }) => {
 					dir: resolve(__dirname, '..', 'VoltProjects.Server', 'wwwroot'),
 					entryFileNames: () => 'js/[name].js',
 					chunkFileNames: () => 'js/[name].[hash].js',
-					assetFileNames: () => 'assets/[name][extname]',
-					sourcemap: false,
+					assetFileNames: () => 'assets/[name][extname]'
 				}
 			}
 		},
@@ -29,6 +29,7 @@ export default defineConfig(({ mode }) => {
 		console.log('Non-dev build, using terser...');
 		config.build!.cssMinify = 'esbuild';
 		config.build!.minify = 'terser';
+		config.build!.sourcemap = false;
 		config.build!.terserOptions = {
 			format: {
 				comments: false,

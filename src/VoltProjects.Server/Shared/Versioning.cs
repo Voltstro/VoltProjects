@@ -7,7 +7,7 @@ public static class Versioning
 {
     public static string Version => ThisAssembly.AssemblyFileVersion[..5];
     
-    public static string GitHashFull => ThisAssembly.GitCommitId;
+    public static string GitHashFull => "";
 
-    public static string GitHashSmall => GitHashFull[..7];
+    public static string GitHashSmall => "";
 }

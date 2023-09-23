@@ -4,7 +4,7 @@
   "license": "GPL-3.0",
   "scripts": {
     "build:dev": "tsc && vite build --mode development",
-    "build:prod": "tsc && vite build",
+    "build": "tsc && vite build --mode production",
     "watch": "tsc && vite build --watch --mode development",
     "lint": "eslint"
   },

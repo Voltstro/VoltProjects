@@ -19,17 +19,23 @@ public static class DbContextExtensions
     /// </summary>
     /// <param name="services"></param>
     /// <param name="configuration"></param>
+    /// <param name="typePrefix"></param>
     /// <returns></returns>
     public static IServiceCollection UseVoltProjectDbContext(this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration, string typePrefix)
     {
+        string connectionStringName = $"{typePrefix}Connection";
+        string? connectionString = configuration.GetConnectionString(connectionStringName);
+        if (string.IsNullOrWhiteSpace(connectionString))
+            throw new NullReferenceException($"Connection string for {typePrefix} was not provided!");
+        
         return services
             .AddDbContextFactory<VoltProjectDbContext>(
                 options =>
-                    options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")))
+                    options.UseNpgsql(connectionString))
             .AddDbContext<VoltProjectDbContext>(
                 options =>
-                    options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+                    options.UseNpgsql(connectionString));
     }
 
     /// <summary>
