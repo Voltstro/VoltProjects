@@ -6,8 +6,4 @@ namespace VoltProjects.Server.Shared;
 public static class Versioning
 {
     public static string Version => ThisAssembly.AssemblyFileVersion[..5];
-    
-    public static string GitHashFull => "";
-
-    public static string GitHashSmall => "";
 }
