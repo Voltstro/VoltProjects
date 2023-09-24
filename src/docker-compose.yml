@@ -1,0 +1,25 @@
+version: "3.9"
+
+services:
+  server:
+    image: voltstro/vpserver
+    build:
+      context: .
+      dockerfile: VoltProjects.Server/Dockerfile
+    container_name: vpserver
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      - ConnectionStrings__ServerConnection
+
+  builder:
+    image: voltstro/vpbuilder
+    build:
+      context: .
+      dockerfile: VoltProjects.Builder/Dockerfile
+    container_name: vpbuilder
+    restart: unless-stopped
+    environment:
+      - ConnectionStrings__BuilderConnection
+      - VP_AZURE_CREDENTIAL
