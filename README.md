@@ -63,7 +63,7 @@ Postgres 15 DB
 
     ```
     yarn
-    yarn run build:prod
+    yarn run build
     ```
 
 2. Build the .NET projects using your IDE of choice, or `dotnet build` in the `src/` directory.

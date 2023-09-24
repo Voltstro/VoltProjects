@@ -26,7 +26,7 @@ jobs:
       displayName: Resolve Node Packages
       workingDirectory: src/VoltProjects.Client/
 
-    - script: yarn run build:prod
+    - script: yarn run build
       continueOnError: true
       displayName: Build VoltProjects.Client
       workingDirectory: src/VoltProjects.Client/
