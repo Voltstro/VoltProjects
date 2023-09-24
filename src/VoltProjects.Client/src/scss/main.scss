@@ -13,6 +13,7 @@ $font-family-monospace: 'Fira Code', monospace;
 @import "./core/hero";
 @import "./core/footer";
 @import "./core/icons";
+@import "./core/nav";
 
 //Project View
 @import "./projectview/main";
@@ -26,11 +27,6 @@ body {
 
 img {
     max-width: 100%;
-}
-
-.navbar {
-  background-color: $primary;
-  color: white;
 }
 
 .contributors {
@@ -48,4 +44,8 @@ img {
   height: 64px;
   background-size:cover;
   background-position:center center;
+}
+
+.btn-primary {
+  color: white !important;
 }

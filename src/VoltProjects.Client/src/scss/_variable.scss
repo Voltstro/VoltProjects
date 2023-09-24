@@ -1,9 +1,14 @@
 $border-radius: .375rem !default;
-$primary: #164268;
+
+//Set colors
+$primary: #FF8A00;
+
+//Customize dark theme to look a bit better
 $body-color-dark: white;
 $body-bg-dark: #1c1e21;
 $body-secondary-bg-dark:  #1e1e1e;
 
+//Breaking Points
 $aside-break: 1400px;
 $grid-breakpoints: (
     xs: 0,
@@ -24,3 +29,6 @@ $container-max-widths: (
 //Make link decoration default have no decoration
 $link-decoration: none !default;
 $link-hover-decoration: underline !default;
+
+//Button color
+$btn-color: white;

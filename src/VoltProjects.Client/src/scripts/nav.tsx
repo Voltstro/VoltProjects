@@ -22,8 +22,8 @@ export function renderAside(): void {
 		return;
 	}
 
-	document.body.setAttribute('data-bs-spy', 'scroll');
-	document.body.setAttribute('data-bs-target', '#in-this-article');
+	//document.body.setAttribute('data-bs-spy', 'scroll');
+	//document.body.setAttribute('data-bs-target', '#in-this-article');
 
 	inThisArticle.appendChild(<h5 class='title'>In this Article</h5>);
 	inThisArticle.appendChild(
