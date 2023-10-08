@@ -5,9 +5,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using VoltProjects.Server.Models;
-using VoltProjects.Server.Models.View;
 using VoltProjects.Server.Shared;
 using VoltProjects.Shared;
 using VoltProjects.Shared.Models;
@@ -22,11 +22,13 @@ namespace VoltProjects.Server.Controllers;
 #endif
 public class MainController : Controller
 {
+    private readonly IMemoryCache memoryCache;
     private readonly VoltProjectDbContext dbContext;
     private readonly VoltProjectsConfig config;
     
-    public MainController(VoltProjectDbContext dbContext, IOptions<VoltProjectsConfig> config)
+    public MainController(IMemoryCache memoryCache, VoltProjectDbContext dbContext, IOptions<VoltProjectsConfig> config)
     {
+        this.memoryCache = memoryCache;
         this.dbContext = dbContext;
         this.config = config.Value;
     }
@@ -35,27 +37,46 @@ public class MainController : Controller
     [Route("/")]
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
-        Project[] allProjects = await dbContext.Projects.ToArrayAsync(cancellationToken);
-        
-        ProjectInfo[] projectInfos = new ProjectInfo[allProjects.Length];
-        for (int i = 0; i < allProjects.Length; i++)
+        ProjectInfo[] projectInfos = await memoryCache.GetOrCreateAsync<ProjectInfo[]>("IndexProjects", async entry =>
         {
-            Project project = allProjects[i];
-            ProjectVersion? latestProjectVersion =
-                await dbContext.ProjectVersions.FirstOrDefaultAsync(x => x.IsDefault && x.ProjectId == project.Id, cancellationToken);
-            if (latestProjectVersion == null)
-                throw new ArgumentException($"Project {project.Name} is missing a default project version!");
+            Project[] allProjects = await dbContext.Projects.ToArrayAsync(cancellationToken);
 
-            projectInfos[i] = new ProjectInfo
+            ProjectInfo[] projectInfos = new ProjectInfo[allProjects.Length];
+            for (int i = 0; i < allProjects.Length; i++)
             {
-                Name = project.Name,
-                ShortName = project.ShortName,
-                Description = project.Description,
-                IconPath = Path.Combine(config.PublicUrl, project.Name, project.IconPath),
-                DefaultVersion = latestProjectVersion.VersionTag
-            };
-        }
+                Project project = allProjects[i];
 
+                //Get all versions
+                ProjectVersion[] allProjectVersions =
+                    await dbContext.ProjectVersions
+                        .AsNoTracking()
+                        .Where(x => x.ProjectId == project.Id)
+                        .ToArrayAsync(cancellationToken);
+
+                ProjectVersion? latestProjectVersion = allProjectVersions.FirstOrDefault(x => x.IsDefault);
+                if (latestProjectVersion == null)
+                    throw new ArgumentException($"Project {project.Name} is missing a default project version!");
+
+                //Get all other versions
+                string[] allOtherVersions = allProjectVersions.Where(x => !x.IsDefault)
+                    .Select(projectVersion => projectVersion.VersionTag)
+                    .ToArray();
+
+                projectInfos[i] = new ProjectInfo
+                {
+                    Name = project.Name,
+                    Description = project.Description,
+                    IconPath = Path.Combine(config.PublicUrl, project.Name, project.IconPath),
+                    DefaultVersion = latestProjectVersion.VersionTag,
+                    OtherVersions = allOtherVersions
+                };
+            }
+
+            //Expiry in 6 hours
+            entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(6);
+            return projectInfos;
+        });
+        
         return View(projectInfos);
     }
 

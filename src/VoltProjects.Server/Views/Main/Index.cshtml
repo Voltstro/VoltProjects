@@ -24,28 +24,34 @@
         <cache>
             @foreach (ProjectInfo project in Model)
             {
-                <div class="col">
-                    <div class="card shadow-sm">
-                        <a href="/@project.Name/@project.DefaultVersion/" class="p-1">
-                            <div class="d-inline-flex justify-content-center">
-                               <img alt="Project Icon" src="@project.IconPath" width="100em"/>
-
-                                @if (project.ShortName != null)
+                <div class="col card shadow">
+                    <div class="row g-0">
+                        <div class="col-12 col-xl-3">
+                            <img alt="Project Icon" src="@project.IconPath" width="100%"/>
+                        </div>
+                        <div class="col-12 col-xl-9 card-body">
+                            <h5 class="card-title">
+                                @project.Name
+                            </h5>
+                            <p class="card-text">@project.Description</p>
+                            
+                            <div class="btn-group dropend">
+                                <a class="btn btn-primary" href="/@project.Name/@project.DefaultVersion/">View</a>
+                                @if (project.OtherVersions.Length > 0)
                                 {
-                                    <div class="p-2">
-                                        <h2 class="d-none d-xl-block">@project.Name</h2>
-                                        <h2 class="d-block d-xl-none">@project.ShortName</h2>
-                                    </div>
-                                }
-                                else
-                                {
-                                    <h2 class="p-2">@project.Name</h2>
+                                    <button class="btn btn-primary dropdown-toggle dropdown-toggle-split" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <span class="visually-hidden">Toggle Dropend</span>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item active" href="/@project.Name/@project.DefaultVersion/">Latest</a></li>
+                                        @foreach (string version in project.OtherVersions)
+                                        {
+                                            <li><a class="dropdown-item" href="/@project.Name/@version/">@version</a></li>
+                                        }
+                                    </ul>
                                 }
                             </div>
-                        </a>
-                        <div class="btn-group">
-                            <a class="btn btn-sm btn-outline-secondary" href="/@project.Name/">View</a>
-                            <a class="btn btn-sm btn-outline-secondary" href="@project.GitUrl">Git Repo</a>
+                            
                         </div>
                     </div>
                 </div>
