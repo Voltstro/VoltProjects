@@ -491,48 +491,6 @@ $function$
 COMMENT ON FUNCTION public.upsert_project_pages IS 'Upserts a project''s pages.
 Marks all un-edited pages as not published!';
             ");
-
-            //Permissions
-            migrationBuilder.Sql(@"
---DocBuilder
-GRANT SELECT ON TABLE public.doc_builder TO vpbuilder;
-
---Project
-GRANT SELECT ON TABLE public.project TO vpbuilder, vpserver;
-
---ProjectVersion
-GRANT SELECT ON TABLE public.project_version TO vpbuilder, vpserver;
-
--- ProjectBuildEvent
-GRANT SELECT, INSERT ON TABLE public.project_build_event TO vpbuilder;
-GRANT SELECT ON TABLE public.project_build_event TO vpserver;
-
---ProjectMenu
-GRANT UPDATE, SELECT, INSERT ON TABLE public.project_menu TO vpbuilder;
-GRANT SELECT ON TABLE public.project_menu TO vpserver;
-
---ProjectPage
-GRANT UPDATE, SELECT, INSERT ON TABLE public.project_page TO vpbuilder;
-GRANT SELECT ON TABLE public.project_page TO vpserver;
-
---ProjectPageContributor
-GRANT UPDATE, SELECT, INSERT ON TABLE public.project_page_contributor TO vpbuilder;
-GRANT SELECT ON TABLE public.project_page_contributor TO vpserver;
-
---ProjectStorageItem
-GRANT UPDATE, SELECT, INSERT ON TABLE public.project_storage_item TO vpbuilder;
-
---ProjectToc
-GRANT UPDATE, SELECT, INSERT ON TABLE public.project_toc TO vpbuilder;
-GRANT SELECT ON TABLE public.project_toc TO vpserver;
-
---ProjectPreBuild
-GRANT SELECT ON TABLE public.project_pre_build TO vpbuilder;
-
---Functions
-GRANT EXECUTE ON FUNCTION public.upsert_project_pages TO vpbuilder;
-GRANT EXECUTE ON FUNCTION public.upsert_project_tocs TO vpbuilder;
-");
         }
 
         /// <inheritdoc />

@@ -48,6 +48,9 @@ try
 
     //Now setup the app
     WebApplication app = builder.Build();
+    
+    //Handle DB migrations
+    app.HandleDbMigrations();
 
     //Some configuration will change depending on the environment
     if (!app.Environment.IsDevelopment())
@@ -57,14 +60,15 @@ try
 
     app.UseStaticFiles();
     
-    string pattern = @"^(((.*/)|(/?))[^/.]+(?!/$))$";
+    //Ensures '/' is added to the end of each request
+    const string pattern = "^(((.*/)|(/?))[^/.]+(?!/$))$";
     RewriteOptions options = new RewriteOptions()
         .AddRedirect(pattern, "$1/",301);
     app.UseRewriter(options);
     
     app.UseStatusCodePagesWithReExecute("/Eroor/{0}");
+    
     app.UseResponseCaching();
-
     app.UseRouting();
     app.MapControllers();
 

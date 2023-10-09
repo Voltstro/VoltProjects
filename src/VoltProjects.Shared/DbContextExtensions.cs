@@ -2,10 +2,14 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.Json;
+using Medallion.Threading.Postgres;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace VoltProjects.Shared;
 
@@ -36,6 +40,50 @@ public static class DbContextExtensions
             .AddDbContext<VoltProjectDbContext>(
                 options =>
                     options.UseNpgsql(connectionString));
+    }
+
+    public static IHost HandleDbMigrations(this IHost host)
+    {
+        IServiceProvider services = host.Services.CreateScope().ServiceProvider;
+        ILogger logger = services.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(DbContextExtensions));
+        VoltProjectDbContext dbContext = services.GetRequiredService<VoltProjectDbContext>();
+
+        logger.LogInformation("Checking database...");
+
+        string? connectionString = dbContext.Database.GetConnectionString();
+        if (string.IsNullOrWhiteSpace(connectionString))
+            throw new NullReferenceException("Connection string for DB is null!");
+        
+        //PostgresDistributedLock uses Postgres's Advisory Locks.
+        //Upto the app to respect the lock
+        //
+        //https://www.postgresql.org/docs/9.4/explicit-locking.html#ADVISORY-LOCKS
+        PostgresDistributedLock migrationLock =
+            new(new PostgresAdvisoryLockKey("MigrationsLock", true), connectionString);
+        using (migrationLock.Acquire())
+        {
+            bool pendingMigrations = dbContext.Database.GetPendingMigrations().Any();
+
+            if (pendingMigrations)
+            {
+                logger.LogWarning("Database requires migrations! Migrating...");
+                IDbContextTransaction transaction = dbContext.Database.BeginTransaction();
+                transaction.CreateSavepoint("Migrations");
+                try
+                {
+                    dbContext.Database.Migrate();
+                    transaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    transaction.RollbackToSavepoint("Migrations");
+                    logger.LogError("An error occured while migrating the db!", ex);
+                    throw;
+                }
+            }
+        }
+        
+        return host;
     }
 
     /// <summary>

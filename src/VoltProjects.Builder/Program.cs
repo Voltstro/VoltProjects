@@ -36,6 +36,9 @@ try
 
     //Setup app
     IHost host = builder.Build();
+
+    //Handle DB migrations
+    host.HandleDbMigrations();
     
     //Start
     await host.RunAsync();
