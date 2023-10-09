@@ -12,8 +12,10 @@ services:
       - "8080:80"
     environment:
       - ConnectionStrings__ServerConnection
+      - VoltProjects__PublicUrl
     depends_on:
       - database
+      - azurite
 
   builder:
     image: voltstro/vpbuilder
@@ -24,9 +26,11 @@ services:
     restart: unless-stopped
     environment:
       - ConnectionStrings__BuilderConnection
+      - Config__StorageConfig__PublicUrl
       - VP_AZURE_CREDENTIAL
     depends_on:
       - database
+      - azurite
 
   database:
     image: postgres:15.4-alpine
@@ -43,5 +47,17 @@ services:
       POSTGRES_DB: voltprojects
       PGDATA: /var/lib/postgresql/data
 
+  azurite:
+    build:
+      context: ./DevScripts/azurite
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    container_name: azurite
+    ports:
+      - 10000:10000
+    volumes:
+      - azuritedata:/opt/azurite
+
 volumes:
   pgdata:
+  azuritedata:
