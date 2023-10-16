@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using VoltProjects.Server.Models;
+using VoltProjects.Server.Models.View;
 using VoltProjects.Server.Shared;
 using VoltProjects.Shared;
 using VoltProjects.Shared.Models;
@@ -83,6 +84,72 @@ public class MainController : Controller
     [Route("/about")]
     public IActionResult About()
     {
-        return View();
+        AboutViewModel viewModel = new()
+        {
+            Developers = new AboutDev[]
+            {
+                new()
+                {
+                    Name = "Voltstro",
+                    Description = "Initial work",
+                    SocialLinks = new SocialLink[]
+                    {
+                        new()
+                        {
+                            Href = "https://github.com/Voltstro",
+                            Icon = "github",
+                            Name = "GitHub"
+                        },
+                        new()
+                        {
+                            Href = "https://twitter.com/Voltstro",
+                            Icon = "twitter",
+                            Name = "Twitter"
+                        },
+                        new()
+                        {
+                            Href = "https://voltstro.dev",
+                            Icon = "globe2",
+                            Name = "Website"
+                        }
+                    }
+                }
+            },
+            Projects = new OpenSourceProject[]
+            {
+                new()
+                {
+                    Name = ".NET",
+                    Href = "https://dot.net",
+                    LogoHref = "/assets/logo-dotnet.svg"
+                },
+                new()
+                {
+                    Name = "Bootstrap",
+                    Href = "https://getbootstrap.com",
+                    LogoHref = "/assets/logo-bootstrap.svg"
+                },
+                new()
+                {
+                    Name = "LibGit2Sharp",
+                    Href = "https://github.com/libgit2/libgit2sharp",
+                    LogoHref = "/assets/logo-libgit2sharp.svg"
+                },
+                new()
+                {
+                    Name = "Serilog",
+                    Href = "https://serilog.net",
+                    LogoHref = "/assets/logo-serilog.svg"
+                },
+                new()
+                {
+                    Name = "Vite",
+                    Href = "https://vitejs.dev",
+                    LogoHref = "/assets/logo-vite.svg"
+                },
+            }
+        };
+        
+        return View(viewModel);
     }
 }

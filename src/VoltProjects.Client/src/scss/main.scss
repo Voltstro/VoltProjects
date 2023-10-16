@@ -29,22 +29,17 @@ img {
   max-width: 100%;
 }
 
-.contributors {
-  list-style: none;
-  display: flex;
-  flex-wrap: wrap;
-  padding: 0;
-
-  img {
-    border-radius: 50%;
-  }
-}
-
 .prj-icon {
-  width: 100%;
-  height: 128px;
+  @include media-breakpoint-up(md) {
+    height: 128px;
+  }
+
   background-size: cover;
   background-position: center center;
+}
+
+.prj-about {
+  height: 64px !important;
 }
 
 .prj-title {

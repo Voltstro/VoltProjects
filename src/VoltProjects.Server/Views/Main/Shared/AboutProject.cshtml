@@ -1,0 +1,12 @@
+@model VoltProjects.Server.Models.OpenSourceProject
+
+<div class="col">
+    <div class="card shadow-sm prj-title text-center">
+        <a href="@Model.Href">
+            <img class="p-1 prj-icon prj-about mx-auto d-block" alt="@Model.Name Logo" src="@Model.LogoHref"/>
+            <h4>
+                <a class="prj-title" href="@Model.Href">@Model.Name</a>
+            </h4>
+        </a>
+    </div>
+</div>

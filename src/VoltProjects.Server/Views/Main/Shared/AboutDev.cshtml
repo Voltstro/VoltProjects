@@ -1,0 +1,18 @@
+@using VoltProjects.Server.Models
+@model VoltProjects.Server.Models.AboutDev
+
+<div class="col-12 col-md-4">
+    <div class="card shadow-sm">
+        <div class="p-2 d-inline-flex">
+            <img class="rounded-circle" src="https://github.com/@(Model.Name).png?size=256" alt="@Model.Name's GitHub Avatar" width="128" height="128"/>
+            <div class="card-body p-0 ps-3">
+                <h3><a class="prj-title" href="https://github.com/@Model.Name">@Model.Name</a></h3>
+                <p>Initial work</p>
+                @foreach (SocialLink socialLink in Model.SocialLinks)
+                {
+                    <a href="@socialLink.Href" title="@socialLink.Name" class="text-muted fs-5 ps-1 bi bi-@socialLink.Icon"></a>
+                }
+            </div>
+        </div>
+    </div>
+</div>

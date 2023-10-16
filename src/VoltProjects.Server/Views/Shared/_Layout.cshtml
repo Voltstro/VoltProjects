@@ -1,36 +1,38 @@
-@using VoltProjects.Server.Shared
 @using VoltProjects.Server.Shared.Helpers
 @{
-  string pageTitle = $"{ViewBag.Title} | VoltProjects";
+    string pageTitle = $"{ViewBag.Title} | VoltProjects";
 }
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="@MvcHelper.GetUserTheme(Context.Request)">
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="@ViewBag.Description">
-<meta name="keywords" content="Voltstro,Voltstro-Studios,Docs,Documentation">
-<!-- Why do I get the impression that AIbros are just not gonna care about this tag? -->
-<meta name="robots" content="noai, noimageai">
-<!-- Social Media Tags -->
-<meta name="og:type" content="website" />
-<meta name="og:title" content="@pageTitle" />
-<meta name="og:description" content="@ViewBag.Description" />
-<meta name="og:image" content="https://projects.voltstro.dev/icon.png" />
-<meta name="og:image:alt" content="VoltProject's Icon" />
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="description" content="@ViewBag.Description">
+    <meta name="keywords" content="Voltstro,Voltstro-Studios,Docs,Documentation">
+    <!-- Why do I get the impression that AIbros are just not gonna care about this tag? -->
+    <meta name="robots" content="noai, noimageai">
+    <!-- Social Media Tags -->
+    <meta name="og:type" content="website"/>
+    <meta name="og:title" content="@pageTitle"/>
+    <meta name="og:description" content="@ViewBag.Description"/>
+    <meta name="og:image" content="https://projects.voltstro.dev/icon.png"/>
+    <meta name="og:image:alt" content="VoltProject's Icon"/>
 
-<!-- Links & other stuff -->
-<title>@pageTitle</title>
-<link rel="icon" type="image/x-icon" href="~/favicon.ico"/>
-<link rel="stylesheet" href="~/assets/main.css" asp-append-version="true" />
-@await RenderSectionAsync("TopInclude", false)
+    <!-- Links & other stuff -->
+    <title>@pageTitle</title>
+    <link rel="icon" type="image/x-icon" href="~/favicon.ico"/>
+    <link rel="stylesheet" href="~/assets/main.css" asp-append-version="true"/>
+    @await RenderSectionAsync("TopInclude", false)
+</head>
+
 <body>
 <header class="shadow-sm d-print-none">
-  <partial name="NavBar"/>
-  @await RenderSectionAsync("NavbarSecond", false)
+    <partial name="NavBar"/>
+    @await RenderSectionAsync("NavbarSecond", false)
 </header>
 <main>
-  @RenderBody()
-  @await RenderSectionAsync("BottomJs", false)
+    @RenderBody()
+    @await RenderSectionAsync("BottomJs", false)
 </main>
 @await Component.InvokeAsync("Footer")
 <script type="module" src="~/js/main.js" asp-append-version="true" defer></script>

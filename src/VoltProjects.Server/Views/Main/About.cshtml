@@ -1,3 +1,5 @@
+@using VoltProjects.Server.Models
+@model VoltProjects.Server.Models.View.AboutViewModel
 @{
     ViewBag.Title = "About";
     ViewBag.Description = "VoltProjects - Information on the Volt Project service";
@@ -16,83 +18,34 @@
 
 <div class="container">
     <h2 class="pt-5">About</h2>
-    <p>Volt Projects is a centeralized service for building and hosting documentation of
+    <p>Volt Projects is a centralized service for building and hosting documentation of
         <a href="http://github.com/Voltstro">Voltstro</a> and <a href="http://github.com/Voltstro-Studios">Voltstro-Studio</a>
-        projects. Instead of having to manually build docs, and host them all on seperate sub-domains, Volt Projects does it all automatically, and does it all in one place.</p>
+        projects. Instead of having to manually build docs, and host them all on separate sub-domains, Volt Projects does it all automatically, and does it all in one place.</p>
 
     <h2 class="pt-4">Open-Source</h2>
     <p>Volt Projects is entirely open-source! You can make contributions back, or simply host your own instance for your own projects.</p>
     <p>You can find the <a href="https://github.com/Voltstro/VoltProjects">source code on GitHub!</a></p>
     
     <h2 class="pt-4">Developers</h2>
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3 align-items-start">
-        <div class="card shadow-sm">
-            <div class="p-2 d-inline-flex contributors">
-                <img src="https://github.com/Voltstro.png?size=128" alt="Voltstro"/>
-                <div class="ps-3">
-                    <h3><a href="https://github.com/Voltstro">Voltstro</a></h3>
-                    <p>Initial work</p>
-                    <div class="text-start fs-4">
-                        <a class="bi bi-github" href="https://github.com/Voltstro"></a>
-                        <a class="bi bi-twitter" href="https://twitter.com/Voltstro"></a>
-                        <a class="bi bi-globe2" href="https://voltstro.dev"></a>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="row">
+        @foreach (AboutDev developer in Model.Developers)
+        {
+            <partial name="Shared/AboutDev" model="developer"/>
+        }
     </div>
 
     <h2 class="pt-4">Thanks</h2>
     <p>Thank you to all the open-source projects that Volt Projects uses!</p>
     
     <div class="row row-cols-1 row-cols-sm-3 row-cols-lg-5 g-3 align-items-start">
-        <div class="col">
-            <div class="card shadow-sm text-center p-2">
-                <a href="https://dot.net">
-                    <img class="p-1 prj-icon mx-auto d-block" alt=".NET Logo" src="~/assets/logo-dotnet.svg"/>
-                    <h4>.NET</h4>
-                </a>
-            </div>
-        </div>
-        
-        <div class="col">
-            <div class="card shadow-sm text-center p-2">
-                <a href="https://getbootstrap.com/">
-                    <img class="p-1 prj-icon mx-auto d-block" alt="Bootstrap Logo" src="~/assets/logo-bootstrap.svg"/>
-                    <h4>Bootstrap</h4>
-                </a>
-            </div>
-        </div>
-        
-        <div class="col">
-            <div class="card shadow-sm text-center p-2">
-                <a href="https://github.com/libgit2/libgit2sharp/">
-                    <img class="p-1 prj-icon mx-auto d-block" alt="LibGit2Sharp Logo" src="~/assets/logo-libgit2sharp.svg"/>
-                    <h4>LibGit2Sharp</h4>
-                </a>
-            </div>
-        </div>
-        
-        <div class="col">
-            <div class="card shadow-sm text-center p-2">
-                <a href="https://serilog.net/">
-                    <img class="p-1 prj-icon mx-auto d-block" alt="Serilog Logo" src="~/assets/logo-serilog.svg"/>
-                    <h4>Serilog</h4>
-                </a>
-            </div>
-        </div>
-        
-        <div class="col">
-            <div class="card shadow-sm text-center p-2">
-                <a href="https://vitejs.dev/">
-                    <img class="p-1 prj-icon mx-auto d-block" alt="Vite Logo" src="~/assets/logo-vite.svg"/>
-                    <h4>Vite</h4>
-                </a>
-            </div>
-        </div>
+        @foreach (OpenSourceProject project in Model.Projects)
+        {
+            <partial name="Shared/AboutProject" model="project"/>
+        }
     </div>
     
-    <p class="text-muted">The projects listed here have no assoications with Volt Projects, they are just really cool,
-        and have fancy icons. (For a complete list of dependencies, <a href="https://github.com/Voltstro/VoltProjects/network/dependencies">see here</a>)</p>
+    <p class="text-muted">The projects listed here have no associations with Volt Projects, they are just really cool, and have fancy icons.
+        <br/>
+        (For a complete list of dependencies, <a href="https://github.com/Voltstro/VoltProjects/network/dependencies">see here</a>)</p>
     <p>Thank you to my parents and friends as well.</p>
 </div>
