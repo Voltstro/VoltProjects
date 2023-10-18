@@ -21,6 +21,11 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.11" />
+        <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.6.0" />
+        <PackageReference Include="OpenTelemetry.Instrumentation.EntityFrameworkCore" Version="1.0.0-beta.7" />
+        <PackageReference Include="Sentry.EntityFramework" Version="3.40.1" />
+        <PackageReference Include="Sentry.Extensions.Logging" Version="3.40.1" />
+        <PackageReference Include="Sentry.OpenTelemetry" Version="3.40.1" />
         <PackageReference Include="Serilog" Version="3.0.1" />
         <PackageReference Include="Serilog.Enrichers.Thread" Version="3.1.0" />
         <PackageReference Include="Serilog.Extensions.Hosting" Version="7.0.0" />

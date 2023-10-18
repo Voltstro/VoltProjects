@@ -3,10 +3,9 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Rewrite;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using OpenTelemetry.Trace;
 using Serilog;
 using VoltProjects.Server.Services;
 using VoltProjects.Server.Shared;
@@ -23,6 +22,9 @@ try
 {
     //Setup web host
     builder.WebHost.ConfigureKestrel(kestrel => kestrel.AddServerHeader = false);
+
+    //Setup tracking
+    builder.Services.AddTracking(builder.Configuration, tracerBuilder => tracerBuilder.AddAspNetCoreInstrumentation());
 
     //Setup services
     builder.Services.Configure<VoltProjectsConfig>(
@@ -70,6 +72,7 @@ try
     
     app.UseResponseCaching();
     app.UseRouting();
+    
     app.MapControllers();
 
     Log.Information("Configuration done! Starting...");
