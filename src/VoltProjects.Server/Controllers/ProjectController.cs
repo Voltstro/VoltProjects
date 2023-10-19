@@ -1,6 +1,8 @@
+// ReSharper disable ExplicitCallerInfoArgument
+
 using System;
+using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -48,72 +50,46 @@ public class ProjectController : Controller
     /// <exception cref="FileNotFoundException"></exception>
     [HttpGet]
     [Route("/{projectName}/{version?}/{**fullPath}")]
-    public async Task<IActionResult> ProjectView(CancellationToken cancellationToken, string projectName, string? version, string? fullPath)
+    public async Task<IActionResult> ProjectView(string projectName, string? version, string? fullPath, CancellationToken cancellationToken)
     {
-        //Try to get project first
-        Project? project = await dbContext.Projects
-            .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Name == projectName, cancellationToken);
-        if (project == null)
-            return NotFound();
-
-        //No version? Goto latest
-        if (string.IsNullOrWhiteSpace(version))
-            return GetProjectLatestRedirect(project, version, fullPath);
-
-        //Try to get project version
-        ProjectVersion? projectVersion = await dbContext.ProjectVersions
-            .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.VersionTag == version && x.ProjectId == project.Id, cancellationToken);
-        if (projectVersion == null)
-            return GetProjectLatestRedirect(project, version, fullPath);
-
-        //Set for ease of use in the view
-        projectVersion.Project = project;
-
+        using Activity? projectActivity = Tracking.TrackingActivitySource.StartActivity("ProjectView-Main");
+        
         //Default path (if none was provided)
         if (string.IsNullOrWhiteSpace(fullPath))
             fullPath = ".";
         
-        //Now to find the page
-        ProjectPage? projectPage =
-            await dbContext.ProjectPages
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.ProjectVersionId == projectVersion.Id && x.Path == fullPath, cancellationToken);
+        //No version? Goto latest
+        if (string.IsNullOrWhiteSpace(version))
+            return await GetProjectLatestRedirect(projectName, version, fullPath, cancellationToken);
+
+        ProjectPage? projectPage = await dbContext.ProjectPages
+            .AsNoTracking()
+            .Include(x => x.ProjectVersion)
+            .ThenInclude(x => x.Project)
+            .FirstOrDefaultAsync(x =>
+                x.Path == fullPath &&
+                x.ProjectVersion.VersionTag == version &&
+                x.ProjectVersion.Project.Name == projectName, cancellationToken);
 
         //No page was found, all good then
         if (projectPage == null)
             return NotFound();
-
-        //Set for ease of use in the view
-        projectPage.ProjectVersion = projectVersion;
         
         string requestPath = Request.Path;
-        string baseProjectPath = $"/{Path.Combine(project.Name, projectVersion.VersionTag)}";
+        string baseProjectPath = $"/{Path.Combine(projectPage.ProjectVersion.Project.Name, projectPage.ProjectVersion.VersionTag)}";
 
         //Get project menu
-        ProjectNavModel navModel =
-            await projectMenuService.GetProjectMenu(requestPath, baseProjectPath, projectVersion, cancellationToken);
+        ProjectNavModel navModel;
+        {
+            Activity? projectNavActivity = Tracking.TrackingActivitySource.StartActivity("ProjectView-ProjectNav");
+            navModel = await projectMenuService.GetProjectMenu(requestPath, baseProjectPath, projectPage.ProjectVersion, cancellationToken);
+            projectNavActivity?.Dispose();
+        }
         
         //Figure out TOC stuff
         TocItem? tocItem = null;
         if (projectPage.ProjectTocId != null)
-        {
-            int tocId = projectPage.ProjectTocId.Value;
-            string tocMemoryCacheKeyName = $"ProjectToc-{tocId}";
-            ProjectToc? projectToc = await memoryCache.GetOrCreateAsync(tocMemoryCacheKeyName, async entry =>
-            {
-                ProjectToc? projectToc = await dbContext.ProjectTocs
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(x => x.Id == tocId, cancellationToken: cancellationToken);
-                
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(6);
-                return projectToc;
-            });
-            
-            if (projectToc != null)
-                tocItem = ProcessTocItems(projectToc.TocItem, projectPage.TocRel!, requestPath);
-        }
+            tocItem = await HandleProjectToc(projectPage, requestPath, cancellationToken);
 
         return View("ProjectView", new ProjectViewModel
         {
@@ -124,23 +100,55 @@ public class ProjectController : Controller
         });
     }
 
-    private IActionResult GetProjectLatestRedirect(Project project, string? previousVersion, string? fullPath)
+    private async Task<IActionResult> GetProjectLatestRedirect(string projectName, string? previousVersion, string? fullPath, CancellationToken cancellationToken)
     {
+        using Activity? projectGetLatestActivity = Tracking.TrackingActivitySource.StartActivity("ProjectView-GetLatest");
+        
         //Find default version
-        ProjectVersion? latestProjectVersion =
-            dbContext.ProjectVersions.FirstOrDefault(x => x.IsDefault && x.ProjectId == project.Id);
+        ProjectVersion? latestProjectVersion = await dbContext.ProjectVersions
+            .AsNoTracking()
+            .Include(x => x.Project)
+            .FirstOrDefaultAsync(x => x.IsDefault && x.Project.Name == projectName, cancellationToken);
             
         //All project must have a default, so this should never happen
         if (latestProjectVersion == null)
         {
-            logger.LogError("Project {ProjectName} has no default project version!", project.Name);
+            logger.LogError("Project {ProjectName} either doesn't exist, or has no default project version!", projectName);
             return NotFound();
         }
 
         if (!string.IsNullOrWhiteSpace(fullPath) && !string.IsNullOrWhiteSpace(previousVersion))
             fullPath = Path.Combine(previousVersion, fullPath);
             
-        return RedirectToAction("ProjectView", "Project", new {projectName = project.Name, version = latestProjectVersion.VersionTag, fullPath = fullPath});
+        return RedirectToAction("ProjectView", "Project", new { projectName, version = latestProjectVersion.VersionTag, fullPath});
+    }
+
+    private async Task<TocItem?> HandleProjectToc(ProjectPage projectPage, string requestPath, CancellationToken cancellationToken)
+    {
+        using Activity? projectHandleProjectTocActivity = Tracking.TrackingActivitySource.StartActivity("ProjectView-HandleProjectToc");
+        
+        int tocId = projectPage.ProjectTocId!.Value;
+        string tocMemoryCacheKeyName = $"ProjectToc-{tocId}";
+        ProjectToc? projectToc = await memoryCache.GetOrCreateAsync(tocMemoryCacheKeyName, async entry =>
+        {
+            using Activity? projectGetTocActivity = Tracking.TrackingActivitySource.StartActivity("ProjectView-GetProjectToc");
+            ProjectToc? projectToc = await dbContext.ProjectTocs
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == tocId, cancellationToken: cancellationToken);
+                
+            entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(6);
+            return projectToc;
+        });
+
+        TocItem? tocItem = null;
+        if (projectToc != null)
+        {
+            Activity? projectProcessTocActivity = Tracking.TrackingActivitySource.StartActivity("ProjectView-ProcessToc");
+            tocItem = ProcessTocItems(projectToc.TocItem, projectPage.TocRel!, requestPath);
+            projectProcessTocActivity?.Dispose();
+        }
+
+        return tocItem;
     }
 
     private static TocItem ProcessTocItems(LinkItem linkItem, string pageRel, string requestPath)

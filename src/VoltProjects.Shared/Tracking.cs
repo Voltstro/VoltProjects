@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -14,8 +15,10 @@ namespace VoltProjects.Shared;
 /// <summary>
 ///     Extensions for application tracking
 /// </summary>
-public static class TrackingExtensions
+public static class Tracking
 {
+    public static readonly ActivitySource TrackingActivitySource = new("VoltProjects");
+    
     public static void AddTracking(this IServiceCollection services, IConfiguration configuration, Action<TracerProviderBuilder>? configure = null)
     {
         //Setup Sentry Options
@@ -33,10 +36,12 @@ public static class TrackingExtensions
             .AddOpenTelemetry()
             .ConfigureResource(builder =>
             {
+                
                 builder.AddDetector(sp => sp.GetRequiredService<MyResourceDetector>());
             })
             .WithTracing(builder =>
             {
+                builder.AddSource("VoltProjects");
                 builder.AddEntityFrameworkCoreInstrumentation(efOptions =>
                 {
                     efOptions.EnrichWithIDbCommand = (activity, command) =>
