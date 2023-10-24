@@ -37,15 +37,18 @@ try
     //Support razor pages runtime compilation for hot reloading
     IMvcBuilder mvcBuilder = builder.Services.AddControllersWithViews(
         mvcOptions => mvcOptions.Filters.Add<OperationCancelledExceptionFilter>());
-    mvcBuilder.AddRazorRuntimeCompilation();
 
     //Allows for caching
     builder.Services.AddResponseCaching();
     
-    //Db
+    //Development options
     if (builder.Environment.IsDevelopment())
+    {
         builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+        mvcBuilder.AddRazorRuntimeCompilation();
+    }
 
+    //Setup VoltProjects DB
     builder.Services.UseVoltProjectDbContext(builder.Configuration, "Server");
 
     //Now setup the app
