@@ -80,10 +80,7 @@ public sealed class SitemapService
 
             foreach (KeyValuePair<string,XDocument> projectSitemap in projectSitemaps)
             {
-                KeyValuePair<string, byte[]>? foundResult = compressedProjectSitemaps.FirstOrDefault(x => x.Key == projectSitemap.Key);
-                if (!foundResult.HasValue)
-                    compressedProjectSitemaps.Remove(foundResult.Value.Key);
-                
+                compressedProjectSitemaps.Remove(projectSitemap.Key);
                 compressedProjectSitemaps.Add(projectSitemap.Key, CompressDocument(projectSitemap.Value));
             }
         }
