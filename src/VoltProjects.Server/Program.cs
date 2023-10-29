@@ -51,6 +51,8 @@ try
     //Setup VoltProjects DB
     builder.Services.UseVoltProjectDbContext(builder.Configuration, "Server");
 
+    builder.Services.AddHealthChecks();
+
     //Now setup the app
     WebApplication app = builder.Build();
     
@@ -75,8 +77,8 @@ try
     
     app.UseResponseCaching();
     app.UseRouting();
-    
     app.MapControllers();
+    app.UseHealthChecks("/healthz/");
 
     Log.Information("Configuration done! Starting...");
     app.Run();
