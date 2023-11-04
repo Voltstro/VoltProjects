@@ -13,16 +13,19 @@ public sealed class ProjectRepoService
 {
     private readonly ILogger<ProjectRepoService> logger;
     private readonly VoltProjectsBuilderConfig config;
-    
+    private readonly HttpClient httpClient;
+
     /// <summary>
     ///     Creates a new <see cref="ProjectRepoService"/>
     /// </summary>
     /// <param name="logger"></param>
     /// <param name="config"></param>
-    public ProjectRepoService(ILogger<ProjectRepoService> logger, IOptions<VoltProjectsBuilderConfig> config)
+    /// <param name="httpClient"></param>
+    public ProjectRepoService(ILogger<ProjectRepoService> logger, IOptions<VoltProjectsBuilderConfig> config, HttpClient httpClient)
     {
         this.logger = logger;
         this.config = config.Value;
+        this.httpClient = httpClient;
     }
     
     /// <summary>
@@ -93,6 +96,14 @@ public sealed class ProjectRepoService
     /// <param name="path"></param>
     private void CloneRepo(string gitUrl, string path)
     {
+        gitUrl = !gitUrl.EndsWith(".git") ? $"{gitUrl}.git" : gitUrl;
+        
+        logger.LogInformation("Getting repo {RepoUrl}...", gitUrl);
+        HttpResponseMessage result = httpClient.GetAsync(gitUrl).GetAwaiter().GetResult();
+        if (!result.IsSuccessStatusCode)
+            throw new HttpRequestException($"Failed to get {gitUrl}!");
+        
+        logger.LogInformation("Successfully got repo {RepoUrl}, cloning...", gitUrl);
         Repository.Clone(gitUrl, path, new CloneOptions
         {
             Checkout = true,
@@ -100,6 +111,8 @@ public sealed class ProjectRepoService
             OnTransferProgress = OnTransferLog,
             OnCheckoutProgress = OnCheckoutLog
         });
+        return;
+
     }
     
     #region Logging
