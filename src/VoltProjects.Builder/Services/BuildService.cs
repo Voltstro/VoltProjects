@@ -122,7 +122,7 @@ public sealed class BuildService : BackgroundService
 
             ProjectBuildEvent? lastBuildEvent = await projectContext.ProjectBuildEvents
                 .AsNoTracking()
-                .Where(x => x.ProjectVersionId == projectVersion.ProjectId && x.BuilderVer == BuildVer)
+                .Where(x => x.ProjectVersionId == projectVersion.Id && x.BuilderVer == BuildVer)
                 .OrderByDescending(x => x.Date)
                 .FirstOrDefaultAsync(token);
 
