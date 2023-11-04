@@ -69,7 +69,9 @@ public class ProjectController : Controller
             .FirstOrDefaultAsync(x =>
                 x.Path == fullPath &&
                 x.ProjectVersion.VersionTag == version &&
-                x.ProjectVersion.Project.Name == projectName, cancellationToken);
+                x.ProjectVersion.Project.Name == projectName &&
+                x.Published,
+                cancellationToken);
 
         //No page was found, all good then
         if (projectPage == null)

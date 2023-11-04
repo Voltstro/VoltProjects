@@ -452,38 +452,31 @@ CREATE OR REPLACE FUNCTION public.upsert_project_pages(version_id integer, page 
  LANGUAGE plpgsql
 AS $function$
 BEGIN
-    -- Upsert project pages, and store results in temp table
-    CREATE TEMP TABLE tmp_projectpage
-    AS WITH inserted AS (
-        INSERT INTO public.project_page
-            (project_version_id, path, published, published_date, title, title_display, word_count, project_toc_id, toc_rel, git_url, aside, description, content, last_update_time)
-        SELECT version_id, page.path, TRUE, page.published_date, page.title, page.title_display, page.word_count, page.toc_id, page.toc_rel, page.git_url, page.aside, page.description, page.page_content, NOW()
-            FROM unnest(page) AS page
-        ON CONFLICT (project_version_id, path)
-        DO UPDATE SET 
-            last_update_time = NOW(),
-            published = EXCLUDED.published,
-            published_date = EXCLUDED.published_date,
-            title = EXCLUDED.title,
-            title_display = EXCLUDED.title_display,
-            word_count = EXCLUDED.word_count,
-            project_toc_id = EXCLUDED.project_toc_id,
-            git_url = EXCLUDED.git_url,
-            aside = EXCLUDED.aside, 
-            path = EXCLUDED.path,
-            content = EXCLUDED.content
-        RETURNING id
-    )
-    SELECT id FROM inserted;
-
-    -- Any page that wasn't inserted/updated should be marked as unpublished (basically deleted)
-    UPDATE public.project_page
-    SET published = false
-    WHERE id NOT IN (SELECT id FROM tmp_projectpage);
-
-    -- Clean up
-    DROP TABLE IF EXISTS tmp_projectpage;
-    RETURN;	
+    WITH inserted AS (
+	    INSERT INTO public.project_page
+	        (project_version_id, path, published, published_date, title, title_display, word_count, project_toc_id, toc_rel, git_url, aside, description, content, last_update_time)
+	    SELECT version_id, page.path, TRUE, page.published_date, page.title, page.title_display, page.word_count, page.toc_id, page.toc_rel, page.git_url, page.aside, page.description, page.page_content, NOW()
+	        FROM unnest(page) AS page
+	    ON CONFLICT (project_version_id, path)
+	    DO UPDATE SET 
+	        last_update_time = NOW(),
+	        published = EXCLUDED.published,
+	        published_date = EXCLUDED.published_date,
+	        title = EXCLUDED.title,
+	        title_display = EXCLUDED.title_display,
+	        word_count = EXCLUDED.word_count,
+	        project_toc_id = EXCLUDED.project_toc_id,
+	        git_url = EXCLUDED.git_url,
+	        aside = EXCLUDED.aside, 
+	        path = EXCLUDED.path,
+	        content = EXCLUDED.content
+	    RETURNING id
+	)
+	UPDATE public.project_page
+	    SET published = false
+	    WHERE id NOT IN (SELECT id FROM inserted)
+	    AND project_version_id = version_id;
+	RETURN;	
 END;
 $function$
 ;
