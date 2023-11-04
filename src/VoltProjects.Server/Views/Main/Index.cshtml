@@ -1,6 +1,4 @@
-@using Microsoft.AspNetCore.Mvc.TagHelpers
 @using VoltProjects.Server.Models
-@using VoltProjects.Shared.Models
 @model VoltProjects.Server.Models.ProjectInfo[]
 @{
     ViewBag.Title = "Home";
@@ -24,34 +22,40 @@
         <cache>
             @foreach (ProjectInfo project in Model)
             {
-                <div class="col card shadow">
-                    <div class="row g-0">
-                        <div class="col-12 col-md-4 col-xl-3">
-                            <img class="prj-icon" alt="Project Icon" src="@project.IconPath"/>
-                        </div>
-                        <div class="col-12 col-md-8 col-xl-9 card-body">
-                            <h5 class="card-title">
-                                <a class="prj-title" href="/@project.Name/@project.DefaultVersion/">@project.Name</a>
-                            </h5>
-                            <p class="card-text">@project.Description</p>
-                            
-                            <div class="btn-group dropend">
-                                <a class="btn btn-primary" href="/@project.Name/@project.DefaultVersion/">View</a>
-                                @if (project.OtherVersions.Length > 0)
-                                {
-                                    <button class="btn btn-primary dropdown-toggle dropdown-toggle-split" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <span class="visually-hidden">Toggle Dropend</span>
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item active" href="/@project.Name/@project.DefaultVersion/">Latest</a></li>
-                                        @foreach (string version in project.OtherVersions)
-                                        {
-                                            <li><a class="dropdown-item" href="/@project.Name/@version/">@version</a></li>
-                                        }
-                                    </ul>
-                                }
+                <div class="col">
+                    <div class="card shadow">
+                        <div class="row g-0">
+                            <div class="col-12 col-md-4 col-xl-3">
+                                <img class="prj-icon mx-auto d-block rounded" alt="Project Icon" src="@project.IconPath"/>
                             </div>
-                            
+                            <div class="col-12 col-md-8 col-xl-9 card-body">
+                                <h5 class="card-title">
+                                    <a class="prj-title" href="/@project.Name/@project.DefaultVersion/">@project.Name</a>
+                                </h5>
+                                <p class="card-text">@project.Description</p>
+
+                                <div class="btn-group dropend">
+                                    <a class="btn btn-primary" href="/@project.Name/@project.DefaultVersion/">View</a>
+                                    @if (project.OtherVersions.Length > 0)
+                                    {
+                                        <button class="btn btn-primary dropdown-toggle dropdown-toggle-split" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <span class="visually-hidden">Toggle Dropend</span>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <a class="dropdown-item active" href="/@project.Name/@project.DefaultVersion/">Latest</a>
+                                            </li>
+                                            @foreach (string version in project.OtherVersions)
+                                            {
+                                                <li>
+                                                    <a class="dropdown-item" href="/@project.Name/@version/">@version</a>
+                                                </li>
+                                            }
+                                        </ul>
+                                    }
+                                </div>
+
+                            </div>
                         </div>
                     </div>
                 </div>
