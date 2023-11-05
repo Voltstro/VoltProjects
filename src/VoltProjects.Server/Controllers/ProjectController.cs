@@ -75,7 +75,20 @@ public class ProjectController : Controller
 
         //No page was found, all good then
         if (projectPage == null)
+        {
+            //Try to get project version
+            ProjectVersion? projectVersion = await dbContext.ProjectVersions
+                .AsNoTracking()
+                .Include(x => x.Project)
+                .FirstOrDefaultAsync(x => x.VersionTag == version && x.Project.Name == projectName,
+                    cancellationToken: cancellationToken);
+
+            //Invalid project version
+            if (projectVersion == null)
+                return await GetProjectLatestRedirect(projectName, version, fullPath, cancellationToken);
+            
             return NotFound();
+        }
         
         string requestPath = Request.Path;
         string baseProjectPath = $"/{Path.Combine(projectPage.ProjectVersion.Project.Name, projectPage.ProjectVersion.VersionTag)}";
