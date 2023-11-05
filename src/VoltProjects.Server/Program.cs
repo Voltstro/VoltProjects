@@ -1,8 +1,10 @@
 using System;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Rewrite;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OpenTelemetry.Trace;
@@ -52,6 +54,18 @@ try
     builder.Services.UseVoltProjectDbContext(builder.Configuration, "Server");
 
     builder.Services.AddHealthChecks();
+    
+    //CORS
+    builder.Services.AddCors(options =>
+    {
+        options.AddDefaultPolicy(policyBuilder =>
+        {
+            VoltProjectsConfig? config =
+                builder.Configuration.GetSection(VoltProjectsConfig.VoltProjects).Get<VoltProjectsConfig>();
+
+            policyBuilder.WithOrigins(config.CorsSites).AllowAnyHeader().AllowAnyMethod();
+        });
+    });
 
     //Now setup the app
     WebApplication app = builder.Build();
@@ -77,6 +91,11 @@ try
     
     app.UseResponseCaching();
     app.UseRouting();
+    
+    //Use CORS
+    app.UseCors();
+    
+    //Map main endpoints
     app.MapControllers();
     app.UseHealthChecks("/healthz/");
 
