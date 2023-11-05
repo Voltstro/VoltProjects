@@ -12,36 +12,30 @@ Volt Projects - An automatic documentation building and hosting service.
 
 Volt Projects main purpose is to host a project's documentation. It handles the process of automatically updating and deploying a project's documentation.
 
-> [!NOTE]
-> This branch is Volt Projects v2. This version is still under development!
-
 ## Getting Started
 
 ### Database Setup
 
 For either hosting or development of Volt Projects, you will need a Postgres 15 database. You can really use whatever service you want to run Postgres ([local install](https://www.postgresql.org/download/), [Docker](https://hub.docker.com/_/postgres/), etc), as long as VP can connect to it using a [connection string](https://www.npgsql.org/doc/connection-string-parameters.html).
 
-You will obviously need the database for VP. VP also needs two roles, one called `vpbuilder`, and the other called `vpserver`. The SQL commands below should provide you with enough information on how to set this up.
-
+You will obviously need the database for VP and a user to access the DB.
 
 ```sql
-CREATE USER vpbuilder WITH INHERIT LOGIN ENCRYPTED PASSWORD 'Testing123';
-CREATE USER vpserver WITH INHERIT LOGIN ENCRYPTED PASSWORD 'Testing123';
+CREATE USER voltprojects WITH INHERIT LOGIN ENCRYPTED PASSWORD 'Testing123';
 
 CREATE DATABASE voltprojects WITH
-	OWNER = 'postgres';
+	OWNER = 'voltprojects';
 
 -- Execute on new DB
-GRANT USAGE ON SCHEMA public TO vpbuilder;
-GRANT USAGE ON SCHEMA public TO vpserver;
+GRANT USAGE ON SCHEMA public TO voltprojects;
 ```
 
 > [!NOTE]
-> Do not use these passwords in a production environment! If your dumb enough to not realize this, then you should definitely not be hosting a production instance.
+> Do not use this passwords in a production environment! If your dumb enough to not realize this, then you should definitely not be hosting a production instance.
 
 ### Azure Blob Storage
 
-VoltProjects.Builder makes use of Azure Blob Storage for uploading image assets. You will need an Azure Storage Account, and create a container for Volt Projects to use. The container needs to be setup for public access. When running VoltProjects.Builder, you need to set `VP_AZURE_CREDENTIAL` environment variable to one of your storage account's connection strings. The `PublicUrl` in both server and builder's config then needs to be set to your container's public url (usually `https://<Account Name>.blob.core.windows.net/<Container Name>/`).
+VoltProjects.Builder makes use of Azure Blob Storage for uploading image assets. You will need an Azure Storage Account (or use [Azurite](https://github.com/Azure/Azurite) locally), and create a container for Volt Projects to use. The container needs to be setup for public access. When running VoltProjects.Builder, you need to set `VP_AZURE_CREDENTIAL` environment variable to one of your storage account's connection strings. The `PublicUrl` in both server and builder's config then needs to be set to your container's public url (usually `https://<Account Name>.blob.core.windows.net/<Container Name>/`).
 
 ### Hosting
 
@@ -66,15 +60,13 @@ Postgres 15 DB
     yarn run build
     ```
 
-2. Build the .NET projects using your IDE of choice, or `dotnet build` in the `src/` directory.
+2. Update `appsettings.json` in both Builder and Server accordingly for what you need.
 
-3. Run Migrations on your Postgres database. To run migrations, execute the following command in `src/VoltProjects.Shared`.
+3. Build the .NET projects using your IDE of choice, or `dotnet build` in the `src/` directory.
 
-    ```
-    dotnet ef database update --connection "Host=localhost;Username=postgres;Password=<password>;Database=voltprojects"
-    ```
+4. Run either the Server or Builder project for it to migrate the database. You can close it once the DB has been migrated.
 
-4. Add Projects to build to the `project` and `project_version` tables, and the project's accompanying pre build command to `project_pre_build`. An example for VoltRpc is provided below.
+5. Add Projects to build to the `project` and `project_version` tables, and the project's accompanying pre build command to `project_pre_build`. An example for VoltRpc is provided below.
 
     ```sql
     INSERT INTO public.project
@@ -90,9 +82,11 @@ Postgres 15 DB
     VALUES(1, 1, 1, 'dotnet', 'build src/VoltRpc.sln -c ReleaseNoPackage');
     ```
 
-5. Update `appsettings.json` in both Builder and Server accordingly for what you need.
-
 6. Run Builder and Server projects. Make sure everything in builder goes well. You can access the server on `http://localhost:5000`.
+
+#### Docker-Compose
+
+An all-in-one Docker compose file is provided in `src/docker-compose.yml`. This will setup Builder, Server, Postgres and Azurite for you.
 
 ## Security
 
