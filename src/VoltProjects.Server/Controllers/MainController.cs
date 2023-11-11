@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -38,45 +39,41 @@ public class MainController : Controller
     [Route("/")]
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
-        ProjectInfo[] projectInfos = await memoryCache.GetOrCreateAsync<ProjectInfo[]>("IndexProjects", async entry =>
+        ProjectInfo[] projectInfos = (await memoryCache.GetOrCreateAsync<ProjectInfo[]>("IndexProjects", async entry =>
         {
-            Project[] allProjects = await dbContext.Projects.ToArrayAsync(cancellationToken);
+            List<ProjectInfo> projectInfos = new();
 
-            ProjectInfo[] projectInfos = new ProjectInfo[allProjects.Length];
-            for (int i = 0; i < allProjects.Length; i++)
+            ProjectVersion[] projects = await dbContext.ProjectVersions
+                .AsNoTracking()
+                .Include(x => x.Project)
+                .OrderBy(x => x.Project.Name)
+                .ToArrayAsync(cancellationToken);
+
+            foreach (ProjectVersion project in projects)
             {
-                Project project = allProjects[i];
-
-                //Get all versions
-                ProjectVersion[] allProjectVersions =
-                    await dbContext.ProjectVersions
-                        .AsNoTracking()
-                        .Where(x => x.ProjectId == project.Id)
-                        .ToArrayAsync(cancellationToken);
-
-                ProjectVersion? latestProjectVersion = allProjectVersions.FirstOrDefault(x => x.IsDefault);
-                if (latestProjectVersion == null)
-                    throw new ArgumentException($"Project {project.Name} is missing a default project version!");
-
-                //Get all other versions
-                string[] allOtherVersions = allProjectVersions.Where(x => !x.IsDefault)
-                    .Select(projectVersion => projectVersion.VersionTag)
-                    .ToArray();
-
-                projectInfos[i] = new ProjectInfo
+                ProjectInfo? projectInfo = projectInfos.FirstOrDefault(x => x.Name == project.Project.Name);
+                if (projectInfo != null)
+                    continue;
+                
+                projectInfo = new ProjectInfo
                 {
-                    Name = project.Name,
-                    Description = project.Description,
-                    IconPath = Path.Combine(config.PublicUrl, project.Name, project.IconPath),
-                    DefaultVersion = latestProjectVersion.VersionTag,
-                    OtherVersions = allOtherVersions
+                    Name = project.Project.Name,
+                    Description = project.Project.Description,
+                    IconPath = Path.Combine(config.PublicUrl, project.Project.Name, project.Project.IconPath!),
+                    DefaultVersion =
+                        projects.FirstOrDefault(x => x.IsDefault && x.Project.Name == project.Project.Name)!
+                            .VersionTag,
+                    OtherVersions = projects.Where(x => x.Project.Name == project.Project.Name && !x.IsDefault)
+                        .Select(x => x.VersionTag).ToArray()
                 };
+                    
+                projectInfos.Add(projectInfo);
             }
-
+            
             //Expiry in 6 hours
             entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(6);
-            return projectInfos;
-        });
+            return projectInfos.ToArray();
+        }))!;
         
         return View(projectInfos);
     }

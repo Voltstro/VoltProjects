@@ -3,7 +3,7 @@ namespace VoltProjects.Server.Models;
 /// <summary>
 ///     Basic details on a project
 /// </summary>
-public struct ProjectInfo
+public class ProjectInfo
 {
     /// <summary>
     ///     Name of the project
