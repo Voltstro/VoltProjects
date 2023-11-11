@@ -39,7 +39,36 @@ VoltProjects.Builder makes use of Azure Blob Storage for uploading image assets.
 
 ### Hosting
 
-TODO
+We provide VoltProject as Docker images, one for Server and one for Builder.
+
+- [VPServer](https://hub.docker.com/r/voltstro/vpserver)
+- [VPBuilder](https://hub.docker.com/r/voltstro/vpbuilder)
+
+You can run these apps together with Docker Compose, using a `docker-compose.yml` file like so:
+
+```yml
+version: "3.9"
+
+services:
+  server:
+    image: voltstro/vpserver:latest
+    container_name: vpserver
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      - ConnectionStrings__ServerConnection
+      - VoltProjects__PublicUrl
+
+  builder:
+    image: voltstro/vpbuilder:latest
+    container_name: vpbuilder
+    restart: unless-stopped
+    environment:
+      - ConnectionStrings__BuilderConnection
+      - Config__StorageConfig__PublicUrl
+      - VP_AZURE_CREDENTIAL
+```
 
 ### Build
 
