@@ -1,5 +1,5 @@
 ﻿# Build Stage
-FROM mcr.microsoft.com/dotnet/sdk:7.0-bookworm-slim AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim AS build
 WORKDIR /src
 
 # Copy what builder needs
@@ -14,7 +14,7 @@ RUN dotnet publish "VoltProjects.Builder.csproj" -c Release -o /app/publish /p:U
 
 # Final Stage
 # We using SDK to run the app, as VDocFx needs it (plus projects may need it for thie pre-build commands)
-FROM mcr.microsoft.com/dotnet/sdk:7.0-alpine AS final
+FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS final
 WORKDIR /app
 COPY --from=build /app/publish .
 
