@@ -115,27 +115,36 @@ public sealed class BuildService : BackgroundService
         string projectCommitHash = string.Empty;
         try
         {
-            logger.LogDebug("Setting {Project} branch to {Branch}...", project.Name,
-                projectVersion.GitBranch);
-            repoService.SetProjectRepoBranch(project, projectVersion.GitBranch);
-            projectCommitHash = repoService.GetProjectRepoGitHash(project);
-
-            ProjectBuildEvent? lastBuildEvent = await projectContext.ProjectBuildEvents
-                .AsNoTracking()
-                .Where(x => x.ProjectVersionId == projectVersion.Id && x.BuilderVer == BuildVer)
-                .OrderByDescending(x => x.Date)
-                .FirstOrDefaultAsync(token);
-
-            //Check commit hash is not the same
-            if (lastBuildEvent is { Successful: true })
+            if (!project.GitIsUrl)
             {
-                //Hashes are the same, no need to rebuild
-                if (lastBuildEvent.GitHash == projectCommitHash)
+                //Local repo
+                logger.LogWarning("{Project} is using local repo stored at {RepoPath}, not touching branches/tags/etc...", project.Name, project.GitUrl);
+            }
+            else
+            {
+                //A repo we have on store
+                logger.LogDebug("Setting {Project} branch to {Branch}...", project.Name, projectVersion.GitBranch);
+                repoService.SetProjectRepoBranch(project, projectVersion.GitBranch);
+                projectCommitHash = repoService.GetProjectRepoGitHash(project);
+
+                ProjectBuildEvent? lastBuildEvent = await projectContext.ProjectBuildEvents
+                    .AsNoTracking()
+                    .Where(x => x.ProjectVersionId == projectVersion.Id && x.BuilderVer == BuildVer)
+                    .OrderByDescending(x => x.Date)
+                    .FirstOrDefaultAsync(token);
+
+                //Check commit hash is not the same
+                if (lastBuildEvent is { Successful: true })
                 {
-                    logger.LogInformation("Project is already using latest build. Not re-building...");
-                    return;
+                    //Hashes are the same, no need to rebuild
+                    if (lastBuildEvent.GitHash == projectCommitHash)
+                    {
+                        logger.LogInformation("Project is already using latest build. Not re-building...");
+                        return;
+                    }
                 }
             }
+           
 
             ProjectPreBuild[] prebuildCommands = await projectContext.PreBuildCommands
                 .AsNoTracking()

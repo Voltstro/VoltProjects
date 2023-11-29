@@ -1,0 +1,30 @@
+using System.Text.Json.Serialization;
+
+namespace VoltProjects.Builder.DocFx;
+
+public class DocFxRawModel
+{
+    [JsonPropertyName("type")]
+    public string Type { get; set; }
+    
+    [JsonPropertyName("conceptual")]
+    public string? Conceptual { get; set; }
+    
+    [JsonPropertyName("wordCount")]
+    public int WordCount { get; set; }
+    
+    [JsonPropertyName("title")]
+    public string Title { get; set; }
+    
+    [JsonPropertyName("items")]
+    public DocfxMenuItem[] Items { get; set; }
+        
+    public struct DocfxMenuItem
+    {
+        [JsonPropertyName("href")]
+        public string Href { get; init; }
+        
+        [JsonPropertyName("name")]
+        public string Name { get; init; }
+    }
+}

@@ -35,6 +35,10 @@ public sealed class ProjectRepoService
     /// <returns></returns>
     public string GetProjectRepo(Project project)
     {
+        //Most likely a local git folder
+        if (!project.GitIsUrl)
+            return Path.GetFullPath(project.GitUrl);
+        
         string projectRepoPath = Path.GetFullPath(Path.Combine(config.RepoStoreLocation, project.Name));
         
         try
