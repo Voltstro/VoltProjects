@@ -18,13 +18,22 @@ public class DocFxRawModel
     
     [JsonPropertyName("items")]
     public DocfxMenuItem[] Items { get; set; }
+    
+    [JsonPropertyName("_tocPath")]
+    public string? TocPath { get; set; }
+    
+    [JsonPropertyName("_tocRel")]
+    public string? TocRel { get; set; }
         
     public struct DocfxMenuItem
     {
         [JsonPropertyName("href")]
-        public string Href { get; init; }
+        public string? Href { get; init; }
         
         [JsonPropertyName("name")]
-        public string Name { get; init; }
+        public string? Name { get; init; }
+        
+        [JsonPropertyName("items")]
+        public DocfxMenuItem[] Items { get; init; }
     }
 }
