@@ -1,4 +1,5 @@
 using NSubstitute;
+using NUnit.Framework.Legacy;
 using VoltProjects.Shared;
 using VoltProjects.Shared.Models;
 

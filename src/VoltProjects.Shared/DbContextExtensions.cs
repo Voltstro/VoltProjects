@@ -1,4 +1,6 @@
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Data.Common;
+using System.Data.Entity;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.Json;
@@ -10,11 +12,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Npgsql;
 
 namespace VoltProjects.Shared;
 
 /// <summary>
-///     VoltProject <see cref="DbContext"/> extensions
+///     VoltProject <see cref="Microsoft.EntityFrameworkCore.DbContext"/> extensions
 /// </summary>
 public static class DbContextExtensions
 {
@@ -32,14 +35,16 @@ public static class DbContextExtensions
         string? connectionString = configuration.GetConnectionString(connectionStringName);
         if (string.IsNullOrWhiteSpace(connectionString))
             throw new NullReferenceException($"Connection string for {typePrefix} was not provided!");
+
+        //Need to enable dynamic JSON
+        services.AddNpgsqlDataSource(connectionString, builder =>
+        {
+            builder.EnableDynamicJson();
+        });
         
-        return services
-            .AddDbContextFactory<VoltProjectDbContext>(
-                options =>
-                    options.UseNpgsql(connectionString))
-            .AddDbContext<VoltProjectDbContext>(
-                options =>
-                    options.UseNpgsql(connectionString));
+        services.AddDbContextFactory<VoltProjectDbContext>(options => options.UseNpgsql());
+        services.AddDbContext<VoltProjectDbContext>(options => options.UseNpgsql());
+        return services;
     }
 
     public static IHost HandleDbMigrations(this IHost host)
@@ -49,17 +54,17 @@ public static class DbContextExtensions
         VoltProjectDbContext dbContext = services.GetRequiredService<VoltProjectDbContext>();
 
         logger.LogInformation("Checking database...");
-
-        string? connectionString = dbContext.Database.GetConnectionString();
-        if (string.IsNullOrWhiteSpace(connectionString))
-            throw new NullReferenceException("Connection string for DB is null!");
         
+        //Get connection and open it
+        DbConnection connection = dbContext.Database.GetDbConnection();
+        connection.Open();
+
         //PostgresDistributedLock uses Postgres's Advisory Locks.
         //Upto the app to respect the lock
         //
         //https://www.postgresql.org/docs/9.4/explicit-locking.html#ADVISORY-LOCKS
         PostgresDistributedLock migrationLock =
-            new(new PostgresAdvisoryLockKey("MigrationsLock", true), connectionString);
+            new(new PostgresAdvisoryLockKey("MigrationsLock", true), connection);
         using (migrationLock.Acquire())
         {
             bool pendingMigrations = dbContext.Database.GetPendingMigrations().Any();
@@ -67,7 +72,7 @@ public static class DbContextExtensions
             if (pendingMigrations)
             {
                 logger.LogWarning("Database requires migrations! Migrating...");
-                IDbContextTransaction transaction = dbContext.Database.BeginTransaction();
+                using IDbContextTransaction transaction = dbContext.Database.BeginTransaction();
                 transaction.CreateSavepoint("Migrations");
                 try
                 {
