@@ -1,4 +1,5 @@
 using System.Text.Json;
+using HtmlAgilityPack;
 using VoltProjects.Builder.Core;
 using VoltProjects.Builder.VDocFx;
 using VoltProjects.Shared.Models;
@@ -133,7 +134,39 @@ public class DocFxBuilder : Core.Builder
                 tocPath = model.TocRel.Replace("toc.html", "");
             }
             
-            //TODO: Read HTML from html files
+            string htmlFilePath = Path.Combine(docsBuiltPath, model.Path);
+            HtmlDocument doc = new();
+            doc.LoadHtml(File.ReadAllText(htmlFilePath));
+
+            HtmlNode? articleNode = doc.DocumentNode.SelectSingleNode("//article");
+            if (articleNode == null)
+                throw new NullReferenceException("Could not find article node!");
+
+            //Remove title node, VP does it
+            HtmlNode? firstNode = articleNode.ChildNodes[1];
+            if (firstNode is { Name: "h1" })
+                articleNode.ChildNodes.Remove(firstNode);
+            
+            //Process links, DocFx uses ugly links, we do not
+            HtmlNodeCollection? links = articleNode.SelectNodes("//a/@href");
+            if (links != null)
+            {
+                foreach (HtmlNode htmlNode in links)
+                {
+                    HtmlAttribute? href = htmlNode.Attributes.FirstOrDefault(x => x.Name == "href");
+                    if (href != null )
+                    {
+                        string hrefValue = href.Value;
+                        if(hrefValue.StartsWith("http")) continue;
+
+                        string[] splitLink = hrefValue.Split("#");
+                        href.Value = splitLink.Length == 2 ? $"{splitLink[0][..^5]}/#{splitLink[1]}" : $"{splitLink[0][..^5]}/";
+                    }
+                }
+            }
+            
+
+            string pageContent = articleNode.InnerHtml;
             
             projectPages.Add(new ProjectPage
             {
@@ -146,7 +179,7 @@ public class DocFxBuilder : Core.Builder
                 ProjectToc = projectToc,
                 TocRel = tocPath,
                 Aside = true,
-                Content = model.Conceptual,
+                Content = pageContent
             });
             
             Console.WriteLine(pathRelativity);

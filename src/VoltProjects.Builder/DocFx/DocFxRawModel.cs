@@ -24,6 +24,9 @@ public class DocFxRawModel
     
     [JsonPropertyName("_tocRel")]
     public string? TocRel { get; set; }
+    
+    [JsonPropertyName("_path")]
+    public string Path { get; set; }
         
     public struct DocfxMenuItem
     {
