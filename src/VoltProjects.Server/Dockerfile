@@ -1,5 +1,5 @@
 ﻿# Build Stage
-FROM mcr.microsoft.com/dotnet/sdk:7.0-bookworm-slim AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim AS build
 WORKDIR /src
 
 # Install Node & Yarn
@@ -29,7 +29,7 @@ RUN dotnet restore "VoltProjects.Server.csproj"
 RUN dotnet publish "VoltProjects.Server.csproj" -c Release -o /app/publish /p:UseAppHost=false  --no-restore
 
 # Final Stage
-FROM mcr.microsoft.com/dotnet/aspnet:7.0-alpine AS final
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS final
 WORKDIR /app
 EXPOSE 80
 COPY --from=build /app/publish .

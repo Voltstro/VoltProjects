@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using SixLabors.ImageSharp;
 using VoltProjects.Builder.Services;
 using VoltProjects.Builder.Services.Storage;
 using VoltProjects.Shared;
