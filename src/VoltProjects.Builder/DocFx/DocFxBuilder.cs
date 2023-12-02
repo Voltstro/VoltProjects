@@ -107,8 +107,10 @@ public class DocFxBuilder : Core.Builder
             DocFxRawModel model = JsonSerializer.Deserialize<DocFxRawModel>(File.ReadAllText(modelFilePath));
             
             //Only deal with "Conceptual" right now
-            if(model.Type != "Conceptual")
+            if(model.Type != "Conceptual" && model.Uid == null)
                 continue;
+
+            string? pageTitle = model.Title;
             
             string pathRelativity = Path.GetRelativePath(docsBuiltPath, modelFilePath.Replace(".raw.json", ""));
 
@@ -131,7 +133,14 @@ public class DocFxBuilder : Core.Builder
             {
                 tocPath = tocPath.Replace("toc.html", "toc.raw.json");
                 projectToc = projectTocs.FirstOrDefault(x => x.TocRel == tocPath);
-                tocPath = model.TocRel.Replace("toc.html", "");
+                if (projectToc != null)
+                {
+                    string tocDirectory = model.TocPath.Replace("toc.html", "");
+                    string tocRel = Path.GetRelativePath(pathRelativity, tocDirectory);
+                    tocPath = tocRel == "." ? string.Empty : $"{tocRel}/";
+                }
+                else
+                    tocPath = null;
             }
             
             string htmlFilePath = Path.Combine(docsBuiltPath, model.Path);
@@ -146,6 +155,9 @@ public class DocFxBuilder : Core.Builder
             HtmlNode? firstNode = articleNode.ChildNodes[1];
             if (firstNode is { Name: "h1" })
                 articleNode.ChildNodes.Remove(firstNode);
+
+            if (pageTitle == null)
+                pageTitle = firstNode.InnerText.Replace("\n", "").TrimStart().TrimEnd();
             
             //Process links, DocFx uses ugly links, we do not
             HtmlNodeCollection? links = articleNode.SelectNodes("//a/@href");
@@ -160,7 +172,7 @@ public class DocFxBuilder : Core.Builder
                         if(hrefValue.StartsWith("http")) continue;
 
                         string[] splitLink = hrefValue.Split("#");
-                        href.Value = splitLink.Length == 2 ? $"{splitLink[0][..^5]}/#{splitLink[1]}" : $"{splitLink[0][..^5]}/";
+                        href.Value = splitLink.Length == 2 ? $"../{splitLink[0][..^5]}/#{splitLink[1]}" : $"../{splitLink[0][..^5]}/";
                     }
                 }
             }
@@ -173,7 +185,7 @@ public class DocFxBuilder : Core.Builder
                 Path = pathRelativity,
                 Published = true,
                 PublishedDate = DateTime.UtcNow,
-                Title = model.Title,
+                Title = pageTitle,
                 TitleDisplay = true,
                 WordCount = model.WordCount,
                 ProjectToc = projectToc,

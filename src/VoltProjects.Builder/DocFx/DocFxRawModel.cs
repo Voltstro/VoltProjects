@@ -10,11 +10,14 @@ public class DocFxRawModel
     [JsonPropertyName("conceptual")]
     public string? Conceptual { get; set; }
     
+    [JsonPropertyName("uid")]
+    public string? Uid { get; set; }
+    
     [JsonPropertyName("wordCount")]
     public int WordCount { get; set; }
     
     [JsonPropertyName("title")]
-    public string Title { get; set; }
+    public string? Title { get; set; }
     
     [JsonPropertyName("items")]
     public DocfxMenuItem[] Items { get; set; }
