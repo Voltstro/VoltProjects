@@ -32,7 +32,7 @@ public class ProjectStorageItem
     public DateTime CreationTime { get; set; }
     
     /// <summary>
-    ///     When was this page last updated?
+    ///     When was this storage item last updated?
     /// </summary>
     public DateTime LastUpdateTime { get; set; }
 }

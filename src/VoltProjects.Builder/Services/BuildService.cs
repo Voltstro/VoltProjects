@@ -181,7 +181,6 @@ public sealed class BuildService : BackgroundService
             {
                 ProjectVersionId = projectVersion.Id,
                 Successful = true,
-                Date = DateTime.UtcNow,
                 Message = "Successfully Built Project",
                 GitHash = projectCommitHash,
                 BuilderVer = BuildVer
@@ -199,7 +198,6 @@ public sealed class BuildService : BackgroundService
             {
                 ProjectVersionId = projectVersion.Id,
                 Successful = false,
-                Date = DateTime.UtcNow,
                 Message = $"Failed to build project! Error: {ex.Message}",
                 GitHash = projectCommitHash,
                 BuilderVer = BuildVer

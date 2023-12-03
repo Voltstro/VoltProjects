@@ -97,4 +97,9 @@ public class ProjectPage
     ///     When was this page last updated?
     /// </summary>
     public DateTime LastUpdateTime { get; set; }
+    
+    /// <summary>
+    ///     When was this page created?
+    /// </summary>
+    public DateTime CreationTime { get; set; }
 }

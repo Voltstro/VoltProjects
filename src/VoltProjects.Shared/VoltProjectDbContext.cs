@@ -106,28 +106,79 @@ DO UPDATE SET
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        //Doc Builder
-        modelBuilder.Entity<DocBuilder>()
-            .HasData(new DocBuilder
-        {
-            Id = "vdocfx",
-            Name = "VDocFx",
-            Application = "vdocfx",
-            Arguments = new []{"build", "--output-type PageJson", "--output {0}"},
-            EnvironmentVariables = new []{"DOCS_GITHUB_TOKEN="}
-        });
+        //Default Values
         
-        //Language
-        modelBuilder.Entity<Language>()
-            .Property(p => p.Id).UseIdentityAlwaysColumn();
-        
-        modelBuilder.Entity<Language>()
-            .HasData(new Language
-            {
-                Id = 1,
-                Name = "en"
-            });
+        //Project
+        modelBuilder.Entity<Project>()
+            .Property(p => p.LastUpdateTime)
+            .HasDefaultValueSql("now()");
 
+        modelBuilder.Entity<Project>()
+            .Property(p => p.CreationTime)
+            .HasDefaultValueSql("now()");
+        
+        //Project Version
+        modelBuilder.Entity<ProjectVersion>()
+            .Property(p => p.LastUpdateTime)
+            .HasDefaultValueSql("now()");
+
+        modelBuilder.Entity<ProjectVersion>()
+            .Property(p => p.CreationTime)
+            .HasDefaultValueSql("now()");
+        
+        //Project Menu
+        modelBuilder.Entity<ProjectMenu>()
+            .Property(p => p.LastUpdateTime)
+            .HasDefaultValueSql("now()");
+
+        modelBuilder.Entity<ProjectMenu>()
+            .Property(p => p.CreationTime)
+            .HasDefaultValueSql("now()");
+        
+        //Project Page
+        modelBuilder.Entity<ProjectPage>()
+            .Property(p => p.LastUpdateTime)
+            .HasDefaultValueSql("now()");
+
+        modelBuilder.Entity<ProjectPage>()
+            .Property(p => p.CreationTime)
+            .HasDefaultValueSql("now()");
+        
+        //Project TOC
+        modelBuilder.Entity<ProjectToc>()
+            .Property(p => p.LastUpdateTime)
+            .HasDefaultValueSql("now()");
+
+        modelBuilder.Entity<ProjectToc>()
+            .Property(p => p.CreationTime)
+            .HasDefaultValueSql("now()");
+        
+        //Project Storage Item
+        modelBuilder.Entity<ProjectStorageItem>()
+            .Property(p => p.LastUpdateTime)
+            .HasDefaultValueSql("now()");
+
+        modelBuilder.Entity<ProjectStorageItem>()
+            .Property(p => p.CreationTime)
+            .HasDefaultValueSql("now()");
+        
+        //Project Pre Build
+        modelBuilder.Entity<ProjectPreBuild>()
+            .Property(p => p.LastUpdateTime)
+            .HasDefaultValueSql("now()");
+
+        modelBuilder.Entity<ProjectPreBuild>()
+            .Property(p => p.CreationTime)
+            .HasDefaultValueSql("now()");
+        
+        //Project Build Event
+        modelBuilder.Entity<ProjectBuildEvent>()
+            .Property(p => p.Date)
+            .HasDefaultValueSql("now()");
+        
+        
+        //Unique Keys
+        
         //Project Unique Keys
         modelBuilder.Entity<Project>()
             .Property(p => p.Id).UseIdentityAlwaysColumn();
@@ -197,5 +248,29 @@ DO UPDATE SET
             .HasIndex(p => new { p.ProjectId, p.VersionTag, p.LanguageId, p.IsDefault })
             .HasFilter("is_default = true")
             .IsUnique();
+        
+        //Seed data
+        
+        //Doc Builder
+        modelBuilder.Entity<DocBuilder>()
+            .HasData(new DocBuilder
+            {
+                Id = "vdocfx",
+                Name = "VDocFx",
+                Application = "vdocfx",
+                Arguments = new []{"build", "--output-type PageJson", "--output {0}"},
+                EnvironmentVariables = new []{"DOCS_GITHUB_TOKEN="}
+            });
+        
+        //Language
+        modelBuilder.Entity<Language>()
+            .Property(p => p.Id).UseIdentityAlwaysColumn();
+        
+        modelBuilder.Entity<Language>()
+            .HasData(new Language
+            {
+                Id = 1,
+                Name = "en"
+            });
     }
 }

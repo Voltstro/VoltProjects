@@ -21,6 +21,23 @@ public class ProjectPreBuild
     /// </summary>
     public int Order { get; set; } = 1;
 
+    /// <summary>
+    ///     The command to execute
+    /// </summary>
     public string Command { get; set; } = "dotnet";
+    
+    /// <summary>
+    ///     Optional arguments to include
+    /// </summary>
     public string? Arguments { get; set; } = "build";
+    
+    /// <summary>
+    ///     When was the last time this TOC was updated
+    /// </summary>
+    public DateTime LastUpdateTime { get; set; }
+    
+    /// <summary>
+    ///     When was this TOC created?
+    /// </summary>
+    public DateTime CreationTime { get; set; }
 }

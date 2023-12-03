@@ -58,7 +58,6 @@ internal sealed class VDocFxBuilder : Core.Builder
         //Our final project menu object
         ProjectMenu projectMenu = new ProjectMenu
         {
-            LastUpdateTime = DateTime.UtcNow,
             ProjectVersionId = projectVersion.Id,
             LinkItem = new LinkItem
             {

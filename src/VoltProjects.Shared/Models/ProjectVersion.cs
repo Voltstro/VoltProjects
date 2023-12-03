@@ -59,12 +59,12 @@ public class ProjectVersion
     public bool IsDefault { get; set; } = true;
     
     /// <summary>
-    ///     Pre-build commands that this project version should do
+    ///     When was the last time this project was updated
     /// </summary>
-    public virtual ICollection<ProjectPreBuild> PreBuildCommands { get; set; } = new List<ProjectPreBuild>();
-
+    public DateTime LastUpdateTime { get; set; }
+    
     /// <summary>
-    ///     Project menu items
+    ///     When was this project created?
     /// </summary>
-    public virtual ICollection<ProjectMenu> ProjectsMenus { get; set; } = new List<ProjectMenu>();
+    public DateTime CreationTime { get; set; }
 }

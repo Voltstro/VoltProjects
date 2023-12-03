@@ -54,7 +54,6 @@ public class DocFxBuilder : Core.Builder
             ProjectToc projectToc = new()
             {
                 ProjectVersionId = projectVersion.Id,
-                LastUpdateTime = DateTime.UtcNow,
                 TocRel = pathRelativity,
                 TocItem = new LinkItem
                 {
@@ -92,7 +91,6 @@ public class DocFxBuilder : Core.Builder
 
         ProjectMenu projectMenu = new()
         {
-            LastUpdateTime = DateTime.UtcNow,
             ProjectVersionId = projectVersion.Id,
             LinkItem = new LinkItem
             {

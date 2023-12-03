@@ -250,8 +250,6 @@ public sealed class BuildManager
                 upsertStorageItems[i] = new ProjectStorageItem
                 {
                     ProjectVersionId = projectVersion.Id,
-                    CreationTime = DateTime.UtcNow,
-                    LastUpdateTime = DateTime.UtcNow,
                     Hash = imagesNeededToBeUploaded[i].Hash,
                     Path = imagesNeededToBeUploaded[i].OriginalFilePath
                 };

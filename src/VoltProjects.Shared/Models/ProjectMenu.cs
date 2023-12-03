@@ -29,4 +29,9 @@ public class ProjectMenu
     ///     When was the last time this menu was updated
     /// </summary>
     public DateTime LastUpdateTime { get; set; }
+    
+    /// <summary>
+    ///     When was this menu created?
+    /// </summary>
+    public DateTime CreationTime { get; set; }
 }

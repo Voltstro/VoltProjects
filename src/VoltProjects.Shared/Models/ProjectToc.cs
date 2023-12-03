@@ -37,4 +37,9 @@ public class ProjectToc
     ///     When was the last time this TOC was updated
     /// </summary>
     public DateTime LastUpdateTime { get; set; }
+    
+    /// <summary>
+    ///     When was this TOC created?
+    /// </summary>
+    public DateTime CreationTime { get; set; }
 }
