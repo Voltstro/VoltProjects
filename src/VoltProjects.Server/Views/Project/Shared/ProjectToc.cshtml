@@ -16,16 +16,17 @@
         }
 
         <li class="@(toc.IsActive ? "active" : "")">
-            @if (toc.Items != null)
-            {
-                <i class="toggle">
-                    <svg width="16" height="16" viewBox="0 0 16 16">
-                        <path fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 14l6-6-6-6"></path>
-                    </svg>
-                </i>
-            }
-
-            <a class="@(toc.IsActive ? "active" : "")" href="@toc.Href">@toc.Title</a>
+            <a class="@(toc.IsActive ? "active" : "")" href="@toc.Href">
+                @if (toc.Items != null)
+                {
+                    <i class="toggle">
+                        <svg width="16" height="16" viewBox="0 0 16 16">
+                            <path fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 14l6-6-6-6"></path>
+                        </svg>
+                    </i>
+                }
+                @toc.Title
+            </a>
             @if (toc.Items != null)
             {
                 <ul class="@(toc.IsActive ? "active" : "")">

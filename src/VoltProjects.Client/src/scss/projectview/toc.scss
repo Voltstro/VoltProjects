@@ -87,7 +87,7 @@
     stroke: rgba(255, 255, 255, 1);
   }
 
-  .filtered > .toggle > svg, .active > .toggle > svg {
+  .filtered > a > .toggle > svg, .active > a > .toggle > svg {
     transform: rotate(90deg);
   }
 

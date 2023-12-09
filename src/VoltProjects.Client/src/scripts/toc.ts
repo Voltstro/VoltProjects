@@ -13,24 +13,27 @@ function createClickFunctionsOnElement(element: HTMLElement): void {
 	if(!ulNode)
 		return;
 
-	Array.from(ulNode.childNodes).map((childNode) => {
+	const ulChildNodes = Array.from(ulNode.childNodes);
+	for(const childNode of ulChildNodes) {
 		const childrenArray = Array.from(childNode.childNodes);
-		const iElement = childrenArray.find((x) => x.nodeName === 'I');
-		if(iElement) {
-			iElement.addEventListener('click', () => {
-				if(iElement.parentElement.hasAttribute('class')) {
-					iElement.parentElement.removeAttribute('class');
-				} else {
-					iElement.parentElement.setAttribute('class', 'active');
-				}
-			});
-		}
+
+		//Find A links that have an I element inside of them
+		const aLinkElement = childrenArray.find((x) => x.nodeName === 'A' && Array.from(x.childNodes).find(x => x.nodeName === 'I'));
+		if(!aLinkElement) continue;
+
+		aLinkElement.addEventListener('click', () => {
+			if(aLinkElement.parentElement.hasAttribute('class')) {
+				aLinkElement.parentElement.removeAttribute('class');
+			} else {
+				aLinkElement.parentElement.setAttribute('class', 'active');
+			}
+		});
 
 		const childrenToc = childrenArray.find((x) => x.nodeName === 'UL');
 		if(childrenToc) {
 			createClickFunctionsOnElement(childrenToc.parentElement);
 		}
-	});
+	}
 }
 
 function registerTocEvents(): void {
