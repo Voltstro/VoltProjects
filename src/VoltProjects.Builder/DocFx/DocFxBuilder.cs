@@ -85,7 +85,7 @@ public class DocFxBuilder : Core.Builder
             projectMenuLinks[i] = new LinkItem
             {
                 Title = projectMenuModel.Items[i].Name,
-                Href = href
+                Href = href?.ToLower()
             };
         }
 
@@ -123,6 +123,8 @@ public class DocFxBuilder : Core.Builder
             //Root file becomes '.'
             if (pathRelativity == "/")
                 pathRelativity = ".";
+
+            bool rootPage = pathRelativity == ".";
             
             //Figure out TOC rel
             string? tocPath = model.TocPath;
@@ -158,7 +160,7 @@ public class DocFxBuilder : Core.Builder
                 pageTitle = firstNode.InnerText.Replace("\n", "").TrimStart().TrimEnd();
             
             //Process links, DocFx uses ugly links, we do not
-            HtmlNodeCollection? links = articleNode.SelectNodes("//a/@href");
+            HtmlNodeCollection? links = articleNode.SelectNodes(".//a/@href");
             if (links != null)
             {
                 foreach (HtmlNode htmlNode in links)
@@ -170,25 +172,52 @@ public class DocFxBuilder : Core.Builder
                         if(hrefValue.StartsWith("http")) continue;
 
                         string[] splitLink = hrefValue.Split("#");
-                        href.Value = splitLink.Length == 2 ? $"../{splitLink[0][..^5]}/#{splitLink[1]}" : $"../{splitLink[0][..^5]}/";
+                        if (splitLink.Length == 2)
+                        {
+                            if(splitLink[0] == string.Empty)
+                                continue;
+
+                            href.Value = $"../{splitLink[0][..^5]}/#{splitLink[1]}".ToLower();
+                        }
+                        else
+                        {
+                            href.Value = $"../{splitLink[0][..^5]}/".ToLower();
+                        }
                     }
                 }
             }
             
+            //Fix up image links. Used by image processor later on
+            HtmlNodeCollection? imageLinks = articleNode.SelectNodes(".//img/@src");
+            if (imageLinks != null)
+            {
+                foreach (HtmlNode imageLink in imageLinks)
+                {
+                    HtmlAttribute? srcAttribute = imageLink.Attributes["src"];
+                    
+                    string imageSrc = srcAttribute.Value;
+                    
+                    //Off-Site Image, don't care about it
+                    if(imageSrc.StartsWith("http"))
+                        continue;
+
+                    srcAttribute.Value = $"../{imageSrc}";
+                }
+            }
 
             string pageContent = articleNode.InnerHtml;
             
             projectPages.Add(new ProjectPage
             {
-                Path = pathRelativity,
+                Path = pathRelativity.ToLower(),
                 Published = true,
                 PublishedDate = DateTime.UtcNow,
                 Title = pageTitle,
-                TitleDisplay = true,
+                TitleDisplay = !rootPage,
                 WordCount = model.WordCount,
                 ProjectToc = projectToc,
                 TocRel = tocPath,
-                Aside = true,
+                Aside = !rootPage,
                 Content = pageContent
             });
             
@@ -221,7 +250,7 @@ public class DocFxBuilder : Core.Builder
         
         LinkItem newToc = new()
         {
-            Href = href,
+            Href = href?.ToLower(),
             Title = tocModel.Name,
             Items = childTocItems.Count > 0 ? childTocItems.ToArray() : null
         };
