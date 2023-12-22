@@ -1,6 +1,9 @@
+using System;
 using System.Linq;
+using System.Web;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
 namespace VoltProjects.Server.Shared.Helpers;
 
@@ -54,5 +57,17 @@ public static class MvcHelper
         }
 
         return theme;
+    }
+    
+    public static string Attr(this IHtmlHelper helper, string name, string value, Func<bool>? condition = null)
+    {
+        if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(value))
+        {
+            return string.Empty;
+        }
+
+        var render = condition != null ? condition() : true;
+
+        return render ? $"{name}={HttpUtility.HtmlAttributeEncode(value)}" : string.Empty;
     }
 }

@@ -1,4 +1,5 @@
 @using VoltProjects.Server.Models
+@using VoltProjects.Server.Shared.Helpers
 @model VoltProjects.Server.Models.TocItem
 
 @{
@@ -15,7 +16,7 @@
             return;
         }
 
-        <li class="@(toc.IsActive ? "active" : "")">
+        <li @(Html.Attr("class", "active", () => toc.IsActive))>
             <a class="@(toc.IsActive ? "active" : "")" href="@toc.Href">
                 @if (toc.Items != null)
                 {
@@ -29,7 +30,7 @@
             </a>
             @if (toc.Items != null)
             {
-                <ul class="@(toc.IsActive ? "active" : "")">
+                <ul @(Html.Attr("class", "active", () => toc.IsActive))>
                     @foreach (TocItem item in toc.Items)
                     {
                         RenderToc(item);

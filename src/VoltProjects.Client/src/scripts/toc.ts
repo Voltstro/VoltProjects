@@ -18,8 +18,10 @@ function createClickFunctionsOnElement(element: HTMLElement): void {
 		const childrenArray = Array.from(childNode.childNodes);
 
 		//Find A links that have an I element inside of them
-		const aLinkElement = childrenArray.find((x) => x.nodeName === 'A' && Array.from(x.childNodes).find(x => x.nodeName === 'I'));
+		const aLinkElement = childrenArray.find((x) => x.nodeName === 'A' && Array.from(x.childNodes).find(x => x.nodeName === 'I')) as HTMLAnchorElement;
 		if(!aLinkElement) continue;
+
+		if(aLinkElement.href) continue;
 
 		aLinkElement.addEventListener('click', () => {
 			if(aLinkElement.parentElement.hasAttribute('class')) {
