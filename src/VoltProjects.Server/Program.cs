@@ -1,6 +1,5 @@
 using System;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Rewrite;
@@ -26,7 +25,16 @@ try
     builder.WebHost.ConfigureKestrel(kestrel => kestrel.AddServerHeader = false);
 
     //Setup tracking
-    builder.Services.AddTracking(builder.Configuration, tracerBuilder => tracerBuilder.AddAspNetCoreInstrumentation());
+    builder.Services.AddTracking(builder.Configuration, tracerBuilder => tracerBuilder.AddAspNetCoreInstrumentation(
+        options =>
+        {
+            options.Filter = context =>
+            {
+                //Filter out health requests
+                bool isHealthRequest = context.Request.Path.Value.Contains("healthz");
+                return !isHealthRequest;
+            };
+        }));
 
     //Setup services
     builder.Services.Configure<VoltProjectsConfig>(
