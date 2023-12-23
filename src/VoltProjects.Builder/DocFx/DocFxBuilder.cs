@@ -1,7 +1,6 @@
 using System.Text.Json;
 using HtmlAgilityPack;
 using VoltProjects.Builder.Core;
-using VoltProjects.Builder.VDocFx;
 using VoltProjects.Shared.Models;
 
 namespace VoltProjects.Builder.DocFx;
@@ -9,24 +8,16 @@ namespace VoltProjects.Builder.DocFx;
 [BuilderName(Name = "docfx")]
 public class DocFxBuilder : Core.Builder
 {
+    private readonly Dictionary<string, string> cssClassMappings = new Dictionary<string, string>
+    {
+        ["pull-right"] = "float-end"
+    };
+    
     public override void PrepareBuilder(ref string[]? arguments, string docsPath, string docsBuiltPath)
     {
         string docsConfigPath = Path.Combine(docsPath, "docfx.json");
         if (!File.Exists(docsConfigPath))
             throw new FileNotFoundException($"docfx.json file was not found in {docsPath}!");
-
-        //Format arguments (if provided)
-        if (arguments != null)
-        {
-            string sitePath = Path.Combine(docsPath, "_site");
-
-            /*
-            for (int i = 0; i < arguments.Length; i++)
-            {
-                arguments[i] = string.Format(arguments[i], sitePath);
-            }
-            */
-        }
     }
 
     public override BuildResult BuildProject(ProjectVersion projectVersion, string docsPath, string docsBuiltPath)
@@ -104,7 +95,7 @@ public class DocFxBuilder : Core.Builder
         {
             DocFxRawModel model = JsonSerializer.Deserialize<DocFxRawModel>(File.ReadAllText(modelFilePath));
             
-            //Only deal with "Conceptual" right now
+            //Only deal with "Conceptual" or API pages
             if(model.Type != "Conceptual" && model.Uid == null)
                 continue;
 
@@ -204,7 +195,30 @@ public class DocFxBuilder : Core.Builder
                     srcAttribute.Value = $"../{imageSrc}";
                 }
             }
+            
+            //Fix up tables
+            HtmlNodeCollection? tables = articleNode.SelectNodes(".//table");
+            if (tables != null)
+            {
+                foreach (HtmlNode tableNode in tables)
+                {
+                    if(tableNode.Attributes.FirstOrDefault(x => x.Name == "class") != null)
+                        continue;
 
+                    tableNode.SetAttributeValue("class", "table");
+                }
+            }
+            
+            //Process css classes
+            HtmlNodeCollection? allNodes = articleNode.ChildNodes;
+            if (allNodes != null)
+            {
+                foreach (HtmlNode htmlNode in allNodes)
+                {
+                    ProcessNodesCssClasses(htmlNode);
+                }
+            }
+            
             string pageContent = articleNode.InnerHtml;
             
             projectPages.Add(new ProjectPage
@@ -225,6 +239,30 @@ public class DocFxBuilder : Core.Builder
         }
         
         return new BuildResult(projectMenu, projectTocs.ToArray(), projectPages.ToArray());
+    }
+
+    private void ProcessNodesCssClasses(HtmlNode node)
+    {
+        HtmlAttribute? classAttribute = node.Attributes.FirstOrDefault(x => x.Name == "class");
+        if (classAttribute != null)
+        {
+            string[] classes = classAttribute.Value.Split(" ");
+            for (int i = 0; i < classes.Length; i++)
+            {
+                if (cssClassMappings.ContainsKey(classes[i]))
+                    classes[i] = cssClassMappings[classes[i]];
+            }
+
+            classAttribute.Value = string.Join(" ", classes);
+        }
+
+        if (!node.HasChildNodes)
+            return;
+        
+        foreach (HtmlNode childNode in node.ChildNodes)
+        {
+            ProcessNodesCssClasses(childNode);
+        }
     }
     
     private LinkItem? BuildToc(DocFxRawModel.DocfxMenuItem tocModel)
