@@ -160,7 +160,7 @@ public class DocFxBuilder : Core.Builder
                     if (href != null )
                     {
                         string hrefValue = href.Value;
-                        if(hrefValue.StartsWith("http")) continue;
+                        if(hrefValue.StartsWith("http") || !hrefValue.Contains(".html")) continue;
 
                         string[] splitLink = hrefValue.Split("#");
                         if (splitLink.Length == 2)
