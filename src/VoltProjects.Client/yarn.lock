@@ -506,11 +506,6 @@ cross-spawn@^7.0.2:
     shebang-command "^2.0.0"
     which "^2.0.1"
 
-csstype@^3.1.2:
-  version "3.1.2"
-  resolved "https://registry.yarnpkg.com/csstype/-/csstype-3.1.2.tgz#1d4bf9d572f11c14031f0436e1c10bc1f571f50b"
-  integrity sha512-I7K1Uu0MBPzaFKg4nI5Q7Vs2t+3gWWW648spaF+Rg7pI9ds18Ugn+lvg4SHczUdKlHI5LWBXyqfS8+DufyBsgQ==
-
 debug@^4.1.1, debug@^4.3.2, debug@^4.3.4:
   version "4.3.4"
   resolved "https://registry.yarnpkg.com/debug/-/debug-4.3.4.tgz#1319f6579357f2338d3337d2cdd4914bb5dcc865"
@@ -908,13 +903,6 @@ json-stable-stringify-without-jsonify@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/json-stable-stringify-without-jsonify/-/json-stable-stringify-without-jsonify-1.0.1.tgz#9db7b59496ad3f3cfef30a75142d2d930ad72651"
   integrity sha512-Bdboy+l7tA3OGW6FjyFHWkP5LuByj1Tk33Ljyq0axyzdk9//JSi2u3fP1QSmd1KNwq6VOKYGlAu87CisVir6Pw==
-
-jsx-dom@^8.0.5:
-  version "8.1.1"
-  resolved "https://registry.yarnpkg.com/jsx-dom/-/jsx-dom-8.1.1.tgz#543c4ea0046e16f7e8903e62438621e5a37ad2c3"
-  integrity sha512-E8KNiE30jHJlejkEsiUzhmHxjOeJU2q427Q8A6zogJHxJznBK+x/R/43R7oJcYHgrLbzIZLc+zV1AfH2lmLctw==
-  dependencies:
-    csstype "^3.1.2"
 
 keyv@^4.5.3:
   version "4.5.4"
