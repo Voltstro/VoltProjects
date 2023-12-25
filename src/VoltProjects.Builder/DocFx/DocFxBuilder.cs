@@ -162,17 +162,21 @@ public class DocFxBuilder : Core.Builder
                         string hrefValue = href.Value;
                         if(hrefValue.StartsWith("http") || !hrefValue.Contains(".html")) continue;
 
+                        string linkStart = "../";
+                        if (htmlFilePath.Contains("index.html"))
+                            linkStart = string.Empty;
+
                         string[] splitLink = hrefValue.Split("#");
                         if (splitLink.Length == 2)
                         {
                             if(splitLink[0] == string.Empty)
                                 continue;
 
-                            href.Value = $"../{splitLink[0][..^5]}/#{splitLink[1]}".ToLower();
+                            href.Value = $"{linkStart}{splitLink[0][..^5]}/#{splitLink[1]}".ToLower();
                         }
                         else
                         {
-                            href.Value = $"../{splitLink[0][..^5]}/".ToLower();
+                            href.Value = $"{linkStart}{splitLink[0][..^5]}/".ToLower();
                         }
                     }
                 }
