@@ -157,20 +157,12 @@ public sealed class BuildManager
             }
             
             //Parse Images
-            //TODO: Perhaps optimize this xpath to only include elements with src attribute
-            HtmlNodeCollection? images = doc.DocumentNode.SelectNodes("//img");
+            HtmlNodeCollection? images = doc.DocumentNode.SelectNodes("//img/@src");
             if (images != null)
             {
                 foreach (HtmlNode imageNode in images)
                 {
-                    HtmlAttribute? srcAttribute = imageNode.Attributes["src"];
-                    
-                    //Src attribute is invalid, weird
-                    if (srcAttribute == null)
-                    {
-                        logger.LogWarning("Image found on page {PageTitle} doesn't have a src attribute!", page.Title);
-                        continue;
-                    }
+                    HtmlAttribute srcAttribute = imageNode.Attributes["src"];
                     
                     //Get image file
                     string imageSrc = srcAttribute.Value;
@@ -303,18 +295,33 @@ public sealed class BuildManager
     {
         string fileExtension = Path.GetExtension(imagePathProjectRel);
         
+        //Path in storage service that the file should live at
+        string path = Path.Combine(projectVersion.Project.Name, projectVersion.VersionTag,
+            $"{imagePathProjectRel[..^fileExtension.Length]}.webp");
+        
         //We have the image file, convert to webp
         Image image = await Image.LoadAsync(imageStream, cancellationToken);
+
+        //If image is already a webp, then don't bother converting
+        if (image.Metadata.DecodedImageFormat.DefaultMimeType == "image/webp")
+        {
+            image.Dispose();
+            imageStream.Position = 0;
+            
+            return new StorageItem
+            {
+                FileName = path,
+                ItemStream = imageStream,
+                Hash = imageHash,
+                OriginalFilePath = imagePathProjectRel
+            };
+        }
 
         MemoryStream imageMemoryStream = new();
         await image.SaveAsWebpAsync(imageMemoryStream, cancellationToken);
         image.Dispose();
                         
         imageMemoryStream.Position = 0;
-        
-        //Path in storage service that the file should live at
-        string path = Path.Combine(projectVersion.Project.Name, projectVersion.VersionTag,
-            $"{imagePathProjectRel[..^fileExtension.Length]}.webp");
 
         return new StorageItem
         {

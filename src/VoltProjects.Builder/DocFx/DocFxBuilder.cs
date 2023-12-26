@@ -238,8 +238,6 @@ public class DocFxBuilder : Core.Builder
                 Aside = !rootPage,
                 Content = pageContent
             });
-            
-            Console.WriteLine(pathRelativity);
         }
         
         return new BuildResult(projectMenu, projectTocs.ToArray(), projectPages.ToArray());
