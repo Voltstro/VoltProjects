@@ -3,7 +3,7 @@ using HtmlAgilityPack;
 using VoltProjects.Builder.Core;
 using VoltProjects.Shared.Models;
 
-namespace VoltProjects.Builder.DocFx;
+namespace VoltProjects.Builder.Builders.DocFx;
 
 [BuilderName(Name = "docfx")]
 public class DocFxBuilder : Core.Builder

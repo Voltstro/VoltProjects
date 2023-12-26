@@ -1,10 +1,9 @@
-using System.Diagnostics;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using VoltProjects.Builder.Core;
 using VoltProjects.Shared.Models;
 
-namespace VoltProjects.Builder.VDocFx;
+namespace VoltProjects.Builder.Builders.VDocFx;
 
 /// <summary>
 ///     <see cref="Builder"/> for VDocFx

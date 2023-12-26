@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace VoltProjects.Builder.DocFx;
+namespace VoltProjects.Builder.Builders.DocFx;
 
 public class DocFxRawModel
 {

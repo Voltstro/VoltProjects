@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace VoltProjects.Builder.VDocFx;
+namespace VoltProjects.Builder.Builders.VDocFx;
 
 public struct VDocfxMenuJson
 {
