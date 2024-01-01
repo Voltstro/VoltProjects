@@ -83,6 +83,11 @@ public class ProjectPage
     public bool Aside { get; set; }
     
     /// <summary>
+    ///     Display the metabar on this page?
+    /// </summary>
+    public bool Metabar { get; set; }
+    
+    /// <summary>
     ///     Page's description
     /// </summary>
     public string Description { get; set; }
