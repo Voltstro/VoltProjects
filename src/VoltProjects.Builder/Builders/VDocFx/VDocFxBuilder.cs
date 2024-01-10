@@ -146,6 +146,7 @@ internal sealed class VDocFxBuilder : Core.Builder
                 TocRel = tocRel,
                 Aside = useAside,
                 Content = pageModel.Content,
+                Metabar = false
             };
         }
 

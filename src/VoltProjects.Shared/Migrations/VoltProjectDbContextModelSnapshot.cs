@@ -273,6 +273,10 @@ namespace VoltProjects.Shared.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("metabar");
 
+                    b.Property<string>("PageHash")
+                        .HasColumnType("text")
+                        .HasColumnName("page_hash");
+
                     b.Property<int?>("ParentPageId")
                         .HasColumnType("integer")
                         .HasColumnName("parent_page_id");

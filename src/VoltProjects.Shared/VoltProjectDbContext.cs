@@ -72,7 +72,7 @@ public sealed class VoltProjectDbContext : DbContext
     /// <param name="projectVersion"></param>
     public async Task UpsertProjectPages(ProjectPage[] pages, ProjectVersion projectVersion)
     {
-        (object?[] objectValues, string[] objectPlaceholders) = DbContextExtensions.GenerateParams(pages, x => new { x.PublishedDate, x.Title, x.TitleDisplay, x.GitUrl, x.Aside, x.WordCount, x.ProjectTocId, x.TocRel, x.Path, x.Description, x.Content }, true, 1);
+        (object?[] objectValues, string[] objectPlaceholders) = DbContextExtensions.GenerateParams(pages, x => new { x.PublishedDate, x.Title, x.TitleDisplay, x.GitUrl, x.Aside, x.Metabar, x.WordCount, x.ProjectTocId, x.TocRel, x.Path, x.Description, x.Content, x.PageHash }, true, 1);
         objectValues[0] = projectVersion.Id;
         
         string paramsPlaceholder = string.Join(",", objectPlaceholders);

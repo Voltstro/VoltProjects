@@ -21,21 +21,7 @@
         {
             <h1>@Model.ProjectPage.Title</h1>
             
-            <ul class="metabar">
-                <li>
-                    <time datetime="@Model.ProjectPage.PublishedDate.ToString("yyyy-MM-dd")">@Model.ProjectPage.PublishedDate.ToString("yyyy-MM-dd")</time>
-                </li>
-                <li>
-                    @if (Model.ProjectPage.WordCount > 400)
-                    {
-                        <span>@((int)Math.Round(Model.ProjectPage.WordCount.Value / 200f, 0)) minutes to read</span>
-                    }
-                    else
-                    {
-                        <span>2 minutes to read</span>
-                    }
-                </li>
-            </ul>
+            <partial name="Shared/ProjectMetabar" model="Model.ProjectPage"/>
         }
         <!-- Project Page Content -->
         @Html.Raw(Model.ProjectPage.Content)

@@ -1,5 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace VoltProjects.Shared.Models;
 
@@ -99,6 +101,11 @@ public class ProjectPage
     public string Content { get; set; }
     
     /// <summary>
+    ///     This page's hash
+    /// </summary>
+    public string? PageHash { get; set; }
+    
+    /// <summary>
     ///     When was this page last updated?
     /// </summary>
     public DateTime LastUpdateTime { get; set; }
@@ -107,4 +114,43 @@ public class ProjectPage
     ///     When was this page created?
     /// </summary>
     public DateTime CreationTime { get; set; }
+
+    /// <summary>
+    ///     Calculate a sha256 hash of this project page
+    /// </summary>
+    /// <returns></returns>
+    public string CalculateHash()
+    {
+        IncrementalHash hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+        hash.AppendData(Encoding.UTF8.GetBytes(Path));
+        hash.AppendData(Encoding.UTF8.GetBytes(Title));
+        
+        if(TocRel != null)
+            hash.AppendData(Encoding.UTF8.GetBytes(TocRel));
+        if(GitUrl != null)
+            hash.AppendData(Encoding.UTF8.GetBytes(GitUrl));
+        
+        hash.AppendData(Encoding.UTF8.GetBytes(Description));
+        hash.AppendData(Encoding.UTF8.GetBytes(Content));
+        
+        //Ints
+        if(ParentPageId != null)
+            hash.AppendData(BitConverter.GetBytes(ParentPageId.Value));
+        if(WordCount != null)
+            hash.AppendData(BitConverter.GetBytes(WordCount.Value));
+        if(ProjectTocId != null)
+            hash.AppendData(BitConverter.GetBytes(ProjectTocId.Value));
+        
+        //Booleans
+        hash.AppendData(new[]
+            {
+                Published ? (byte)1 : (byte)0,
+                Aside ? (byte)1 : (byte)0,
+                Metabar ? (byte)1 : (byte)0,
+            }
+        );
+
+        string hashBuild = string.Join("", hash.GetHashAndReset());
+        return hashBuild;
+    }
 }

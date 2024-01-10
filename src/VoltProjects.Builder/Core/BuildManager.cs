@@ -203,6 +203,8 @@ public sealed class BuildManager
                 page.ProjectTocId = toc.Id;
                 page.ProjectToc = null;
             }
+
+            page.PageHash = page.CalculateHash();
         });
         
         //Process images

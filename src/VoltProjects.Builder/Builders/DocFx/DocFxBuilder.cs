@@ -96,7 +96,8 @@ public class DocFxBuilder : Core.Builder
             DocFxRawModel model = JsonSerializer.Deserialize<DocFxRawModel>(File.ReadAllText(modelFilePath));
             
             //Only deal with "Conceptual" or API pages
-            if(model.Type != "Conceptual" && model.Uid == null)
+            bool isApiPage = model.Uid != null;
+            if(model.Type != "Conceptual" && !isApiPage)
                 continue;
 
             string? pageTitle = model.Title;
@@ -236,7 +237,8 @@ public class DocFxBuilder : Core.Builder
                 ProjectToc = projectToc,
                 TocRel = tocPath,
                 Aside = !rootPage,
-                Content = pageContent
+                Content = pageContent,
+                Metabar = !isApiPage && !rootPage
             });
         }
         

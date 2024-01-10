@@ -1,0 +1,20 @@
+@model VoltProjects.Shared.Models.ProjectPage
+
+@if (Model.Metabar)
+{
+    <ul class="metabar">
+        <li>
+            <time datetime="@Model.PublishedDate.ToString("yyyy-MM-dd")">@Model.PublishedDate.ToString("yyyy-MM-dd")</time>
+        </li>
+        <li>
+            @if (Model.WordCount > 400)
+            {
+                <span>@((int)Math.Round(Model.WordCount.Value / 200f, 0)) minutes to read</span>
+            }
+            else
+            {
+                <span>2 minutes to read</span>
+            }
+        </li>
+    </ul>
+}

@@ -13,8 +13,8 @@ using VoltProjects.Shared.Models;
 namespace VoltProjects.Shared.Migrations
 {
     [DbContext(typeof(VoltProjectDbContext))]
-    [Migration("20231227123631_Metabar")]
-    partial class Metabar
+    [Migration("20240106060909_MetabarAndUpsertImprovements")]
+    partial class MetabarAndUpsertImprovements
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -275,6 +275,10 @@ namespace VoltProjects.Shared.Migrations
                     b.Property<bool>("Metabar")
                         .HasColumnType("boolean")
                         .HasColumnName("metabar");
+
+                    b.Property<string>("PageHash")
+                        .HasColumnType("text")
+                        .HasColumnName("page_hash");
 
                     b.Property<int?>("ParentPageId")
                         .HasColumnType("integer")
