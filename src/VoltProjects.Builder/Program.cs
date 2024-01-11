@@ -18,6 +18,8 @@ Logger logger = builder.Services.SetupLogger(builder.Configuration);
 
 try
 {
+    builder.Services.AddTracking(builder.Configuration);
+    
     //Setup Config
     builder.Services.Configure<VoltProjectsBuilderConfig>(builder.Configuration.GetSection("Config"));
 
