@@ -30,6 +30,9 @@ public class DocFxRawModel
     
     [JsonPropertyName("_path")]
     public string Path { get; set; }
+    
+    [JsonPropertyName("documentation")]
+    public DocFxObjectSource? Documentation { get; set; }
         
     public struct DocfxMenuItem
     {
@@ -41,5 +44,29 @@ public class DocFxRawModel
         
         [JsonPropertyName("items")]
         public DocfxMenuItem[] Items { get; init; }
+    }
+    
+    public struct DocFxObjectSource
+    {
+        [JsonPropertyName("remote")]
+        public DocFxGitSource Remote { get; set; }
+        
+        [JsonPropertyName("startLine")]
+        public int StartLine { get; set; }
+        
+        [JsonPropertyName("endLine")]
+        public int EndLine { get; set; }
+    }
+    
+    public struct DocFxGitSource
+    {
+        [JsonPropertyName("branch")]
+        public string Branch { get; init; }
+        
+        [JsonPropertyName("repo")]
+        public string Repo { get; init; }
+        
+        [JsonPropertyName("path")]
+        public string Path { get; init; }
     }
 }

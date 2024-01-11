@@ -225,6 +225,13 @@ public class DocFxBuilder : Core.Builder
             }
             
             string pageContent = articleNode.InnerHtml;
+
+            string? gitPath = null;
+            if (model.Documentation.HasValue)
+            {
+                DocFxRawModel.DocFxObjectSource docModel = model.Documentation.Value;
+                gitPath = $"{docModel.Remote.Repo[..^4]}/blob/{docModel.Remote.Branch}/{docModel.Remote.Path}";
+            }
             
             projectPages.Add(new ProjectPage
             {
@@ -238,7 +245,8 @@ public class DocFxBuilder : Core.Builder
                 TocRel = tocPath,
                 Aside = !rootPage,
                 Content = pageContent,
-                Metabar = !isApiPage && !rootPage
+                Metabar = !isApiPage && !rootPage,
+                GitUrl = gitPath
             });
         }
         
