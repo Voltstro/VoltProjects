@@ -4,6 +4,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - Unreleased
+
+### Added
+
+- DocFx Builder
+- Metabar
+- Edit this page button (Opens markdown's file in Git)
+- Healthz requests are filtered from tracing
+- Added Tracing in Builder
+
+### Changed
+
+- Upgraded Builder & Server to .NET 8
+- Updated deps
+- DB is now responsible for LastUpdateTime in tables
+  - Updates rows via a trigger
+- DB is now responsible for CreationTime in tables
+- Project Pages will not be updated if related content has not been updated
+- Client no longer uses jsx-dom (Elements are created by just using normal JS methods)
+- Images that are already WebP will not get re-encoded when uploading to storage
+
+### Fixed
+
+- Fix TOC toggle and ITA left border always being white (regardless of theme)
+
 ## [2.0.2] - 2023-11-11
 
 ### Changed
