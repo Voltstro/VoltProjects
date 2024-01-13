@@ -84,7 +84,7 @@
   }
 
   .toggle > svg {
-    stroke: rgba(255, 255, 255, 1);
+    stroke: var(--bs-body-color);
   }
 
   .filtered > a > .toggle > svg, .active > a > .toggle > svg {

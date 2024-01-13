@@ -72,17 +72,6 @@
     }
 }
 
-// Edit this Page Button 
-.edit-this-page {
-    transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out;
-    color: var(--bs-nav-link-color);
-    padding-bottom: 1em;
-  
-    @media print {
-      display: none;
-    }
-}
-
 // Metabar
 .metabar {
     color: #999;
