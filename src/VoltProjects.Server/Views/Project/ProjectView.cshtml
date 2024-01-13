@@ -17,23 +17,7 @@
     }
     
     <article>
-        @if (Model.ProjectPage.TitleDisplay)
-        {
-            <div class="d-inline-flex w-100">
-                 <h1 class="me-auto">@Model.ProjectPage.Title</h1>
-                 <div class="d-flex pt-1">
-                    @if (Model.ProjectPage.GitUrl != null)
-                    {
-                        <a class="btn btn-outline btn-sm d-flex" href="@Model.ProjectPage.GitUrl" style="height: 35px" title="Edit this Document">
-                            <i class="bi bi-pencil-fill" style="padding-top: 3px"></i>
-                        </a>
-                    }
-                    
-                 </div>
-            </div>
-            
-            <partial name="Shared/ProjectMetabar" model="Model.ProjectPage"/>
-        }
+        <partial name="Shared/ProjectHeader" model="Model.ProjectHeaderModel"/>
         <!-- Project Page Content -->
         @Html.Raw(Model.ProjectPage.Content)
     </article>

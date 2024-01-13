@@ -20,6 +20,11 @@ public sealed class ProjectViewModel
     public ProjectNavModel ProjectNavModel { get; init; }
     
     /// <summary>
+    ///    Model for the project header
+    /// </summary>
+    public ProjectHeaderModel ProjectHeaderModel { get; init; }
+    
+    /// <summary>
     ///     Project's TOC
     /// </summary>
     public TocItem? Toc { get; init; }

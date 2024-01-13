@@ -1,0 +1,42 @@
+@model VoltProjects.Server.Models.View.ProjectHeaderModel
+
+@if (Model.ProjectPage.TitleDisplay)
+{
+    <!-- Project Page Header -->
+    <div class="d-inline-flex w-100">
+        <h1 class="me-auto">@Model.ProjectPage.Title</h1>
+        <div class="d-flex pt-1 d-print-none">
+            @if (Model.ProjectPage.GitUrl != null)
+            {
+                <a class="btn btn-outline btn-sm d-flex me-1" href="@Model.ProjectPage.GitUrl" style="height: 35px" title="Edit this Document">
+                    <i class="bi bi-pencil-fill" style="padding-top: 3px"></i>
+                </a>
+            }
+                    
+            <div class="dropdown d-flex">
+                <button class="btn btn-outline btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="height: 35px">
+                    <i class="bi bi-three-dots-vertical"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><button class="dropdown-item bi bi-printer-fill" onclick="window.print()"> Print</button></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a 
+                            class="dropdown-item bi bi-twitter"
+                            href="https://twitter.com/intent/tweet?text=@(Html.UrlEncoder.Encode($"Check out this!"))&url=@(Html.UrlEncoder.Encode(Model.PageFullUrl.ToString()))"
+                            target="_blank" rel="noopener noreferrer"
+                            > Twitter</a>
+                    </li>
+                    <li>
+                        <a 
+                            class="dropdown-item bi bi-envelope-fill"
+                            href="mailto:?subject=@(Html.UrlEncoder.Encode($"{Model.ProjectPage.Title} - {Model.ProjectPage.ProjectVersion.Project.Name} | VoltProjects"))&body=@(Html.UrlEncoder.Encode($"Check out this! {Model.PageFullUrl.ToString()}"))"> Email</a>
+                    </li>
+                </ul>
+            </div>
+                    
+        </div>
+    </div>
+            
+    <partial name="Shared/ProjectMetabar" model="Model.ProjectPage"/>
+}

@@ -9,9 +9,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using VoltProjects.Server.Models;
 using VoltProjects.Server.Models.View;
 using VoltProjects.Server.Services;
+using VoltProjects.Server.Shared;
 using VoltProjects.Shared;
 using VoltProjects.Shared.Models;
 
@@ -24,17 +26,21 @@ public class ProjectController : Controller
 {
     private readonly VoltProjectDbContext dbContext;
     private readonly ProjectMenuService projectMenuService;
+    private readonly VoltProjectsConfig vpConfig;
+    
     private readonly IMemoryCache memoryCache;
     private readonly ILogger<ProjectController> logger;
 
     public ProjectController(
         VoltProjectDbContext dbContext,
         ProjectMenuService projectMenuService,
+        IOptions<VoltProjectsConfig> vpConfig,
         IMemoryCache memoryCache,
         ILogger<ProjectController> logger)
     {
         this.dbContext = dbContext;
         this.projectMenuService = projectMenuService;
+        this.vpConfig = vpConfig.Value;
         this.memoryCache = memoryCache;
         this.logger = logger;
     }
@@ -106,11 +112,19 @@ public class ProjectController : Controller
         if (projectPage.ProjectTocId != null)
             tocItem = await HandleProjectToc(projectPage, requestPath, cancellationToken);
 
+        Uri baseUri = new(vpConfig.SiteUrl);
+        Uri fullUrl = new(baseUri, requestPath);
+
         return View("ProjectView", new ProjectViewModel
         {
             BasePath = baseProjectPath,
             ProjectPage = projectPage,
             ProjectNavModel = navModel,
+            ProjectHeaderModel = new ProjectHeaderModel
+            {
+                ProjectPage = projectPage,
+                PageFullUrl = fullUrl
+            },
             Toc = tocItem
         });
     }
