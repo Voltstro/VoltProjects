@@ -80,24 +80,20 @@ public sealed class VoltProjectDbContext : DbContext
         return await ProjectPages
             .FromSqlRaw($"SELECT * FROM public.upsert_project_pages(@p0, ARRAY[{paramsPlaceholder}]::upsertedpage[]);",
                 objectValues).AsNoTracking().ToArrayAsync();
-
-        //await Database.ExecuteSqlRawAsync(
-        //    $"SELECT public.upsert_project_pages(@p0, ARRAY[{paramsPlaceholder}]::upsertedpage[]);", objectValues);
     }
 
     public async Task<ProjectStorageItem[]> UpsertProjectStorageAssets(ProjectStorageItem[] storageItems)
     {
-        (object?[] objectValues, string[] objectPlaceholders)  = DbContextExtensions.GenerateParams(storageItems, x => new { x.ProjectVersionId, x.Path, x.Hash, x.CreationTime, x.LastUpdateTime }, false);
+        (object?[] objectValues, string[] objectPlaceholders)  = DbContextExtensions.GenerateParams(storageItems, x => new { x.ProjectVersionId, x.Path, x.Hash }, false);
         string paramsPlaceholder = string.Join(",", objectPlaceholders);
 
         return await ProjectStorageItems.FromSqlRaw(@$"
 INSERT INTO public.project_storage_item 
-(project_version_id, path, hash, creation_time, last_update_time)
+(project_version_id, path, hash)
 VALUES {paramsPlaceholder}
 ON CONFLICT (project_version_id, path)
 DO UPDATE SET 
-	hash = EXCLUDED.hash,
-	last_update_time = EXCLUDED.last_update_time
+	hash = EXCLUDED.hash
 RETURNING *;
 ", objectValues).AsNoTracking().ToArrayAsync();
         

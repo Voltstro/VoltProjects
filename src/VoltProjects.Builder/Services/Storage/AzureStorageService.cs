@@ -44,9 +44,11 @@ public sealed class AzureStorageService : IStorageService
         return Path.Combine(config.PublicUrl, fileName);
     }
 
-    public async Task UploadBulkFileAsync(StorageItem[] filesToUpload, string contentType, CancellationToken cancellationToken = default)
+    public async Task UploadBulkFileAsync(StorageItem[] filesToUpload, CancellationToken cancellationToken = default)
     {
-        BlobHttpHeaders blobHttpHeader = new() { ContentType = contentType };
+        IEnumerable<GroupedStorageItem> groupedStorageItems = filesToUpload.GroupBy(x => x.ContentType, item => item,
+            (s, items) => new GroupedStorageItem(s, items.ToArray()));
+        BlobHttpHeaders blobHttpHeader = new();
         BlobUploadOptions options = new BlobUploadOptions
         {
             HttpHeaders = blobHttpHeader,
@@ -60,15 +62,21 @@ public sealed class AzureStorageService : IStorageService
                 MaximumTransferSize = 50 * 1024 * 1024
             }
         };
-        
-        Queue<Task<Response<BlobContentInfo>>> tasks = new();
 
-        foreach (StorageItem storageItem in filesToUpload)
+        foreach (GroupedStorageItem groupedStorageItem in groupedStorageItems)
         {
-            BlobClient newBlob = storageClient.GetBlobClient(storageItem.FileName);
-            tasks.Enqueue(newBlob.UploadAsync(storageItem.ItemStream, options, cancellationToken));
-        }
+            Queue<Task<Response<BlobContentInfo>>> tasks = new();
 
-        await Task.WhenAll(tasks);
+            blobHttpHeader.ContentType = groupedStorageItem.ContentType;
+            foreach (StorageItem storageItem in groupedStorageItem.Items)
+            {
+                BlobClient newBlob = storageClient.GetBlobClient(storageItem.FileName);
+                tasks.Enqueue(newBlob.UploadAsync(storageItem.ItemStream, options, cancellationToken));
+            }
+
+            await Task.WhenAll(tasks);
+        }
     }
+    
+    private record GroupedStorageItem(string ContentType, StorageItem[] Items);
 }

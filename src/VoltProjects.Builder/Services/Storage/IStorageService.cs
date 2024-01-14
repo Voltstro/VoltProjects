@@ -18,6 +18,5 @@ public interface IStorageService
     public Task<string> UploadFileAsync(Stream fileStream, string fileName, string contentType,
         CancellationToken cancellationToken = default);
 
-    public Task UploadBulkFileAsync(StorageItem[] filesToUpload, string contentType,
-        CancellationToken cancellationToken = default);
+    public Task UploadBulkFileAsync(StorageItem[] filesToUpload, CancellationToken cancellationToken = default);
 }

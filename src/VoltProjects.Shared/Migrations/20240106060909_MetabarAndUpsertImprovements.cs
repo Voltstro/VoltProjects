@@ -49,7 +49,7 @@ CREATE TYPE public.upsertedpage AS (
             migrationBuilder.Sql(@"
 DROP FUNCTION upsert_project_pages;
 CREATE OR REPLACE FUNCTION public.upsert_project_pages(version_id integer, pages upsertedpage[])
- RETURNS void
+ RETURNS SETOF project_page
  LANGUAGE plpgsql
 AS $function$
 BEGIN
@@ -100,7 +100,7 @@ BEGIN
 		project_version_id = version_id
 	AND ""path"" NOT IN (SELECT path FROM temp_pages WHERE PATH IS NOT NULL);
 	
-	RETURN;	
+	RETURN query SELECT * FROM public.project_page AS all_pages WHERE all_pages.project_version_id = version_id;	
 END;
 $function$
 ;

@@ -225,8 +225,7 @@ public sealed class BuildManager
         }
         
         //Upload storage items
-        //TODO: Make storage system be able to upload multiple content types
-        await storageService.UploadBulkFileAsync(storageItemsToUpload.ToArray(), "image/webp", cancellationToken);
+        await storageService.UploadBulkFileAsync(storageItemsToUpload.ToArray(), cancellationToken);
 
         //Close streams and convert StorageItems into ProjectStorageItems
         ProjectStorageItem[] storageItems = new ProjectStorageItem[storageItemsToUpload.Count];
