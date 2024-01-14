@@ -46,6 +46,10 @@ public sealed class VoltProjectDbContext : DbContext
 
     public DbSet<ProjectPreBuild> PreBuildCommands { get; set; }
     
+    public DbSet<ProjectExternalItem> ProjectExternalItems { get; set; }
+    
+    public DbSet<ProjectExternalItemStorageItem> ProjectExternalItemStorageItems { get; set; }
+    
     /// <summary>
     ///     Upserts <see cref="ProjectToc"/>s
     /// </summary>
@@ -108,6 +112,19 @@ RETURNING *;
         await Database.ExecuteSqlRawAsync($@"
 INSERT INTO public.project_page_storage_item
 (page_id, storage_item_id)
+VALUES {paramsPlaceholder}
+ON CONFLICT DO NOTHING;
+", objectValues);
+    }
+    
+    public async Task UpsertProjectExternalItemStorageItemItems(ProjectExternalItemStorageItem[] pageStorageItems)
+    {
+        (object?[] objectValues, string[] objectPlaceholders)  = DbContextExtensions.GenerateParams(pageStorageItems, x => new { x.ProjectExternalItemId, x.StorageItemId }, false);
+        string paramsPlaceholder = string.Join(",", objectPlaceholders);
+        
+        await Database.ExecuteSqlRawAsync($@"
+INSERT INTO public.project_external_item_storage_item
+(project_external_item_id, storage_item_id)
 VALUES {paramsPlaceholder}
 ON CONFLICT DO NOTHING;
 ", objectValues);
@@ -192,6 +209,15 @@ ON CONFLICT DO NOTHING;
             .Property(p => p.Date)
             .HasDefaultValueSql("now()");
         
+        //External Item
+        modelBuilder.Entity<ProjectExternalItem>()
+            .Property(p => p.CreationTime)
+            .HasDefaultValueSql("now()");
+
+        modelBuilder.Entity<ProjectExternalItem>()
+            .Property(p => p.LastUpdateTime)
+            .HasDefaultValueSql("now()");
+        
         
         //Unique Keys
         
@@ -263,6 +289,16 @@ ON CONFLICT DO NOTHING;
         modelBuilder.Entity<ProjectVersion>()
             .HasIndex(p => new { p.ProjectId, p.VersionTag, p.LanguageId, p.IsDefault })
             .HasFilter("is_default = true")
+            .IsUnique();
+        
+        //External Items
+        modelBuilder.Entity<ProjectExternalItem>()
+            .HasIndex(p => new { p.ProjectVersionId, p.Path })
+            .IsUnique();
+        
+        //External Item Storage Items
+        modelBuilder.Entity<ProjectExternalItemStorageItem>()
+            .HasIndex(p => new { p.ProjectExternalItemId, p.StorageItemId })
             .IsUnique();
         
         //Seed data

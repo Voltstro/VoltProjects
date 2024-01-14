@@ -22,7 +22,7 @@ public class BuildProjectImage
         ProjectPage = page;
         
         FileStream = File.OpenRead(fullImagePathInProject);
-        Hash = GetImageHash();
+        Hash = Helper.GetFileHash(FileStream);
         
         Uri baseImagePath = new(config.StorageConfig.PublicUrl);
         ImagePath = Path.Combine(page.ProjectVersion.Project.Name, page.ProjectVersion.VersionTag,
@@ -67,15 +67,4 @@ public class BuildProjectImage
     ///     Created <see cref="StorageItem"/> for this image
     /// </summary>
     public StorageItem? StorageItem { get; set; }
-
-    private string GetImageHash()
-    {
-        using MD5 md5 = MD5.Create();
-        byte[] hash = md5.ComputeHash(FileStream);
-        
-        //Reset position
-        FileStream.Position = 0;
-        
-        return Convert.ToBase64String(hash);
-    }
 }
