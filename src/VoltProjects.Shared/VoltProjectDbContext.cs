@@ -70,30 +70,50 @@ public sealed class VoltProjectDbContext : DbContext
     /// </summary>
     /// <param name="pages"></param>
     /// <param name="projectVersion"></param>
-    public async Task UpsertProjectPages(ProjectPage[] pages, ProjectVersion projectVersion)
+    public async Task<ProjectPage[]> UpsertProjectPages(ProjectPage[] pages, ProjectVersion projectVersion)
     {
         (object?[] objectValues, string[] objectPlaceholders) = DbContextExtensions.GenerateParams(pages, x => new { x.PublishedDate, x.Title, x.TitleDisplay, x.GitUrl, x.Aside, x.Metabar, x.WordCount, x.ProjectTocId, x.TocRel, x.Path, x.Description, x.Content, x.PageHash }, true, 1);
         objectValues[0] = projectVersion.Id;
         
         string paramsPlaceholder = string.Join(",", objectPlaceholders);
 
-        await Database.ExecuteSqlRawAsync(
-            $"SELECT public.upsert_project_pages(@p0, ARRAY[{paramsPlaceholder}]::upsertedpage[]);", objectValues);
+        return await ProjectPages
+            .FromSqlRaw($"SELECT * FROM public.upsert_project_pages(@p0, ARRAY[{paramsPlaceholder}]::upsertedpage[]);",
+                objectValues).AsNoTracking().ToArrayAsync();
+
+        //await Database.ExecuteSqlRawAsync(
+        //    $"SELECT public.upsert_project_pages(@p0, ARRAY[{paramsPlaceholder}]::upsertedpage[]);", objectValues);
     }
 
-    public async Task UpsertProjectStorageAssets(ProjectStorageItem[] storageItems)
+    public async Task<ProjectStorageItem[]> UpsertProjectStorageAssets(ProjectStorageItem[] storageItems)
     {
         (object?[] objectValues, string[] objectPlaceholders)  = DbContextExtensions.GenerateParams(storageItems, x => new { x.ProjectVersionId, x.Path, x.Hash, x.CreationTime, x.LastUpdateTime }, false);
         string paramsPlaceholder = string.Join(",", objectPlaceholders);
-        
-        await Database.ExecuteSqlRawAsync(@$"
+
+        return await ProjectStorageItems.FromSqlRaw(@$"
 INSERT INTO public.project_storage_item 
 (project_version_id, path, hash, creation_time, last_update_time)
 VALUES {paramsPlaceholder}
 ON CONFLICT (project_version_id, path)
 DO UPDATE SET 
 	hash = EXCLUDED.hash,
-	last_update_time = EXCLUDED.last_update_time;
+	last_update_time = EXCLUDED.last_update_time
+RETURNING *;
+", objectValues).AsNoTracking().ToArrayAsync();
+        
+        //await Database.ExecuteSqlRawAsync(, objectValues);
+    }
+
+    public async Task UpsertProjectPageStorageItems(ProjectPageStorageItem[] pageStorageItems)
+    {
+        (object?[] objectValues, string[] objectPlaceholders)  = DbContextExtensions.GenerateParams(pageStorageItems, x => new { x.PageId, x.StorageItemId }, false);
+        string paramsPlaceholder = string.Join(",", objectPlaceholders);
+        
+        await Database.ExecuteSqlRawAsync($@"
+INSERT INTO public.project_page_storage_item
+(page_id, storage_item_id)
+VALUES {paramsPlaceholder}
+ON CONFLICT DO NOTHING;
 ", objectValues);
     }
     

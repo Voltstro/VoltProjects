@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Security.Cryptography;
 using System.Text.Json;
 using System.Web;
 using HtmlAgilityPack;
@@ -115,9 +114,10 @@ public sealed class BuildManager
 
         //Pre-Process pages
         ProjectPage[] pages = buildResult.ProjectPages;
-        ListBuilder<string> projectImages = new();
+        ListBuilder<BuildProjectImage> projectImages = new();
         Parallel.ForEach(pages, (page, _) =>
         {
+            page.ProjectVersion = projectVersion;
             string pageCurrentPath = Path.Combine(builtDocsLocation, page.Path);
             
             HtmlDocument doc = new();
@@ -177,16 +177,13 @@ public sealed class BuildManager
                         logger.LogWarning("Could not found image on page {PageTitle} at location {Path}!", page.Title, imagePath);
                         continue;
                     }
-                    projectImages.Add(imagePath);
-                    
-                    //TODO: Not do all of this shit
-                    string imagePathInProject = Path.GetRelativePath(builtDocsLocation, imagePath);
-                    string fileExtension = Path.GetExtension(imagePath);
-                    string path = Path.Combine(projectVersion.Project.Name, projectVersion.VersionTag,
-                        $"{imagePathInProject[..^fileExtension.Length]}.webp");
 
-                    string newUrl = Path.Combine(config.StorageConfig.PublicUrl, path);
-                    imageNode.SetAttributeValue("src", newUrl);
+                    string imagePathInProject = Path.GetRelativePath(builtDocsLocation, imagePath);
+                    string fullImagePath = Path.Combine(builtDocsLocation, imagePathInProject);
+                    BuildProjectImage image = new BuildProjectImage(config, page, imagePathInProject, fullImagePath);
+                    projectImages.Add(image);
+                    
+                    imageNode.SetAttributeValue("src", image.FullImagePath);
                 }
             }
 
@@ -207,52 +204,60 @@ public sealed class BuildManager
             page.PageHash = page.CalculateHash();
         });
         
-        //Process images
-        List<StorageItem> imagesNeededToBeUploaded = new();
-        IReadOnlyList<string> allProjectImages = projectImages.AsList();
-        foreach (string projectImage in allProjectImages)
+        //Process and upload images
+        List<StorageItem> storageItemsToUpload = [];
+        foreach (BuildProjectImage projectImage in projectImages.AsList())
         {
-            string imagePathInProject = Path.GetRelativePath(builtDocsLocation, projectImage);
-            FileStream fileStream = File.OpenRead(projectImage);
+            string hash = projectImage.Hash;
             
-            byte[] hash = await MD5.HashDataAsync(fileStream, cancellationToken);
-            fileStream.Position = 0;
-            string hashCombined = string.Join("", hash);
-            
+            //Do we have this image already?
             ProjectStorageItem? foundResult = dbContext.ProjectStorageItems.AsNoTracking()
-                .FirstOrDefault(x => x.ProjectVersionId == projectVersion.Id && x.Path == imagePathInProject);
-            if (foundResult == null)
-            {
-                imagesNeededToBeUploaded.Add(await CreateImageWebp(fileStream, imagePathInProject, hashCombined, projectVersion, cancellationToken));
-                continue;
-            }
+                .FirstOrDefault(x => x.ProjectVersionId == projectVersion.Id && x.Path == projectImage.FullImagePath);
             
-            //Compare hashes
-            if (!string.Equals(hashCombined, foundResult.Hash, StringComparison.InvariantCultureIgnoreCase))
-                imagesNeededToBeUploaded.Add(await CreateImageWebp(fileStream, imagePathInProject, hashCombined, projectVersion, cancellationToken));
+            //No? Upload it
+            if (foundResult == null || !hash.Equals(foundResult.Hash, StringComparison.InvariantCultureIgnoreCase))
+            {
+                StorageItem image = await CreateImageWebp(projectImage, projectImage.FileStream, projectImage.Hash,
+                    cancellationToken);
+                storageItemsToUpload.Add(image);
+                projectImage.StorageItem = image;
+            }
         }
         
-        //Now, to actually upload images
-        await storageService.UploadBulkFileAsync(imagesNeededToBeUploaded.ToArray(), "image/webp", cancellationToken);
+        //Upload storage items
+        //TODO: Make storage system be able to upload multiple content types
+        await storageService.UploadBulkFileAsync(storageItemsToUpload.ToArray(), "image/webp", cancellationToken);
 
-        //Add storage items to db for tracking
-        if (imagesNeededToBeUploaded.Count > 0)
+        //Close streams and convert StorageItems into ProjectStorageItems
+        ProjectStorageItem[] storageItems = new ProjectStorageItem[storageItemsToUpload.Count];
+        for (int i = 0; i < storageItemsToUpload.Count; i++)
         {
-            ProjectStorageItem[] upsertStorageItems = new ProjectStorageItem[imagesNeededToBeUploaded.Count];
-            for (int i = 0; i < upsertStorageItems.Length; i++)
+            StorageItem item = storageItemsToUpload[i];
+            await item.ItemStream.DisposeAsync();
+            storageItems[i] = new ProjectStorageItem
             {
-                upsertStorageItems[i] = new ProjectStorageItem
-                {
-                    ProjectVersionId = projectVersion.Id,
-                    Hash = imagesNeededToBeUploaded[i].Hash,
-                    Path = imagesNeededToBeUploaded[i].OriginalFilePath
-                };
-            }
-
-            await dbContext.UpsertProjectStorageAssets(upsertStorageItems);
+                ProjectVersionId = projectVersion.Id,
+                Path = item.OriginalFilePath,
+                Hash = item.Hash
+            };
         }
-       
-        await dbContext.UpsertProjectPages(pages, projectVersion);
+
+        //Upsert storage assets
+        storageItems = await dbContext.UpsertProjectStorageAssets(storageItems);
+        
+        //Upsert pages
+        pages = await dbContext.UpsertProjectPages(pages, projectVersion);
+
+        //Create page storage items
+        List<ProjectPageStorageItem> pageStorageItems = [];
+        pageStorageItems.AddRange(projectImages.AsList().Where(x => x.StorageItem != null)
+            .Select(projectImage => new ProjectPageStorageItem()
+            {
+                StorageItemId = storageItems.FirstOrDefault(x => x.Path == projectImage.OriginalImagePathInProject)!.Id,
+                PageId = pages.FirstOrDefault(x => x.Path == projectImage.ProjectPage.Path)!.Id
+            }));
+
+        await dbContext.UpsertProjectPageStorageItems(pageStorageItems.ToArray());
     }
 
     private void ExecuteDocBuilderProcess(Builder builder, ProjectVersion projectVersion, string docsLocation, string docsBuiltLocation)
@@ -293,44 +298,31 @@ public sealed class BuildManager
         process.Dispose();
     }
 
-    private async Task<StorageItem> CreateImageWebp(Stream imageStream, string imagePathProjectRel, string imageHash, ProjectVersion projectVersion, CancellationToken cancellationToken)
+    private async Task<StorageItem> CreateImageWebp(BuildProjectImage buildProjectImage, Stream imageStream, string hash, CancellationToken cancellationToken)
     {
-        string fileExtension = Path.GetExtension(imagePathProjectRel);
-        
-        //Path in storage service that the file should live at
-        string path = Path.Combine(projectVersion.Project.Name, projectVersion.VersionTag,
-            $"{imagePathProjectRel[..^fileExtension.Length]}.webp");
-        
-        //We have the image file, convert to webp
-        Image image = await Image.LoadAsync(imageStream, cancellationToken);
-
-        //If image is already a webp, then don't bother converting
-        if (image.Metadata.DecodedImageFormat.DefaultMimeType == "image/webp")
+        if (Path.GetExtension(buildProjectImage.FullImagePath) != ".webp")
         {
-            image.Dispose();
-            imageStream.Position = 0;
+            //Convert image to webp
+            Image image = await Image.LoadAsync(imageStream, cancellationToken);
             
-            return new StorageItem
-            {
-                FileName = path,
-                ItemStream = imageStream,
-                Hash = imageHash,
-                OriginalFilePath = imagePathProjectRel
-            };
-        }
+            //Close the arial file stream
+            await imageStream.DisposeAsync();
+            
+            //Convert to webp
+            imageStream = new MemoryStream();
+            await image.SaveAsWebpAsync(imageStream, cancellationToken);
+            image.Dispose();
 
-        MemoryStream imageMemoryStream = new();
-        await image.SaveAsWebpAsync(imageMemoryStream, cancellationToken);
-        image.Dispose();
-                        
-        imageMemoryStream.Position = 0;
+            imageStream.Position = 0;
+        }
 
         return new StorageItem
         {
-            FileName = path,
-            ItemStream = imageMemoryStream,
-            Hash = imageHash,
-            OriginalFilePath = imagePathProjectRel
+            FileName = buildProjectImage.ImagePath,
+            ItemStream = imageStream,
+            Hash = hash,
+            OriginalFilePath = buildProjectImage.OriginalImagePathInProject,
+            ContentType = "image/webp"
         };
     }
 }
