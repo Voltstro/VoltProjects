@@ -75,9 +75,9 @@ services:
 #### Prerequisites
 
 ```
-.NET 7 SDK
+.NET 8 SDK
 Yarn
-Postgres 15 DB
+Postgres 15
 ```
 
 ### Setup
