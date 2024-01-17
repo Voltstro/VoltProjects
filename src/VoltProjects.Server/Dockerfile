@@ -4,12 +4,11 @@ WORKDIR /src
 
 # Install Node & Yarn
 ENV NODE_MAJOR=18
-RUN apt-get update  \
-    && apt-get install curl ca-certificates gnupg -y \
-    && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
-    && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list \
-    && apt-get update \
-    && apt-get install nodejs -y \
+RUN apt-get -y update \
+    && apt-get install -y curl \
+    && curl -sL https://deb.nodesource.com/setup_$NODE_MAJOR.x | bash - \ 
+    && apt-get install -y nodejs \
+    && apt-get clean \
     && npm install --global yarn
 
 # Copy what server needs
