@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text.Json;
 using System.Web;
@@ -229,7 +230,6 @@ public sealed class BuildManager
             await dbContext.ProjectExternalItems
                 .Where(x => x.ProjectVersionId == projectVersion.Id)
                 .ToArrayAsync(cancellationToken);
-
         foreach (ProjectExternalItem externalItem in externalItems)
         {
             string externalItemPath = Path.Combine(builtDocsLocation, externalItem.Path);
@@ -257,7 +257,7 @@ public sealed class BuildManager
                     ItemStream = fileStream,
                     Hash = hash,
                     OriginalFilePath = externalItem.Path,
-                    ContentType = "text/yaml"
+                    ContentType = MimeMap.GetMimeType(Path.GetExtension(externalItem.Path))
                 };
                 storageItemsToUpload.Add(storageItem);
             }
@@ -281,7 +281,8 @@ public sealed class BuildManager
         }
 
         //Upsert storage assets
-        storageItems = await dbContext.UpsertProjectStorageAssets(storageItems);
+        if(storageItems.Length > 0)
+            storageItems = await dbContext.UpsertProjectStorageAssets(storageItems);
         
         //Upsert pages
         pages = await dbContext.UpsertProjectPages(pages, projectVersion);
@@ -295,14 +296,16 @@ public sealed class BuildManager
                 PageId = pages.FirstOrDefault(x => x.Path == projectImage.ProjectPage.Path)!.Id
             }));
 
-        await dbContext.UpsertProjectPageStorageItems(pageStorageItems.ToArray());
+        if(pageStorageItems.Count > 0)
+            await dbContext.UpsertProjectPageStorageItems(pageStorageItems.ToArray());
         
         //Create external item storage items
         List<ProjectExternalItemStorageItem> externalItemStorageItems = [];
         externalItemStorageItems
             .AddRange(externalItems.Select(externalItem => new ProjectExternalItemStorageItem { ProjectExternalItemId = externalItem.Id, StorageItemId = storageItems.FirstOrDefault(x => x.Path == externalItem.Path)!.Id }));
 
-        await dbContext.UpsertProjectExternalItemStorageItemItems(externalItemStorageItems.ToArray());
+        if(externalItemStorageItems.Count > 0)
+            await dbContext.UpsertProjectExternalItemStorageItemItems(externalItemStorageItems.ToArray());
     }
 
     private void ExecuteDocBuilderProcess(Builder builder, ProjectVersion projectVersion, string docsLocation, string docsBuiltLocation)

@@ -3,6 +3,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -92,8 +93,20 @@ public class ProjectController : Controller
             //Invalid project version
             if (projectVersion == null)
                 return await GetProjectLatestRedirect(projectName, version, fullPath, cancellationToken);
+
+            ProjectExternalItemStorageItem? externalItemStorageItem = dbContext.ProjectExternalItemStorageItems
+                .AsNoTracking()
+                .Include(x => x.StorageItem)
+                .Include(x => x.ProjectExternalItem)
+                .ThenInclude(x => x.ProjectVersion)
+                .FirstOrDefault(x => x.StorageItem.Path == fullPath && x.ProjectExternalItem.ProjectVersionId == projectVersion.Id);
+
+            if (externalItemStorageItem == null)
+                return NotFound();
             
-            return NotFound();
+            //Send user agent to storage item
+            string storageItemUrl = $"{vpConfig.PublicUrl}{projectVersion.Project.Name}/{projectVersion.VersionTag}/{externalItemStorageItem.StorageItem.Path}";
+            return RedirectPermanent(storageItemUrl);
         }
         
         string requestPath = Request.Path;

@@ -111,8 +111,8 @@ public sealed class ProjectRepoService
         Repository.Clone(gitUrl, path, new CloneOptions
         {
             Checkout = true,
-            OnProgress = OnProgressLog,
-            OnTransferProgress = OnTransferLog,
+            //OnProgress = OnProgressLog,
+            //OnTransferProgress = OnTransferLog,
             OnCheckoutProgress = OnCheckoutLog
         });
         return;
