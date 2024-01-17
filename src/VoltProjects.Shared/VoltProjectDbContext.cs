@@ -310,8 +310,14 @@ ON CONFLICT DO NOTHING;
                 Id = "vdocfx",
                 Name = "VDocFx",
                 Application = "vdocfx",
-                Arguments = new []{"build", "--output-type PageJson", "--output {0}"},
-                EnvironmentVariables = new []{"DOCS_GITHUB_TOKEN="}
+                Arguments = ["build", "--output-type PageJson", "--output {0}"],
+                EnvironmentVariables = ["DOCS_GITHUB_TOKEN="]
+            }, new DocBuilder
+            {
+                Id = "docfx",
+                Name = "DocFx",
+                Application = "docfx",
+                Arguments = ["build", "--exportRawModel"]
             });
         
         //Language
