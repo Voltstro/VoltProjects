@@ -1,51 +1,28 @@
 trigger:
 - master
 
-variables:
-  buildConfiguration: 'Release'
-
 jobs:
   - job: Build
     pool:
       vmImage: ubuntu-22.04
     steps:
 
-    # Setup Environment
-    - task: UseDotNet@2
-      displayName: Install .NET 8
-      inputs:
-        version: 8.x
-
-    - task: UseNode@1
-      displayName: Install Node 18
-      inputs:
-        version: '18.x'
-
-    # Build VoltProjects.Client
-    - script: yarn
-      displayName: Resolve Node Packages
-      workingDirectory: src/VoltProjects.Client/
-
-    - script: yarn run build
-      continueOnError: true
-      displayName: Build VoltProjects.Client
-      workingDirectory: src/VoltProjects.Client/
-
-    # Build VoltProjects.Shared, VoltProjects.Builder and VoltProjects.Server
-    - script: dotnet restore
-      displayName: Restore .NET Packages
+    - script: docker build -t voltstro/vpbuilder:autobuild -f VoltProjects.Builder/Dockerfile .
+      displayName: Build Builder
       workingDirectory: src/
 
-    - script: dotnet build --no-restore -c $(buildConfiguration)
-      displayName: Build VoltProjects.Shared
-      workingDirectory: src/VoltProjects.Shared/
+    - script: docker build -t voltstro/vpserver:autobuild -f VoltProjects.Server/Dockerfile .
+      displayName: Build Server
+      workingDirectory: src/
 
-    - script: dotnet build --no-restore -c $(buildConfiguration)
-      continueOnError: true
-      displayName: Build VoltProjects.Builder
-      workingDirectory: src/VoltProjects.Builder/
+    - script: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin
+      displayName: Docker Login
+      env:
+        DOCKER_USER: $(DOCKER_USER)
+        DOCKER_PASSWORD: $(DOCKER_PASSWORD)
 
-    - script: dotnet build --no-restore -c $(buildConfiguration)
-      continueOnError: true
-      displayName: Build VoltProjects.Server
-      workingDirectory: src/VoltProjects.Server/
+    - script: docker push voltstro/vpbuilder:autobuild
+      displayName: Docker Push Builder
+
+    - script: docker push voltstro/vpserver:autobuild
+      displayName: Docker Push Server
