@@ -1,6 +1,9 @@
 trigger:
 - master
 
+pr:
+- master
+
 jobs:
   - job: Build
     pool:
@@ -20,9 +23,12 @@ jobs:
       env:
         DOCKER_USER: $(DOCKER_USER)
         DOCKER_PASSWORD: $(DOCKER_PASSWORD)
+      condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
 
     - script: docker push voltstro/vpbuilder:autobuild
       displayName: Docker Push Builder
+      condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest')) 
 
     - script: docker push voltstro/vpserver:autobuild
       displayName: Docker Push Server
+      condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
