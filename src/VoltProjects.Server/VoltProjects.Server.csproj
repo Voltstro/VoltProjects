@@ -15,7 +15,7 @@
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
-      <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.6.0-beta.3" />
+      <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.7.0" />
     </ItemGroup>
 
     <ItemGroup>
