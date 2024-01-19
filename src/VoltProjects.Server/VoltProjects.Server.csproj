@@ -10,12 +10,12 @@
 
     <ItemGroup>
       <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.1" />
-      <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="8.0.0" />
+      <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="8.0.1" />
       <PackageReference Include="Nerdbank.GitVersioning" Version="3.6.133">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
-      <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.6.0-beta.3" />
+      <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.7.0" />
     </ItemGroup>
 
     <ItemGroup>
