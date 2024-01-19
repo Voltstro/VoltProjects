@@ -47,7 +47,6 @@ CREATE TYPE public.upsertedpage AS (
 
             //Create upsert_project_pages, with metabar attribute (and updates other attributes that should be updated, but were not)
             migrationBuilder.Sql(@"
-DROP FUNCTION upsert_project_pages;
 CREATE OR REPLACE FUNCTION public.upsert_project_pages(version_id integer, pages upsertedpage[])
  RETURNS SETOF project_page
  LANGUAGE plpgsql
