@@ -1,0 +1,53 @@
+# Release Pipeline
+
+trigger:
+- none
+
+pr:
+- none
+
+resources:
+  pipelines:
+  - pipeline: Voltstro.VoltProjects
+    source: Voltstro.VoltProjects
+    trigger:
+      tags:
+      - "*.*.*"
+
+jobs:
+  - job: Release
+    pool:
+      vmImage: ubuntu-22.04
+    steps:
+    - checkout: none
+
+    - script: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin
+      displayName: Docker Login
+      env:
+        DOCKER_USER: $(DOCKER_USER)
+        DOCKER_PASSWORD: $(DOCKER_PASSWORD)
+
+    - script: docker pull voltstro/vpserver:autobuild
+      displayName: Docker Pull VoltProjects.Server
+
+    - script: docker pull voltstro/vpbuilder:autobuild
+      displayName: Docker Pull VoltProjects.Builder
+
+    - script: |
+        docker tag voltstro/vpserver:autobuild voltstro/vpserver:latest
+        docker tag voltstro/vpserver:autobuild voltstro/vpserver:$Build.SourceBranchName
+
+        docker tag voltstro/vpbuilder:autobuild voltstro/vpbuilder:latest
+        docker tag voltstro/vpbuilder:autobuild voltstro/vpbuilder:$Build.SourceBranchName
+      displayName: Docker Tag
+
+    - script: |
+        docker push voltstro/vpserver:latest
+        docker push voltstro/vpserver:$Build.SourceBranchName
+      displayName: Docker Push VoltProjects.Server
+
+    - script: |
+        docker push voltstro/vpbuilder:latest
+        docker push voltstro/vpbuilder:$Build.SourceBranchName
+      displayName: Docker Push VoltProjects.Builder
+      
