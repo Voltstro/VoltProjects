@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.1.0] - Unreleased
+## [2.1.0] - 2024-01-20
 
 ### Added
 
@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Project Pages will not be updated if related content has not been updated
 - Client no longer uses jsx-dom (Elements are created by just using normal JS methods)
 - Images that are already WebP will not get re-encoded when uploading to storage
+- Bump Copyright
 
 ### Fixed
 
