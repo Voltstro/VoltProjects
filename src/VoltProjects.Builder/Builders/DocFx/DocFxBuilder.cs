@@ -55,11 +55,10 @@ public class DocFxBuilder : Core.Builder
         }
         
         //Do main project menu, it should be located at root
-        string? projectMenuPath = modelFiles.FirstOrDefault(x => x == menuTocLocation);
-        if (projectMenuPath == null)
+        if(!File.Exists(menuTocLocation))
             throw new NullReferenceException("Root project TOC could not be found!");
         
-        DocFxRawModel projectMenuModel = JsonSerializer.Deserialize<DocFxRawModel>(File.ReadAllText(projectMenuPath));
+        DocFxRawModel projectMenuModel = JsonSerializer.Deserialize<DocFxRawModel>(File.ReadAllText(menuTocLocation));
         LinkItem[] projectMenuLinks = new LinkItem[projectMenuModel.Items.Length];
 
         for (int i = 0; i < projectMenuModel.Items.Length; i++)
