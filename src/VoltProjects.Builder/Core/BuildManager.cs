@@ -89,8 +89,10 @@ public sealed class BuildManager
         if (!Directory.Exists(docsLocation))
             throw new DirectoryNotFoundException("Failed to find docs dir!");
         
-        //We will check this after the build
+        //Setup built docs location
         string builtDocsLocation = Path.Combine(projectPath, projectVersion.DocsBuiltPath);
+        if(Directory.Exists(builtDocsLocation))
+            Directory.Delete(builtDocsLocation, true);
 
         //First, run the build process
         ExecuteDocBuilderProcess(builder, projectVersion, docsLocation, builtDocsLocation);
