@@ -25,11 +25,14 @@ public class BuildProjectImage
         Hash = Helper.GetFileHash(FileStream);
         
         Uri baseImagePath = new(config.StorageConfig.PublicUrl);
-        ImagePath = Path.Combine(page.ProjectVersion.Project.Name, page.ProjectVersion.VersionTag,
-            OriginalImagePathInProject);
+        
+        //Image contains path without URL
+        ImagePath = Path.ChangeExtension(Path.Combine(page.ProjectVersion.Project.Name, page.ProjectVersion.VersionTag,
+            OriginalImagePathInProject), ".webp");
+        
+        //Full image path contains URL
         string imagePath = new Uri(baseImagePath, ImagePath).ToString();
         imagePath = Path.ChangeExtension(imagePath, ".webp");
-
         FullImagePath = imagePath;
     }
 

@@ -348,7 +348,7 @@ public sealed class BuildManager
 
     private async Task<StorageItem> CreateImageWebp(BuildProjectImage buildProjectImage, Stream imageStream, string hash, CancellationToken cancellationToken)
     {
-        if (Path.GetExtension(buildProjectImage.FullImagePath) != ".webp")
+        if (Path.GetExtension(buildProjectImage.OriginalImagePathInProject) != ".webp")
         {
             //Convert image to webp
             Image image = await Image.LoadAsync(imageStream, cancellationToken);
