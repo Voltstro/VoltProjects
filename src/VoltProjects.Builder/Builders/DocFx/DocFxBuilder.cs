@@ -172,7 +172,7 @@ public class DocFxBuilder : Core.Builder
                             if(splitLink[0] == string.Empty)
                                 continue;
 
-                            href.Value = $"{linkStart}{splitLink[0][..^5]}/#{splitLink[1]}".ToLower();
+                            href.Value = $"{linkStart}{splitLink[0][..^5].ToLower()}/#{splitLink[1]}";
                         }
                         else
                         {
