@@ -10,7 +10,12 @@ public class DocFxBuilder : Core.Builder
 {
     private readonly Dictionary<string, string> cssClassMappings = new Dictionary<string, string>
     {
-        ["pull-right"] = "float-end"
+        ["pull-right"] = "float-end",
+        ["WARNING"] = "alert alert-warning",
+        ["NOTE"] = "alert alert-info",
+        ["TIP"] = "alert alert-success",
+        ["IMPORTANT"] = "alert alert-danger",
+        ["CAUTION"] = "alert alert-danger"
     };
     
     public override void PrepareBuilder(ref string[]? arguments, string docsPath, string docsBuiltPath)
