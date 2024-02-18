@@ -20,7 +20,7 @@ COPY --from=build /app/publish .
 
 # Install VDocFx
 RUN dotnet tool update -g vdocfx --version "1.0.0-0010-gaa68456a75" --add-source https://pkgs.dev.azure.com/Voltstro/VDocFx/_packaging/VDocFx/nuget/v3/index.json 
-RUN dotnet tool update -g docfx --version "2.75.1"
+RUN dotnet tool update -g docfx --version "2.75.2"
 
 ENV DOTNET_ENVIRONMENT=Production
 ENV PATH="/root/.dotnet/tools/:$PATH"
