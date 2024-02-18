@@ -12,7 +12,7 @@ namespace VoltProjects.Builder.Services;
 
 public sealed class BuildService : BackgroundService
 {
-    private const int BuildVer = 1;
+    private const int BuildVer = 2;
     
     private readonly ILogger<BuildService> logger;
     private readonly IDbContextFactory<VoltProjectDbContext> contextFactory;

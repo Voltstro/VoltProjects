@@ -10,6 +10,7 @@ $font-family-monospace: 'Fira Code', monospace;
 @import "bootstrap/scss/bootstrap.scss";
 
 //Include our shit
+@import "./core/alerts";
 @import "./core/hero";
 @import "./core/footer";
 @import "./core/icons";

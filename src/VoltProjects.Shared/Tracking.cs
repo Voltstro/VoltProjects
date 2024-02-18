@@ -24,6 +24,8 @@ public static class Tracking
         //Setup Sentry Options
         CustomSentryOptions options = new();
         configuration.GetSection("Sentry").Bind(options);
+        options.Dsn ??= string.Empty;
+        
         services.AddSingleton(options);
         services.AddSingleton<ILoggerProvider, SentryLoggerProvider>();
         
