@@ -58,6 +58,7 @@ public class MainController : Controller
                 projectInfo = new ProjectInfo
                 {
                     Name = project.Project.Name,
+                    DisplayName = project.Project.DisplayName,
                     Description = project.Project.Description,
                     IconPath = Path.Combine(config.PublicUrl, project.Project.Name, project.Project.IconPath!),
                     DefaultVersion =

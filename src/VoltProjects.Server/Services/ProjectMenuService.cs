@@ -72,7 +72,7 @@ public sealed class ProjectMenuService
         return new ProjectNavModel
         {
             BasePath = baseProjectPath,
-            ProjectName = project.Project.Name,
+            ProjectName = project.Project.DisplayName,
             MenuItems = menuItems,
             GitUrl = $"{project.Project.GitUrl}/tree/{project.GitTag ?? project.GitBranch}"
         };

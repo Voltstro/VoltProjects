@@ -11,6 +11,11 @@ public class ProjectInfo
     public string Name { get; init; }
     
     /// <summary>
+    ///     Display name of the project
+    /// </summary>
+    public string DisplayName { get; init; }
+    
+    /// <summary>
     ///     Description of the project
     /// </summary>
     public string Description { get; init; }

@@ -1,7 +1,7 @@
 @model VoltProjects.Server.Models.View.ProjectViewModel
 
 @{
-    ViewBag.Title = $"{Model.ProjectPage.Title} - {Model.ProjectPage.ProjectVersion.Project.Name}";
+    ViewBag.Title = $"{Model.ProjectPage.Title} - {Model.ProjectPage.ProjectVersion.Project.DisplayName}";
     ViewBag.Description = Model.ProjectPage.Description;
 }
 

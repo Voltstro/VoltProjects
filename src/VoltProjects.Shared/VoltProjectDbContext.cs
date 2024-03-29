@@ -301,6 +301,17 @@ ON CONFLICT DO NOTHING;
             .HasIndex(p => new { p.ProjectExternalItemId, p.StorageItemId })
             .IsUnique();
         
+        //Collations
+        modelBuilder.HasCollation("vp_collation_nondeterministic", "en-u-ks-primary", "icu", false);
+
+        modelBuilder.Entity<Project>()
+            .Property(p => p.Name)
+            .UseCollation("vp_collation_nondeterministic");
+
+        modelBuilder.Entity<ProjectVersion>()
+            .Property(p => p.VersionTag)
+            .UseCollation("vp_collation_nondeterministic");
+        
         //Seed data
         
         //Doc Builder

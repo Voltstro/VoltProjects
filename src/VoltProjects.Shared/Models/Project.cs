@@ -19,6 +19,11 @@ public class Project
     ///     Name of this project
     /// </summary>
     public string Name { get; set; }
+
+    /// <summary>
+    ///     Display name of this project
+    /// </summary>
+    public string DisplayName { get; set; }
     
     /// <summary>
     ///     Short name of this project
