@@ -154,10 +154,7 @@ public class ProjectController : Controller
             
         //All project must have a default, so this should never happen
         if (latestProjectVersion == null)
-        {
-            logger.LogError("Project {ProjectName} either doesn't exist, or has no default project version!", projectName);
             return NotFound();
-        }
 
         if (!string.IsNullOrWhiteSpace(fullPath) && !string.IsNullOrWhiteSpace(previousVersion))
             fullPath = Path.Combine(previousVersion, fullPath);
