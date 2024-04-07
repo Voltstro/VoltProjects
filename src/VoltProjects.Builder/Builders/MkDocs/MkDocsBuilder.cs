@@ -2,12 +2,28 @@ using System.Text.Json;
 using HtmlAgilityPack;
 using VoltProjects.Builder.Core;
 using VoltProjects.Shared.Models;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace VoltProjects.Builder.Builders.MkDocs;
 
 [BuilderName(Name = "mkdocs")]
 public class MkDocsBuilder : Core.Builder
 {
+    private readonly IDeserializer ymlDeserializer;
+    private readonly ISerializer ymlSerializer;
+    
+    public MkDocsBuilder()
+    {
+        ymlDeserializer = new DeserializerBuilder()
+            .WithNamingConvention(UnderscoredNamingConvention.Instance)
+            .Build();
+        
+        ymlSerializer = new SerializerBuilder()
+            .WithNamingConvention(UnderscoredNamingConvention.Instance)
+            .Build();
+    }
+    
     private readonly Dictionary<string, string> admonitionCssMapping = new()
     {
         ["admonition"] = "alert",
@@ -32,7 +48,28 @@ public class MkDocsBuilder : Core.Builder
     
     public override void PrepareBuilder(ref string[]? arguments, string docsPath, string docsBuiltPath)
     {
-        //TODO: Add mkdocs vp plugin
+        string configFile = Path.Combine(docsPath, "mkdocs.yml");
+        if (!File.Exists(configFile))
+            throw new FileNotFoundException("Config file mkdocs.yml was not found!");
+
+        //Load as a dictionary, not the best idea, but better then having to create class
+        //with all of MkDoc config options
+        Dictionary<string, Object> config = ymlDeserializer.Deserialize<Dictionary<string, Object>>(File.ReadAllText(configFile));
+        bool configContainsPlugins = config.ContainsKey("plugins");
+        if (!configContainsPlugins)
+        {
+            string[] plugins = ["vp_integration"];
+            config.Add("plugins", plugins);
+        }
+        else
+        {
+            IList<object> plugins = (config["plugins"] as IList<object>)!;
+            if(!plugins.Contains("vp_integration"))
+                plugins.Add("vp_integration");
+        }
+
+        string ymlConfig = ymlSerializer.Serialize(config);
+        File.WriteAllText(configFile, ymlConfig);
     }
 
     public override BuildResult BuildProject(ProjectVersion projectVersion, string docsPath, string docsBuiltPath)
