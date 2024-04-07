@@ -329,6 +329,12 @@ ON CONFLICT DO NOTHING;
                 Name = "DocFx",
                 Application = "docfx",
                 Arguments = ["build", "--exportRawModel"]
+            }, new DocBuilder
+            {
+                Id = "mkdocs",
+                Name = "MkDocs",
+                Application = "python",
+                Arguments = ["-m mkdocs", "build"]
             });
         
         //Language
