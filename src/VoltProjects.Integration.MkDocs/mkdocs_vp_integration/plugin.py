@@ -1,4 +1,5 @@
 from json import dumps
+from os import path
 
 from mkdocs_vp_integration.link_item import LinkItem
 from mkdocs_vp_integration.vp_page import VPPage
@@ -77,19 +78,19 @@ class VPIntegrationPlugin(BasePlugin):
 
         # Write menu
         menu_json = dumps(self.menu, indent=4, cls=LinkItem.LinkItemJsonEncoder)
-        with open(f"menu.json", "w") as menu_out:
+        with open(path.join(config.site_dir, "menu.json"), "w") as menu_out:
             menu_out.write(menu_json)
 
         # Write TOCs            
         toc_obj = {'tocs': self.tocs}
         toc_json = dumps(toc_obj, indent=4, cls=LinkItem.LinkItemJsonEncoder)
-        with open(f"tocs.json", "w") as tocs_out:
+        with open(path.join(config.site_dir, "tocs.json"), "w") as tocs_out:
             tocs_out.write(toc_json)
 
         # Write pages
         pages_obj = {'pages': self.pages}
         pages_json = dumps(pages_obj, indent=4, cls=VPPage.VPPageJsonEncoder)
-        with open(f"pages.json", "w") as pages_out:
+        with open(path.join(config.site_dir, "pages.json"), "w") as pages_out:
             pages_out.write(pages_json)     
 
 

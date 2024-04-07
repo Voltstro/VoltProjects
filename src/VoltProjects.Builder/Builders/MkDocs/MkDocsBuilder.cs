@@ -54,7 +54,7 @@ public class MkDocsBuilder : Core.Builder
 
         //Load as a dictionary, not the best idea, but better then having to create class
         //with all of MkDoc config options
-        Dictionary<string, Object> config = ymlDeserializer.Deserialize<Dictionary<string, Object>>(File.ReadAllText(configFile));
+        Dictionary<string, object> config = ymlDeserializer.Deserialize<Dictionary<string, object>>(File.ReadAllText(configFile));
         bool configContainsPlugins = config.ContainsKey("plugins");
         if (!configContainsPlugins)
         {
@@ -74,9 +74,9 @@ public class MkDocsBuilder : Core.Builder
 
     public override BuildResult BuildProject(ProjectVersion projectVersion, string docsPath, string docsBuiltPath)
     {
-        string menuFile = Path.Combine(docsPath, "menu.json");
-        string tocFile = Path.Combine(docsPath, "tocs.json");
-        string pagesFile = Path.Combine(docsPath, "pages.json");
+        string menuFile = Path.Combine(docsBuiltPath, "menu.json");
+        string tocFile = Path.Combine(docsBuiltPath, "tocs.json");
+        string pagesFile = Path.Combine(docsBuiltPath, "pages.json");
 
         if (!File.Exists(menuFile) || !File.Exists(tocFile) || !File.Exists(pagesFile))
             throw new FileNotFoundException("Either menu.json, tocs.json or pages.json file(s) are missing!");
