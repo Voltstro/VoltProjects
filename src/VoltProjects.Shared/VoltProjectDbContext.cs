@@ -261,6 +261,11 @@ ON CONFLICT DO NOTHING;
             .HasIndex(p => new { p.PageId, p.GitHubUserId })
             .IsUnique();
         
+        //Project Page Storage Item
+        modelBuilder.Entity<ProjectPageStorageItem>()
+            .HasIndex(p => new { p.PageId, p.StorageItemId })
+            .IsUnique();
+        
         //Project Pre Build
         modelBuilder.Entity<ProjectPreBuild>()
             .Property(p => p.Id).UseIdentityAlwaysColumn();

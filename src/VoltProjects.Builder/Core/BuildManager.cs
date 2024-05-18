@@ -226,33 +226,55 @@ public sealed class BuildManager
         
         //Upsert pages
         pages = await dbContext.UpsertProjectPages(pages, projectVersion);
-        
-        //Create and upsert ProjectExternalItemStorageItem
-        IExternalObjectHandler[] uploadedExternalStorageItems = storageObjectsToUpload.Where(x => x.ExternalItem != null).ToArray();
-        ProjectExternalItemStorageItem[] externalItemStorageItems =
-            new ProjectExternalItemStorageItem[uploadedExternalStorageItems.Length];
-        for (int i = 0; i < externalItemStorageItems.Length; i++)
+
+        //Creation and upserting of ProjectExternalItemStorageItem
         {
-            IExternalObjectHandler externalObject = uploadedExternalStorageItems[i];
-            ProjectStorageItem? upsertedStorageItem = storageItems.FirstOrDefault(x => x.Path == externalObject.PathInBuiltDocs);
-            if (upsertedStorageItem == null)
+            //Create ProjectExternalItemStorageItems
+            IExternalObjectHandler[] uploadedExternalStorageItems = storageObjectsToUpload.Where(x => x.ExternalItem != null).ToArray();
+            ProjectExternalItemStorageItem[] externalItemStorageItems =
+                new ProjectExternalItemStorageItem[uploadedExternalStorageItems.Length];
+            for (int i = 0; i < uploadedExternalStorageItems.Length; i++)
             {
-                logger.LogWarning("Failed to find DB id of storage item path {Path}", externalObject.PathInBuiltDocs);
-                continue;
+                IExternalObjectHandler externalObject = uploadedExternalStorageItems[i];
+            
+                ProjectStorageItem upsertedStorageItem = storageItems.First(x => x.Path == externalObject.PathInBuiltDocs);
+
+                externalItemStorageItems[i] = new ProjectExternalItemStorageItem
+                {
+                    ProjectExternalItemId = externalObject.ExternalItem!.Id,
+                    StorageItemId = upsertedStorageItem.Id
+                };
             }
 
-            externalItemStorageItems[i] = new ProjectExternalItemStorageItem
-            {
-                ProjectExternalItemId = externalObject.ExternalItem!.Id,
-                StorageItemId = upsertedStorageItem.Id
-            };
+            //Upsert ProjectExternalItemStorageItems
+            if (externalItemStorageItems.Length > 0)
+                await dbContext.UpsertProjectExternalItemStorageItemItems(externalItemStorageItems);
         }
 
-        //Upsert ProjectExternalItemStorageItems
-        if (externalItemStorageItems.Length > 0)
-            await dbContext.UpsertProjectExternalItemStorageItemItems(externalItemStorageItems);
+        //Creation and upserting ProjectPageStorageItem
+        {
+            //Create ProjectPageStorageItems
+            IExternalObjectHandler[] uploadedPageStorageItems =
+                storageObjectsToUpload.Where(x => x.ProjectPage != null).ToArray();
+            ProjectPageStorageItem[] projectPageStorageItems =
+                new ProjectPageStorageItem[uploadedPageStorageItems.Length];
+            for (int i = 0; i < uploadedPageStorageItems.Length; i++)
+            {
+                IExternalObjectHandler externalObject = uploadedPageStorageItems[i];
+                ProjectPage upsertedPage = pages.First(x => x.Path == externalObject.ProjectPage!.Path);
+                ProjectStorageItem upsertedStorageItem = storageItems.First(x => x.Path == externalObject.PathInBuiltDocs);
 
-        //TODO: Create ProjectPageStorageItems
+                projectPageStorageItems[i] = new ProjectPageStorageItem
+                {
+                    PageId = upsertedPage.Id,
+                    StorageItemId = upsertedStorageItem.Id
+                };
+            }
+        
+            //Upsert ProjectPageStorageItems
+            if (projectPageStorageItems.Length > 0)
+                await dbContext.UpsertProjectPageStorageItems(projectPageStorageItems);
+        }
 
         //Cleanup
         foreach (IExternalObjectHandler objectHandler in finalStorageObjects)
