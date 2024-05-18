@@ -1,3 +1,5 @@
+using VoltProjects.Builder.Core.Building.ExternalObjects;
+
 namespace VoltProjects.Builder.Services.Storage;
 
 /// <summary>
@@ -18,5 +20,5 @@ public interface IStorageService
     public Task<string> UploadFileAsync(Stream fileStream, string fileName, string contentType,
         CancellationToken cancellationToken = default);
 
-    public Task UploadBulkFileAsync(StorageItem[] filesToUpload, CancellationToken cancellationToken = default);
+    public Task UploadBulkFileAsync(IExternalObjectHandler[] filesToUpload, CancellationToken cancellationToken = default);
 }

@@ -1,13 +1,12 @@
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text.Json;
-using System.Web;
 using HtmlAgilityPack;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using SixLabors.ImageSharp;
+using VoltProjects.Builder.Core.Building.ExternalObjects;
+using VoltProjects.Builder.Core.Building.PageParsers;
 using VoltProjects.Builder.Services;
 using VoltProjects.Builder.Services.Storage;
 using VoltProjects.Shared;
@@ -28,8 +27,9 @@ public sealed class BuildManager
     private readonly VoltProjectsBuilderConfig config;
     private readonly IStorageService storageService;
     private readonly Dictionary<string, Builder> builders;
+    private readonly List<IPageParser> pageParsers;
 
-    private static string[] supportedLangs = new[] { "csharp" };
+    private static readonly string[] SupportedLangs = ["csharp"];
 
     /// <summary>
     ///     Creates a new <see cref="BuildManager"/> instance
@@ -65,6 +65,13 @@ public sealed class BuildManager
             builders.Add(attribute.Name, builder);
             this.logger.LogDebug("Created builder {Builder}", attribute.Name);
         }
+
+        pageParsers = new List<IPageParser>
+        {
+            new DescriptionParser(),
+            new CodeParser(highlightService),
+            new ImageParser(logger)
+        };
     }
 
     /// <summary>
@@ -117,79 +124,23 @@ public sealed class BuildManager
 
         //Pre-Process pages
         ProjectPage[] pages = buildResult.ProjectPages;
-        ListBuilder<BuildProjectImage> projectImages = new();
+        ListBuilder<IExternalObjectHandler> externalObjectsIncluded = new();
         Parallel.ForEach(pages, (page, _) =>
         {
             page.ProjectVersion = projectVersion;
-            string pageCurrentPath = Path.Combine(builtDocsLocation, page.Path);
-            
+
+            //Load page content into HtmlAgilityPack
             HtmlDocument doc = new();
             doc.LoadHtml(page.Content);
-            
-            //Get first p block to get page description from
-            HtmlNode? node = doc.DocumentNode.SelectSingleNode("//p[not(*)]");
-            page.Description = node?.InnerText ?? page.Title;
 
-            //Parse code blocks
-            HtmlNodeCollection? codeBlocks = doc.DocumentNode.SelectNodes("//pre/code");
-            if (codeBlocks != null)
+            //Run all page parses on this page
+            foreach (IPageParser pageParser in pageParsers)
             {
-                foreach (HtmlNode codeBlock in codeBlocks)
-                {
-                    string? text = codeBlock.InnerHtml;
-                    string? language = null;
-
-                    //Try to pick-up on the language
-                    HtmlAttribute? languageAttribute = codeBlock.Attributes["class"];
-                    if (languageAttribute != null)
-                    {
-                        language = languageAttribute.Value.Replace("lang-", "");
-                        if (!supportedLangs.Contains(language))
-                            language = null; //use autodetect
-                    }
-
-                    if (text != null)
-                    {
-                        string parsedCodeBlock =
-                            highlightService.ParseCodeBlock(HttpUtility.HtmlDecode(text), language);
-                        codeBlock.InnerHtml = parsedCodeBlock;
-                    }
-
-                    codeBlock.SetAttributeValue("class", "hljs shadow");
-                }
+                List<IExternalObjectHandler>? externalObjects = pageParser.FormatPage(builtDocsLocation, ref page, ref doc);
+                if(externalObjects != null)
+                    externalObjectsIncluded.AddRange(externalObjects);
             }
             
-            //Parse Images
-            HtmlNodeCollection? images = doc.DocumentNode.SelectNodes("//img/@src");
-            if (images != null)
-            {
-                foreach (HtmlNode imageNode in images)
-                {
-                    HtmlAttribute srcAttribute = imageNode.Attributes["src"];
-                    
-                    //Get image file
-                    string imageSrc = srcAttribute.Value;
-                    
-                    //Off-Site Image, don't care about it
-                    if(imageSrc.StartsWith("http"))
-                        continue;
-
-                    string imagePath = Path.Combine(pageCurrentPath, imageSrc);
-                    if (!File.Exists(imagePath))
-                    {
-                        logger.LogWarning("Could not found image on page {PageTitle} at location {Path}!", page.Title, imagePath);
-                        continue;
-                    }
-
-                    string imagePathInProject = Path.GetRelativePath(builtDocsLocation, imagePath);
-                    string fullImagePath = Path.Combine(builtDocsLocation, imagePathInProject);
-                    BuildProjectImage image = new BuildProjectImage(config, page, imagePathInProject, fullImagePath);
-                    projectImages.Add(image);
-                    
-                    imageNode.SetAttributeValue("src", image.FullImagePath);
-                }
-            }
-
             //New HTML Content
             string content = doc.DocumentNode.OuterHtml;
 
@@ -204,34 +155,15 @@ public sealed class BuildManager
                 page.ProjectToc = null;
             }
 
+            //Calculate hash
             page.PageHash = page.CalculateHash();
         });
         
-        //Process and upload images
-        List<StorageItem> storageItemsToUpload = [];
-        foreach (BuildProjectImage projectImage in projectImages.AsList())
-        {
-            string hash = projectImage.Hash;
-            
-            //Do we have this image already?
-            ProjectStorageItem? foundResult = dbContext.ProjectStorageItems.AsNoTracking()
-                .FirstOrDefault(x => x.ProjectVersionId == projectVersion.Id && x.Path == projectImage.FullImagePath);
-            
-            //No? Upload it
-            if (foundResult == null || !hash.Equals(foundResult.Hash, StringComparison.InvariantCultureIgnoreCase))
-            {
-                StorageItem image = await CreateImageWebp(projectImage, projectImage.FileStream, projectImage.Hash,
-                    cancellationToken);
-                storageItemsToUpload.Add(image);
-                projectImage.StorageItem = image;
-            }
-        }
-        
-        //External items
-        ProjectExternalItem[] externalItems =
-            await dbContext.ProjectExternalItems
-                .Where(x => x.ProjectVersionId == projectVersion.Id)
-                .ToArrayAsync(cancellationToken);
+        //Now handle project external items, adding onto our existing externalObjectsIncluded
+        ProjectExternalItem[] externalItems = await dbContext.ProjectExternalItems
+            .AsNoTracking()
+            .Where(x => x.ProjectVersionId == projectVersion.Id)
+            .ToArrayAsync(cancellationToken);
         foreach (ProjectExternalItem externalItem in externalItems)
         {
             string externalItemPath = Path.Combine(builtDocsLocation, externalItem.Path);
@@ -240,74 +172,93 @@ public sealed class BuildManager
                 logger.LogWarning("Could not find external item {ExternalItem}!", externalItemPath);
                 continue;
             }
-
-            FileStream fileStream = File.OpenRead(externalItemPath);
-            string hash = Helper.GetFileHash(fileStream);
             
-            //See if this file has been uploaded already
-            ProjectExternalItemStorageItem? externalItemStorageItem =
-                await dbContext.ProjectExternalItemStorageItems
-                    .Include(x => x.StorageItem)
-                    .FirstOrDefaultAsync(x => x.StorageItemId == externalItem.Id, cancellationToken);
+            //Need to assign ProjectVersion, for GenericExternalObject constructor
+            externalItem.ProjectVersion = projectVersion;
 
-            if (externalItemStorageItem == null || !hash.Equals(externalItemStorageItem.StorageItem.Hash, StringComparison.InvariantCultureIgnoreCase))
-            {
-                //Upload it
-                StorageItem storageItem = new()
-                {
-                    FileName = Path.Combine(projectVersion.Project.Name, projectVersion.VersionTag, externalItem.Path),
-                    ItemStream = fileStream,
-                    Hash = hash,
-                    OriginalFilePath = externalItem.Path,
-                    ContentType = MimeMap.GetMimeType(Path.GetExtension(externalItem.Path))
-                };
-                storageItemsToUpload.Add(storageItem);
-            }
+            string pathRelativePath = Path.GetRelativePath(builtDocsLocation, externalItemPath);
+            GenericExternalObject externalObject = new(externalItemPath, pathRelativePath, externalItem);
+            externalObjectsIncluded.Add(externalObject);
         }
         
-        //Upload storage items
-        await storageService.UploadBulkFileAsync(storageItemsToUpload.ToArray(), cancellationToken);
+        //Our final list
+        IReadOnlyList<IExternalObjectHandler> finalStorageObjects = externalObjectsIncluded.AsList();
+        logger.LogInformation("Have gotten {ExternalObjectsCount} number of external objects... checking which need to be uploaded...", finalStorageObjects.Count);
+                
+        //We need to find objects that need to be uploaded, either because they are new, or out-dated (hash check)
+        List<IExternalObjectHandler> storageObjectsToUpload = new();
 
-        //Close streams and convert StorageItems into ProjectStorageItems
-        ProjectStorageItem[] storageItems = new ProjectStorageItem[storageItemsToUpload.Count];
-        for (int i = 0; i < storageItemsToUpload.Count; i++)
+        //Pre-fetch all ProjectStorageItem first, as it will be quicker to sort through
+        ProjectStorageItem[] projectStorageItems = await dbContext.ProjectStorageItems
+            .AsNoTracking()
+            .Where(x => x.ProjectVersionId == projectVersion.Id)
+            .ToArrayAsync(cancellationToken);
+        foreach (IExternalObjectHandler externalObject in finalStorageObjects)
         {
-            StorageItem item = storageItemsToUpload[i];
-            await item.ItemStream.DisposeAsync();
+            //Check if this storage item exists
+            ProjectStorageItem? foundResult =
+                projectStorageItems.FirstOrDefault(x => x.Path == externalObject.PathInBuiltDocs);
+            
+            if (foundResult == null || !externalObject.Hash.Equals(foundResult.Hash, StringComparison.InvariantCultureIgnoreCase))
+                storageObjectsToUpload.Add(externalObject);
+        }
+        
+        //Now, to upload
+        logger.LogInformation("Uploading {ExternalObjectUploadCount} number of objects to external object service...", storageObjectsToUpload.Count);
+        await storageService.UploadBulkFileAsync(storageObjectsToUpload.ToArray(), cancellationToken);
+        logger.LogInformation("Done uploading {ExternalObjectUploadCount} objects", storageObjectsToUpload.Count);
+        
+        //Upsert ProjectStorageItem to DB
+        ProjectStorageItem[] storageItems = new ProjectStorageItem[storageObjectsToUpload.Count];
+        for (int i = 0; i < storageObjectsToUpload.Count; i++)
+        {
+            IExternalObjectHandler item = storageObjectsToUpload[i];
             storageItems[i] = new ProjectStorageItem
             {
                 ProjectVersionId = projectVersion.Id,
-                Path = item.OriginalFilePath,
+                Path = item.PathInBuiltDocs,
                 Hash = item.Hash
             };
         }
 
-        //Upsert storage assets
         if(storageItems.Length > 0)
             storageItems = await dbContext.UpsertProjectStorageAssets(storageItems);
         
         //Upsert pages
         pages = await dbContext.UpsertProjectPages(pages, projectVersion);
-
-        //Create page storage items
-        List<ProjectPageStorageItem> pageStorageItems = [];
-        pageStorageItems.AddRange(projectImages.AsList().Where(x => x.StorageItem != null)
-            .Select(projectImage => new ProjectPageStorageItem()
-            {
-                StorageItemId = storageItems.FirstOrDefault(x => x.Path == projectImage.OriginalImagePathInProject)!.Id,
-                PageId = pages.FirstOrDefault(x => x.Path == projectImage.ProjectPage.Path)!.Id
-            }));
-
-        if(pageStorageItems.Count > 0)
-            await dbContext.UpsertProjectPageStorageItems(pageStorageItems.ToArray());
         
-        //Create external item storage items
-        List<ProjectExternalItemStorageItem> externalItemStorageItems = [];
-        externalItemStorageItems
-            .AddRange(externalItems.Select(externalItem => new ProjectExternalItemStorageItem { ProjectExternalItemId = externalItem.Id, StorageItemId = storageItems.FirstOrDefault(x => x.Path == externalItem.Path)!.Id }));
+        //Create and upsert ProjectExternalItemStorageItem
+        IExternalObjectHandler[] uploadedExternalStorageItems = storageObjectsToUpload.Where(x => x.ExternalItem != null).ToArray();
+        ProjectExternalItemStorageItem[] externalItemStorageItems =
+            new ProjectExternalItemStorageItem[uploadedExternalStorageItems.Length];
+        for (int i = 0; i < externalItemStorageItems.Length; i++)
+        {
+            IExternalObjectHandler externalObject = uploadedExternalStorageItems[i];
+            ProjectStorageItem? upsertedStorageItem = storageItems.FirstOrDefault(x => x.Path == externalObject.PathInBuiltDocs);
+            if (upsertedStorageItem == null)
+            {
+                logger.LogWarning("Failed to find DB id of storage item path {Path}", externalObject.PathInBuiltDocs);
+                continue;
+            }
 
-        if(externalItemStorageItems.Count > 0)
-            await dbContext.UpsertProjectExternalItemStorageItemItems(externalItemStorageItems.ToArray());
+            externalItemStorageItems[i] = new ProjectExternalItemStorageItem
+            {
+                ProjectExternalItemId = externalObject.ExternalItem!.Id,
+                StorageItemId = upsertedStorageItem.Id
+            };
+        }
+
+        //Upsert ProjectExternalItemStorageItems
+        if (externalItemStorageItems.Length > 0)
+            await dbContext.UpsertProjectExternalItemStorageItemItems(externalItemStorageItems);
+
+        //TODO: Create ProjectPageStorageItems
+
+        //Cleanup
+        foreach (IExternalObjectHandler objectHandler in finalStorageObjects)
+        {
+            objectHandler.Dispose();
+        }
     }
 
     private void ExecuteDocBuilderProcess(Builder builder, ProjectVersion projectVersion, string docsLocation, string docsBuiltLocation)
@@ -346,33 +297,5 @@ public sealed class BuildManager
             throw new Exception("Builder failed to exit cleanly!");
         
         process.Dispose();
-    }
-
-    private async Task<StorageItem> CreateImageWebp(BuildProjectImage buildProjectImage, Stream imageStream, string hash, CancellationToken cancellationToken)
-    {
-        if (Path.GetExtension(buildProjectImage.OriginalImagePathInProject) != ".webp")
-        {
-            //Convert image to webp
-            Image image = await Image.LoadAsync(imageStream, cancellationToken);
-            
-            //Close the arial file stream
-            await imageStream.DisposeAsync();
-            
-            //Convert to webp
-            imageStream = new MemoryStream();
-            await image.SaveAsWebpAsync(imageStream, cancellationToken);
-            image.Dispose();
-
-            imageStream.Position = 0;
-        }
-
-        return new StorageItem
-        {
-            FileName = buildProjectImage.ImagePath,
-            ItemStream = imageStream,
-            Hash = hash,
-            OriginalFilePath = buildProjectImage.OriginalImagePathInProject,
-            ContentType = "image/webp"
-        };
     }
 }

@@ -5,6 +5,7 @@ using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
 using Microsoft.Extensions.Options;
 using VoltProjects.Builder.Core;
+using VoltProjects.Builder.Core.Building.ExternalObjects;
 
 namespace VoltProjects.Builder.Services.Storage;
 
@@ -44,7 +45,7 @@ public sealed class AzureStorageService : IStorageService
         return Path.Combine(config.PublicUrl, fileName);
     }
 
-    public async Task UploadBulkFileAsync(StorageItem[] filesToUpload, CancellationToken cancellationToken = default)
+    public async Task UploadBulkFileAsync(IExternalObjectHandler[] filesToUpload, CancellationToken cancellationToken = default)
     {
         IEnumerable<GroupedStorageItem> groupedStorageItems = filesToUpload.GroupBy(x => x.ContentType, item => item,
             (s, items) => new GroupedStorageItem(s, items.ToArray()));
@@ -68,15 +69,16 @@ public sealed class AzureStorageService : IStorageService
             Queue<Task<Response<BlobContentInfo>>> tasks = new();
 
             blobHttpHeader.ContentType = groupedStorageItem.ContentType;
-            foreach (StorageItem storageItem in groupedStorageItem.Items)
+            foreach (IExternalObjectHandler storageItem in groupedStorageItem.Items)
             {
-                BlobClient newBlob = storageClient.GetBlobClient(storageItem.FileName);
-                tasks.Enqueue(newBlob.UploadAsync(storageItem.ItemStream, options, cancellationToken));
+                BlobClient newBlob = storageClient.GetBlobClient(storageItem.UploadPath);
+                Stream fileStream = await storageItem.GetUploadFileStream();
+                tasks.Enqueue(newBlob.UploadAsync(fileStream, options, cancellationToken));
             }
 
             await Task.WhenAll(tasks);
         }
     }
     
-    private record GroupedStorageItem(string ContentType, StorageItem[] Items);
+    private record GroupedStorageItem(string ContentType, IExternalObjectHandler[] Items);
 }
