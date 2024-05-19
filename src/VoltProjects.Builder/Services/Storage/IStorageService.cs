@@ -21,4 +21,6 @@ public interface IStorageService
         CancellationToken cancellationToken = default);
 
     public Task UploadBulkFileAsync(IExternalObjectHandler[] filesToUpload, CancellationToken cancellationToken = default);
+
+    public string GetFullUploadUrl(IExternalObjectHandler externalObject);
 }

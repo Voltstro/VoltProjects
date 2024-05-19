@@ -1,6 +1,7 @@
 using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
 using VoltProjects.Builder.Core.Building.ExternalObjects;
+using VoltProjects.Builder.Services.Storage;
 using VoltProjects.Shared.Models;
 
 namespace VoltProjects.Builder.Core.Building.PageParsers;
@@ -11,10 +12,12 @@ namespace VoltProjects.Builder.Core.Building.PageParsers;
 public class ImageParser : IPageParser
 {
     private readonly ILogger logger;
+    private IStorageService storageService;
     
-    public ImageParser(ILogger logger)
+    public ImageParser(ILogger logger, IStorageService storageService)
     {
         this.logger = logger;
+        this.storageService = storageService;
     }
     
     public List<IExternalObjectHandler>? FormatPage(string builtDocsLocation, ref ProjectPage page, ref HtmlDocument htmlDocument)
@@ -49,11 +52,9 @@ public class ImageParser : IPageParser
                 ImageExternalObjectHandler externalObject = new(fullImagePath, imagePathInProject, page);
                 externalObjects.Add(externalObject);
 
-                //BuildProjectImage image = new(config, page, imagePathInProject, fullImagePath);
-                //projectImages.Add(image);
-
-                //TODO: Set image path
-                //imageNode.SetAttributeValue("src", image.FullImagePath);
+                //Set image src to uploaded URL
+                string fullUrl = storageService.GetFullUploadUrl(externalObject);
+                imageNode.SetAttributeValue("src", fullUrl);
             }
 
             return externalObjects;

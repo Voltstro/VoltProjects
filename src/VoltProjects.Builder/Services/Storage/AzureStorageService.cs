@@ -79,6 +79,13 @@ public sealed class AzureStorageService : IStorageService
             await Task.WhenAll(tasks);
         }
     }
-    
+
+    public string GetFullUploadUrl(IExternalObjectHandler externalObject)
+    {
+        Uri baseUri = new Uri(config.PublicUrl);
+        Uri fullUri = new Uri(baseUri, externalObject.UploadPath);
+        return fullUri.ToString();
+    }
+
     private record GroupedStorageItem(string ContentType, IExternalObjectHandler[] Items);
 }

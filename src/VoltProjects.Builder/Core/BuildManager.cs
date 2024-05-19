@@ -70,7 +70,7 @@ public sealed class BuildManager
         {
             new DescriptionParser(),
             new CodeParser(highlightService),
-            new ImageParser(logger)
+            new ImageParser(logger, storageService)
         };
     }
 
