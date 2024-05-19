@@ -114,11 +114,8 @@ public sealed class BuildManager
         //Upsert results into DB
         //Upsert project menu
         ProjectMenu projectMenu = buildResult.ProjectMenu;
-        string json = JsonSerializer.Serialize(projectMenu.LinkItem);
-        await dbContext.Database
-            .ExecuteSqlAsync(
-                $"INSERT INTO public.project_menu (project_version_id, last_update_time, link_item) VALUES ({projectMenu.ProjectVersionId}, {projectMenu.LastUpdateTime}, {json}::jsonb) ON CONFLICT (project_version_id) DO UPDATE SET last_update_time = EXCLUDED.last_update_time, link_item = EXCLUDED.link_item RETURNING *;", cancellationToken);
-        
+        await dbContext.UpsertProjectMenu(projectMenu);
+
         //Upsert project TOCs
         ProjectToc[] tocItems = await dbContext.UpsertProjectTOCs(buildResult.ProjectTocs, projectVersion);
 
