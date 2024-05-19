@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Text.Json;
 using HtmlAgilityPack;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,13 +22,9 @@ public sealed class BuildManager
 {
     private readonly ILogger<BuildManager> logger;
     private readonly HtmlMinifier htmlMinifier;
-    private readonly HtmlHighlightService highlightService;
-    private readonly VoltProjectsBuilderConfig config;
     private readonly IStorageService storageService;
     private readonly Dictionary<string, Builder> builders;
     private readonly List<IPageParser> pageParsers;
-
-    private static readonly string[] SupportedLangs = ["csharp"];
 
     /// <summary>
     ///     Creates a new <see cref="BuildManager"/> instance
@@ -37,21 +32,17 @@ public sealed class BuildManager
     /// <param name="logger"></param>
     /// <param name="htmlMinifier"></param>
     /// <param name="highlightService"></param>
-    /// <param name="config"></param>
     /// <param name="storageService"></param>
     /// <param name="serviceProvider"></param>
     public BuildManager(
         ILogger<BuildManager> logger,
         HtmlMinifier htmlMinifier,
         HtmlHighlightService highlightService,
-        IOptions<VoltProjectsBuilderConfig> config,
         IStorageService storageService,
         IServiceProvider serviceProvider)
     {
         this.logger = logger;
         this.htmlMinifier = htmlMinifier;
-        this.highlightService = highlightService;
-        this.config = config.Value;
         this.storageService = storageService;
         builders = new Dictionary<string, Builder>();
         IEnumerable<Type> foundBuilders = ReflectionHelper.GetInheritedTypes<Builder>();
@@ -70,7 +61,7 @@ public sealed class BuildManager
         {
             new DescriptionParser(),
             new CodeParser(highlightService),
-            new ImageParser(logger, storageService)
+            new SrcAttributeParser(logger, storageService)
         };
     }
 
