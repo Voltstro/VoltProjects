@@ -1,0 +1,26 @@
+@model VoltProjects.Server.Models.View.MetaTagsViewModel
+@{
+    string pageTitle = $"{ViewBag.Title} | Volt Projects";
+}
+
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<title>@pageTitle</title>
+<meta name="description" content="@ViewBag.Description">
+<meta name="keywords" content="Voltstro,Voltstro-Studios,Docs,Documentation">
+<meta name="robots" content="noai, noimageai">
+@if (Model.RequestPath != null)
+{
+    <link rel="canonical" href="@Model.RequestPath" />
+    <meta name="og:url" content="@Model.RequestPath" />
+}
+<meta name="og:type" content="website"/>
+<meta name="og:site_name" content="Volt Projects" />
+<meta name="og:title" content="@pageTitle"/>
+<meta name="og:description" content="@ViewBag.Description"/>
+<meta name="og:image" content="https://projects.voltstro.dev/icon.png"/>
+<meta name="og:image:alt" content="Volt Project's Icon"/>
+<script type="application/ld+json">
+@Html.Raw(Model.StructuredDataJson)
+</script>
