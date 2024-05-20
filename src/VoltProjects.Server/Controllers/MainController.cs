@@ -100,9 +100,9 @@ public class MainController : Controller
                         },
                         new()
                         {
-                            Href = "https://twitter.com/Voltstro",
-                            Icon = "twitter",
-                            Name = "Twitter"
+                            Href = "https://x.com/Voltstro",
+                            Icon = "twitter-x",
+                            Name = "X (Formerly Twitter)"
                         },
                         new()
                         {

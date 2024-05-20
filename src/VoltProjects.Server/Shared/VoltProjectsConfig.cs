@@ -17,9 +17,9 @@ public sealed class VoltProjectsConfig
         },
         new()
         {
-            Name = "Twitter",
-            Icon = "twitter",
-            Href = "https://twitter.com/Voltstro"
+            Name = "X (Formerly Twitter)",
+            Icon = "twitter-x",
+            Href = "https://x.com/Voltstro"
         },
         new()
         {
