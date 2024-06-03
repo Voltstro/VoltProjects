@@ -43,6 +43,7 @@ try
     builder.Services.AddSingleton<StructuredDataService>();
     builder.Services.AddSingleton<SitemapService>();
     builder.Services.AddHostedService<SitemapBackgroundService>();
+    builder.Services.AddSingleton<SearchService>();
 
     //Support razor pages runtime compilation for hot reloading
     IMvcBuilder mvcBuilder = builder.Services.AddControllersWithViews(

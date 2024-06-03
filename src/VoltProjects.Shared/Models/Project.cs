@@ -59,4 +59,6 @@ public class Project
     ///     When was this project created?
     /// </summary>
     public DateTime CreationTime { get; set; }
+
+    public ICollection<ProjectVersion> ProjectVersions { get; } = new List<ProjectVersion>();
 }

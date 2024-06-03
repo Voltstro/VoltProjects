@@ -1,0 +1,134 @@
+@using Microsoft.AspNetCore.Html
+@using VoltProjects.Server.Models
+@using VoltProjects.Server.Models.Searching
+@using VoltProjects.Server.Services
+@using VoltProjects.Shared.Models
+@model VoltProjects.Server.Models.View.SearchViewModel
+@{
+    ViewBag.Title = "Search";
+    ViewBag.Description = "Search across Volt Project documentation";
+}
+
+@section BottomInclude {
+    <script type="module" src="~/js/search.js" asp-append-version="true" defer></script>
+}
+
+<form class="container layout layout-article" method="get" id="search-form" novalidate>
+    <nav class="layout-toc">
+        <div class="sticky-top navbar-expand-lg">
+            <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#toc-pannel" aria-controls="toc-pannel" aria-expanded="false" type="button">
+                Filters
+            </button>
+            <div class="collapse navbar-collapse" id="toc-pannel">
+                <div>
+                    <h4>Filters</h4>
+                    <ul class="list-group">
+                        @foreach (ProjectSearch project in Model.Projects)
+                        {
+                            <li class="list-group-item" id="project-@(project.Id)">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="projectId" value="@(project.Id)" id="project-check-@(project.Id)" checked="@(project.Active)"/>
+                                    <label class="form-check-label" for="project-check-@(project.Id)">@(project.DisplayName)</label>
+                                </div>
+                                <div class="ms-4 pt-2">
+                                    <span>Versions</span>
+                                    @foreach (ProjectVersionSearch projectVersion in project.Versions)
+                                    {
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="projectVersionId" value="@(projectVersion.Id)" id="project-version-check-@(projectVersion.Id)" checked="@(projectVersion.Active)"/>
+                                            <label class="form-check-label" for="project-version-check-@(projectVersion.Id)">@(projectVersion.Name)</label>
+                                        </div>
+                                    }
+                                </div>
+                            </li>
+                        }
+                        
+                        
+                    </ul>
+                    <noscript>
+                        <div class="mt-4" style="max-width: 320px">
+                            Hello user with JS disabled!<br/>Please note that version checkboxes must have their parent checkbox checked to be included in the filter.
+                        </div>
+                    </noscript>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <article>
+        <div class="mb-3">
+            <div class="d-flex">
+                <input type="text" class="form-control me-2" id="search" name="query" value="@Model.Query" placeholder="Search Query..." aria-label="Search Query" required>
+                <button type="submit" class="btn btn-primary">Search</button>
+            </div>
+
+            <div id="results">
+                @if (Model.PagedResult != null)
+                {
+                    <h2 class="pt-4">Search Results</h2>
+                    @if (Model.PagedResult.Results.Length < 1)
+                    {
+                        <h4 class="pt-1">No results were found using that search criteria.</h4>
+                    }
+                    else
+                    {
+                        <div>
+                            @foreach (SearchResult page in Model.PagedResult.Results)
+                            {
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <span class="d-block">
+                                                @(page.Title)
+                                            </span>
+
+                                            <div>
+                                                <span class="badge text-bg-secondary text-sm-start">
+                                                    Project: @(page.ProjectDisplayName)
+                                                </span>
+
+                                                <span class="badge text-bg-secondary">
+                                                    Version: @(page.ProjectVersion)
+                                                </span>
+                                            </div>
+                                        </h5>
+
+                                        <p class="card-text">
+                                            @Html.Raw(page.Headline))
+                                        </p>
+
+                                        <a href="/@(page.ProjectName)/@(page.ProjectVersion)/@(page.Path)" class="btn btn-primary">View Page</a>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        
+                        @* Pagination Controls *@
+                        <div class="mt-3">
+
+                            <nav page-model="@Model.PagedResult" page-action="Index" aria-label="Result Pagination Controls">
+                            </nav>
+                            
+                            @*
+                            <paging
+                                render-mode="Bootstrap5"
+                                total-records="Model.PagedResult.TotalResults"
+                                page-no="Model.PagedResult.Page"
+                                query-string-key-page-no="page"
+                                show-page-size-nav="true"
+                                query-string-key-page-size="size"
+                                page-size="Model.PagedResult.Size"
+                                show-total-pages="false"
+                                show-total-records="false"
+                                show-first-last="false">
+                            </paging>
+                            *@
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+
+
+    </article>
+</form>
