@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -39,6 +40,8 @@ public sealed class SearchService
 
     public async Task<SearchPagedResult> Search(VoltProjectDbContext dbContext, string query, int page, int size, int[] projectIds, int[] projectVersionIds, CancellationToken cancellationToken = default)
     {
+	    Stopwatch stopwatch = Stopwatch.StartNew();
+	    
 	    //Parameters for query
 	    NpgsqlParameter querySql = new("querySql", query);
 	    NpgsqlParameter projectIdsSql = new("projectIdsSql", projectIds);
@@ -80,7 +83,8 @@ ORDER BY (
         {
 	        result.Headline = sanitizer.Sanitize(result.Headline);
         }
-
-        return new SearchPagedResult(results, totalResults, size, page, projectIds, projectVersionIds);
+        
+        stopwatch.Stop();
+        return new SearchPagedResult(results, totalResults, size, page, stopwatch.Elapsed.TotalSeconds, projectIds, projectVersionIds);
     }
 }

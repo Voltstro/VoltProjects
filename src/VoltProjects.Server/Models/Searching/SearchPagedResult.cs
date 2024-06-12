@@ -16,13 +16,14 @@ public sealed class SearchPagedResult
     /// <param name="page"></param>
     /// <param name="projectIds"></param>
     /// <param name="projectVersionIds"></param>
-    public SearchPagedResult(SearchResult[] results, int totalResults, int sizePerPage, int page, int[] projectIds, int[] projectVersionIds)
+    public SearchPagedResult(SearchResult[] results, int totalResults, int sizePerPage, int page, double totalTime, int[] projectIds, int[] projectVersionIds)
     {
         Results = results;
         TotalResults = totalResults;
         Size = sizePerPage;
         Page = page;
         ProjectIds = projectIds;
+        TotalTime = totalTime;
         ProjectVersionIds = projectVersionIds;
     }
     
@@ -45,12 +46,24 @@ public sealed class SearchPagedResult
     ///     All results for this <see cref="Page"/>
     /// </summary>
     public SearchResult[] Results { get; init; }
-
+    
+    /// <summary>
+    ///     Total time (in seconds) this search took
+    /// </summary>
+    public double TotalTime { get; }
+    
+    /// <summary>
+    ///     Active projectIds in this search
+    /// </summary>
+    public int[] ProjectIds { get; init; }
+    
+    /// <summary>
+    ///     Active projectVersionIds in this search
+    /// </summary>
+    public int[] ProjectVersionIds { get; init; }
+    
     /// <summary>
     ///     The total number of pages
     /// </summary>
     public int TotalPages => (int)Math.Ceiling((decimal)TotalResults / Size);
-    
-    public int[] ProjectIds { get; init; }
-    public int[] ProjectVersionIds { get; init; }
 }

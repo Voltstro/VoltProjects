@@ -55,19 +55,19 @@ public sealed class PageLinkTagHelper : TagHelper
         result.AddCssClass(PaginationClass);
         
         //Add previous page link
-        result.InnerHtml.AppendHtml(CreatePageLink(PageModel.Page - 1, "Previous", true, currentParameters));
+        result.InnerHtml.AppendHtml(CreatePageLink(PageModel.Page - 1, "<span aria-hidden=\"true\">&laquo;</span>", true, currentParameters, "Previous Page"));
 
         //Create links for each page
         for (int i = 1; i <= PageModel.TotalPages; i++)
-            result.InnerHtml.AppendHtml(CreatePageLink(i, i.ToString(), false, currentParameters));
+            result.InnerHtml.AppendHtml(CreatePageLink(i, i.ToString(), false, currentParameters, $"Page {i}"));
         
         //Add next page link
-        result.InnerHtml.AppendHtml(CreatePageLink(PageModel.Page + 1, "Next", true, currentParameters));
+        result.InnerHtml.AppendHtml(CreatePageLink(PageModel.Page + 1, "<span aria-hidden=\"true\">&raquo;</span>", true, currentParameters, "Next Page"));
         
         output.Content.AppendHtml(result);
     }
 
-    private TagBuilder CreatePageLink(int page, string content, bool previousOrNext, string urlParameters)
+    private TagBuilder CreatePageLink(int page, string content, bool previousOrNext, string urlParameters, string ariaLabel)
     {
         TagBuilder liTag = new("li");
         liTag.AddCssClass(PageItemClass);
@@ -87,6 +87,8 @@ public sealed class PageLinkTagHelper : TagHelper
         tag.AddCssClass(PageLinkClass);
 
         tag.Attributes["href"] = $"/search/?page={page}&{urlParameters}";
+        tag.Attributes["aria-label"] = ariaLabel;
+        
         tag.InnerHtml.AppendHtml(content);
         
         liTag.InnerHtml.AppendHtml(tag);
