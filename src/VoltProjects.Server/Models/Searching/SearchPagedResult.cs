@@ -14,12 +14,16 @@ public sealed class SearchPagedResult
     /// <param name="totalResults"></param>
     /// <param name="sizePerPage"></param>
     /// <param name="page"></param>
-    public SearchPagedResult(SearchResult[] results, int totalResults, int sizePerPage, int page)
+    /// <param name="projectIds"></param>
+    /// <param name="projectVersionIds"></param>
+    public SearchPagedResult(SearchResult[] results, int totalResults, int sizePerPage, int page, int[] projectIds, int[] projectVersionIds)
     {
         Results = results;
         TotalResults = totalResults;
         Size = sizePerPage;
         Page = page;
+        ProjectIds = projectIds;
+        ProjectVersionIds = projectVersionIds;
     }
     
     /// <summary>
@@ -46,4 +50,7 @@ public sealed class SearchPagedResult
     ///     The total number of pages
     /// </summary>
     public int TotalPages => (int)Math.Ceiling((decimal)TotalResults / Size);
+    
+    public int[] ProjectIds { get; init; }
+    public int[] ProjectVersionIds { get; init; }
 }

@@ -13,7 +13,8 @@
     "noImplicitReturns": true,
     "jsx": "react",
     "types": [
-      "bootstrap"
+      "bootstrap",
+      "node"
     ]
   },
   "include": ["./src"]

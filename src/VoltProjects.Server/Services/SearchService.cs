@@ -81,6 +81,6 @@ ORDER BY (
 	        result.Headline = sanitizer.Sanitize(result.Headline);
         }
 
-        return new SearchPagedResult(results, totalResults, size, page);
+        return new SearchPagedResult(results, totalResults, size, page, projectIds, projectVersionIds);
     }
 }

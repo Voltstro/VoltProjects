@@ -40,13 +40,14 @@ public sealed class SearchController : Controller
     }
     
     [HttpGet]
+    [HttpPost]
     public async Task<IActionResult> Index(string query, int page, int size, int[] projectId, int[] projectVersionId, CancellationToken cancellationToken)
     {
         //Page should always be 1 or more
         page = page <= 0 ? 1 : page;
 
         //Size should either be 10, 25 or 50
-        if (size != 10 && size != 25 && size != 50)
+        if (size != 5 && size != 10 && size != 25 && size != 50)
             size = 10;
         
         //Get all projects, this is cached, to save on DB calls and for better performance
@@ -113,7 +114,11 @@ public sealed class SearchController : Controller
             //Do actual search against DB
             pagedResult = await searchService.Search(dbContext, query, page, size, activeProjectIds, activeProjectVersionIds, cancellationToken);
         }
-        
-        return View(new SearchViewModel(projects, query, pagedResult));
+
+        //Depending on request method, we will change view
+        if (Request.Method == "GET")
+            return View(new SearchViewModel(projects, query, pagedResult));
+
+        return View("SearchPreview", new SearchViewModel(projects, query, pagedResult));
     }
 }

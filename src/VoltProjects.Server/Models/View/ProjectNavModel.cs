@@ -6,6 +6,16 @@ namespace VoltProjects.Server.Models.View;
 public sealed class ProjectNavModel
 {
     /// <summary>
+    ///     What project this nav is for
+    /// </summary>
+    public int ProjectId { get; init; }
+    
+    /// <summary>
+    ///     What project version this nav is for
+    /// </summary>
+    public int ProjectVersionId { get; init; }
+    
+    /// <summary>
     ///     Name of this project to display
     /// </summary>
     public string ProjectName { get; init; }

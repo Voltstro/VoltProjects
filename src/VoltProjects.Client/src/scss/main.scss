@@ -62,3 +62,7 @@ input[data-readonly='true'] {
   cursor: default;
   opacity: 0.5;
 }
+
+.popover-search {
+  --bs-popover-max-width: 35em;
+}

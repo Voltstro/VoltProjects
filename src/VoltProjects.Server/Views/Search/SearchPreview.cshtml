@@ -1,0 +1,45 @@
+@using VoltProjects.Server.Models.Searching
+@model VoltProjects.Server.Models.View.SearchViewModel
+
+@{
+    Layout = null;
+}
+
+@if (Model.PagedResult == null)
+{
+    <span>Start typing to search...</span>
+}
+else
+{
+    @if (Model.PagedResult.Results.Length > 0)
+    {
+        @foreach (SearchResult page in Model.PagedResult.Results)
+        {
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <span class="d-block">
+                            @(page.Title)
+                        </span>
+                    </h5>
+
+                    <p class="card-text">
+                        @Html.Raw(page.Headline))
+                    </p>
+
+                    <a href="/@(page.ProjectName)/@(page.ProjectVersion)/@(page.Path)" class="btn btn-primary">View Page</a>
+                </div>
+            </div>
+        }
+        
+        @if (Model.PagedResult.Results.Length < Model.PagedResult.TotalResults)
+        {
+            <a href="/search/?query=@(Model.Query)&projectId=@(string.Join("&projectId=", Model.PagedResult.ProjectIds))&projectVersionId=@(string.Join("&projectVersionId=", Model.PagedResult.ProjectVersionIds))">More results...</a>
+        }
+    }
+    else
+    {
+        <span>No results were found using that query in this project...</span>
+    }
+}
+
