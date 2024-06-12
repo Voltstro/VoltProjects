@@ -1,4 +1,4 @@
-import { Popover } from 'bootstrap';
+import Popover from 'bootstrap/js/dist/popover';
 import { debounce } from './scripts/utility';
 
 export function initSearchNav(): void {

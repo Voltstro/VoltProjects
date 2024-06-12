@@ -11,25 +11,18 @@ import 'bootstrap-icons/font/fonts/bootstrap-icons.woff2';
 import './scss/main.scss';
 
 //Bootstrap collapse, used by navbar, and as such every page
-import '@popperjs/core';
 import 'bootstrap/js/dist/collapse';
 import 'bootstrap/js/dist/dropdown';
 
 declare global {
-    interface Window { vGlobal: any; htmx: any; }
-}
-
-document.addEventListener('DOMContentLoaded', onContentLoad);
-
-function onContentLoad(): void {
-	setTheme(getPreferredTheme());
-
-	renderAside();
-	renderToc();
+    interface Window { vGlobal: any; }
 }
 
 window.vGlobal = {
 	setTheme: setTheme
 };
 
+setTheme(getPreferredTheme());
+renderAside();
+renderToc();
 initSearchNav();
