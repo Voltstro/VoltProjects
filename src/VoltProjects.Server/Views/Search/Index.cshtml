@@ -53,8 +53,11 @@
     <article>
         <div class="mb-3">
             <div class="d-flex">
-                <input type="text" class="form-control me-2" id="search" name="query" value="@Model.Query" placeholder="Search Query..." aria-label="Search Query" required>
-                <button type="submit" class="btn btn-primary">Search</button>
+                <input type="text" class="form-control me-2" id="search" name="query" value="@Model.Query" placeholder="Search..." aria-label="Search" required>
+                <button type="submit" class="btn btn-primary d-flex" aria-label="Submit Search">
+                    <span class="bi bi-search me-1"></span>
+                    Search
+                </button>
             </div>
 
             <div id="results">
