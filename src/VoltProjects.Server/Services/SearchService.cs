@@ -5,8 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Ganss.Xss;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
-using VoltProjects.Server.Models;
 using VoltProjects.Server.Models.Searching;
 using VoltProjects.Shared;
 
@@ -17,12 +15,48 @@ namespace VoltProjects.Server.Services;
 /// </summary>
 public sealed class SearchService
 {
-	/// <summary>
-	///		Number of returned results per page
-	/// </summary>
-	public const int DefaultResultsPerPage = 10;
-	
     private readonly HtmlSanitizer sanitizer;
+
+    /// <summary>
+    ///		The main search SQL query
+    /// </summary>
+    private const string MainQuerySql = @"
+SELECT
+	ts_headline(language_configuration, title || content, websearch_to_tsquery(@p0), 'StartSel=<mark>,StopSel=</mark>') AS headline,
+	project_page.path AS path,
+	project_page.title AS title,
+	project.name AS project_name,
+	project.display_name AS project_display_name,
+	project_version.version_tag AS project_version
+FROM public.project_page AS project_page
+JOIN public.project_version AS project_version
+	ON project_version.id = project_page.project_version_id 
+JOIN public.project AS project
+	ON project.id = project_version.project_id
+WHERE
+	to_tsvector(language_configuration, title || content) @@ websearch_to_tsquery(@p0)
+AND project_page.published = TRUE
+AND project.id = ANY(@p1)
+AND project_version.id = ANY(@p2)
+ORDER BY (
+	ts_rank_cd(to_tsvector(language_configuration, title || content), websearch_to_tsquery(@p0))
+) DESC
+";
+
+    private const string CountQuerySql = @"
+SELECT
+	count(*) as ""Value""
+FROM public.project_page AS project_page
+JOIN public.project_version AS project_version
+	ON project_version.id = project_page.project_version_id 
+JOIN public.project AS project
+	ON project.id = project_version.project_id
+WHERE
+	to_tsvector(language_configuration, title || content) @@ websearch_to_tsquery(@p0)
+AND project_page.published = TRUE
+AND project.id = ANY(@p1)
+AND project_version.id = ANY(@p2)
+";
     
     /// <summary>
     ///		Creates a new <see cref="SearchService"/> instance
@@ -42,38 +76,15 @@ public sealed class SearchService
     {
 	    Stopwatch stopwatch = Stopwatch.StartNew();
 	    
-	    //Parameters for query
-	    NpgsqlParameter querySql = new("querySql", query);
-	    NpgsqlParameter projectIdsSql = new("projectIdsSql", projectIds);
-	    NpgsqlParameter projectVersionIdsSq = new("projectVersionIdsSq", projectVersionIds);
+	    //Get total results. Yes, doing ToArray()[0] is not pretty, but it works
+	    IQueryable<int> countSearchSqlQuery =
+		    dbContext.Database.SqlQueryRaw<int>(CountQuerySql, query, projectIds, projectVersionIds);
+	    int totalResults = countSearchSqlQuery.ToArray()[0];
 	    
-        IQueryable<SearchResult> sqlQuery = dbContext.Database.SqlQuery<SearchResult>($@"
-SELECT
-	ts_headline(language_configuration, title || content, websearch_to_tsquery({querySql}), 'StartSel=<mark>,StopSel=</mark>') AS headline,
-	project_page.path AS path,
-	project_page.title AS title,
-	project.name AS project_name,
-	project.display_name AS project_display_name,
-	project_version.version_tag AS project_version
-FROM public.project_page AS project_page
-JOIN public.project_version AS project_version
-	ON project_version.id = project_page.project_version_id 
-JOIN public.project AS project
-	ON project.id = project_version.project_id
-WHERE
-	to_tsvector(language_configuration, title || content) @@ websearch_to_tsquery({querySql})
-AND project_page.published = TRUE
-AND project.id = ANY({projectIdsSql})
-AND project_version.id = ANY({projectVersionIdsSq})
-ORDER BY (
-	ts_rank_cd(to_tsvector(language_configuration, title || content), websearch_to_tsquery({querySql}))
-) DESC
-");
-        //Get potential total number of returned results
-        int totalResults = sqlQuery.Count();
-        
-        //Get paged results
-        SearchResult[] results = await sqlQuery
+	    //Get actual paged results
+	    IQueryable<SearchResult> mainSearchSqlQuery =
+		    dbContext.Database.SqlQueryRaw<SearchResult>(MainQuerySql, query, projectIds, projectVersionIds);
+        SearchResult[] results = await mainSearchSqlQuery
 	        .Skip((page - 1) * size)
 	        .Take(size)
 	        .ToArrayAsync(cancellationToken);
