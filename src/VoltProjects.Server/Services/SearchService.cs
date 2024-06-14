@@ -49,7 +49,7 @@ public sealed class SearchService
 	    
         IQueryable<SearchResult> sqlQuery = dbContext.Database.SqlQuery<SearchResult>($@"
 SELECT
-	ts_headline(language_configuration, content, websearch_to_tsquery({querySql}), 'StartSel=<mark>,StopSel=</mark>') AS headline,
+	ts_headline(language_configuration, title || content, websearch_to_tsquery({querySql}), 'StartSel=<mark>,StopSel=</mark>') AS headline,
 	project_page.path AS path,
 	project_page.title AS title,
 	project.name AS project_name,
@@ -61,12 +61,12 @@ JOIN public.project_version AS project_version
 JOIN public.project AS project
 	ON project.id = project_version.project_id
 WHERE
-	to_tsvector(language_configuration, content) @@ websearch_to_tsquery({querySql})
+	to_tsvector(language_configuration, title || content) @@ websearch_to_tsquery({querySql})
 AND project_page.published = TRUE
 AND project.id = ANY({projectIdsSql})
 AND project_version.id = ANY({projectVersionIdsSq})
 ORDER BY (
-	ts_rank_cd(to_tsvector(language_configuration, content), websearch_to_tsquery({querySql}))
+	ts_rank_cd(to_tsvector(language_configuration, title || content), websearch_to_tsquery({querySql}))
 ) DESC
 ");
         //Get potential total number of returned results

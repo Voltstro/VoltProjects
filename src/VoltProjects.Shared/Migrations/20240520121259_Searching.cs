@@ -25,16 +25,7 @@ namespace VoltProjects.Shared.Migrations
                 defaultValueSql: "'english'");
 
             migrationBuilder.Sql(
-                "CREATE INDEX ix_project_page_search_vector ON public.project_page USING gin (to_tsvector(language_configuration, content));");
-
-            /*
-            migrationBuilder.UpdateData(
-                table: "language",
-                keyColumn: "id",
-                keyValue: 1,
-                columns: new string[0],
-                values: new object[0]);
-                */
+                "CREATE INDEX ix_project_page_search_vector ON public.project_page USING gin (to_tsvector(language_configuration, title || content));");
         }
 
         /// <inheritdoc />
