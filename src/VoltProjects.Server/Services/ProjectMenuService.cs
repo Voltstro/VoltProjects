@@ -71,6 +71,8 @@ public sealed class ProjectMenuService
 
         return new ProjectNavModel
         {
+            ProjectId = project.ProjectId,
+            ProjectVersionId = project.Id,
             BasePath = baseProjectPath,
             ProjectName = project.Project.DisplayName,
             MenuItems = menuItems,

@@ -61,6 +61,10 @@ public sealed class VoltProjectDbContext : DbContext
     {
         //Default Values
         {
+            //Language
+            modelBuilder.Entity<Language>()
+                .Property(p => p.Configuration)
+                .HasDefaultValueSql("'english'");
             
             //Project
             modelBuilder.Entity<Project>()
@@ -97,6 +101,10 @@ public sealed class VoltProjectDbContext : DbContext
             modelBuilder.Entity<ProjectPage>()
                 .Property(p => p.CreationTime)
                 .HasDefaultValueSql("now()");
+
+            modelBuilder.Entity<ProjectPage>()
+                .Property(p => p.LanguageConfiguration)
+                .HasDefaultValueSql("'english'");
             
             //Project TOC
             modelBuilder.Entity<ProjectToc>()
@@ -239,6 +247,10 @@ public sealed class VoltProjectDbContext : DbContext
         
         //FKs
         {
+            //Project
+            //modelBuilder.Entity<Project>().HasMany(e => e.ProjectVersions).WithOne(e => e.Project)
+            //    .HasForeignKey(x => x.Project).OnDelete(DeleteBehavior.Restrict);
+            
             //ProjectBuildEvent
             modelBuilder.Entity<ProjectBuildEvent>()
                 .HasOne(p => p.Project)
@@ -322,7 +334,7 @@ public sealed class VoltProjectDbContext : DbContext
             //ProjectVersion
             modelBuilder.Entity<ProjectVersion>()
                 .HasOne(p => p.Project)
-                .WithMany()
+                .WithMany(p => p.ProjectVersions)
                 .OnDelete(DeleteBehavior.Restrict);
             
             modelBuilder.Entity<ProjectVersion>()

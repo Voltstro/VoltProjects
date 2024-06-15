@@ -60,7 +60,7 @@ public static class VoltProjectsDbContextProcedures
     /// <returns></returns>
     public static async Task<ProjectPage[]> UpsertProjectPages(this VoltProjectDbContext dbContext, ProjectPage[] pages, ProjectVersion projectVersion)
     {
-        (object?[] objectValues, string[] objectPlaceholders) = DbContextExtensions.GenerateParams(pages, x => new { x.PublishedDate, x.Title, x.TitleDisplay, x.GitUrl, x.Aside, x.Metabar, x.WordCount, x.ProjectTocId, x.TocRel, x.Path, x.Description, x.Content, x.PageHash }, true, 1);
+        (object?[] objectValues, string[] objectPlaceholders) = DbContextExtensions.GenerateParams(pages, x => new { x.PublishedDate, x.Title, x.TitleDisplay, x.GitUrl, x.Aside, x.Metabar, x.WordCount, x.ProjectTocId, x.TocRel, x.Path, x.Description, x.Content, x.PageHash, x.LanguageConfiguration }, true, 1);
         objectValues[0] = projectVersion.Id;
         
         string paramsPlaceholder = string.Join(",", objectPlaceholders);
@@ -91,7 +91,7 @@ public static class VoltProjectsDbContextProcedures
                                                                VALUES {paramsPlaceholder}
                                                                ON CONFLICT (project_version_id, path)
                                                                DO UPDATE SET 
-                                                               	hash = EXCLUDED.hash
+                                                                hash = EXCLUDED.hash
                                                                RETURNING *;
                                                                """, objectValues!)
             .AsNoTracking()

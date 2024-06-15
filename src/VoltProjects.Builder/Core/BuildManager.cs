@@ -116,6 +116,7 @@ public sealed class BuildManager
         Parallel.ForEach(pages, (page, _) =>
         {
             page.ProjectVersion = projectVersion;
+            page.LanguageConfiguration = projectVersion.Language.Configuration;
 
             //Load page content into HtmlAgilityPack
             HtmlDocument doc = new();

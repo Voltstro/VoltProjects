@@ -82,6 +82,7 @@ public sealed class BuildService : BackgroundService
         ProjectVersion[] projectVersions = await projectContext.ProjectVersions
             .AsNoTracking()
             .Include(x => x.DocBuilder)
+            .Include(x => x.Language)
             .Where(x => x.ProjectId == project.Id)
             .ToArrayAsync(token);
 
