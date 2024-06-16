@@ -39,68 +39,68 @@
 
 // TOC Styling
 .toc {
-  padding: .5em 0;
-  font-size: 14px;
+    padding: .5em 0;
+    font-size: 14px;
 
-  a:not(.active):not(.filtered) {
-    color: inherit
-  }
-
-  a:not([href]) {
-    &, &:hover {
-      cursor: pointer;
-      text-decoration: none;
+    a:not(.active):not(.filtered) {
+        color: inherit
     }
-  }
 
-  ul {
-    padding-left: 16px;
-    list-style-type: none;
-  }
+    a:not([href]) {
+        &, &:hover {
+        cursor: pointer;
+            text-decoration: none;
+        }
+    }
 
-  li {
-    padding: .25em 0;
-  }
+    ul {
+        padding-left: 16px;
+        list-style-type: none;
+    }
 
-  li > ul {
-    display: none;
-  }
+    li {
+        padding: .25em 0;
+    }
 
-  li.filtered > ul, li.active > ul {
-    display: block
-  }
+    li > ul {
+        display: none;
+    }
 
-  .toggle::before {
-    display: inline-block;
-    margin: 0 0 0 -1.25em;
-    cursor: pointer;
-    width: 1.25em;
-    transition: transform 0.35s ease;
-    transform-origin: .5em 50%;
-  }
+    li.filtered > ul, li.active > ul {
+        display: block
+    }
 
-  .toggle > svg {
-    stroke: var(--bs-body-color);
-  }
+    .toggle::before {
+        display: inline-block;
+        margin: 0 0 0 -1.25em;
+        cursor: pointer;
+        width: 1.25em;
+        transition: transform 0.35s ease;
+        transform-origin: .5em 50%;
+    }
 
-  .filtered > a > .toggle > svg, .active > a > .toggle > svg {
-    transform: rotate(90deg);
-  }
+    .toggle > svg {
+        stroke: var(--bs-body-color);
+    }
 
-  .hide {
-    display: none;
-  }
+    .filtered > a > .toggle > svg, .active > a > .toggle > svg {
+        transform: rotate(90deg);
+    }
+
+    .hide {
+        display: none;
+    }
 }
 
 // Filter Input Control
 .filter {
-  .filter-icon {
-      font-size: 1rem;
-      top: .40rem;
-      left: .65rem;
-  }
+    .filter-icon {
+        font-size: 1rem;
+        top: .40rem;
+        left: .65rem;
+    }
 
-  .filter-control {
-      padding-left: 1.9rem;
-  }
+    .filter-control {
+        padding-left: 1.9rem;
+    }
 }

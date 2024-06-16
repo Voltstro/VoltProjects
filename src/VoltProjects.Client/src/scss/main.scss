@@ -1,68 +1,39 @@
-//Setup Fonts
+//Include fonts first
 @import "@fontsource/roboto/400";
 @import "@fontsource/roboto/900";
 @import "firacode/distr/fira_code";
-$font-family-sans-serif: 'Roboto', sans-serif;
-$font-family-monospace: 'Fira Code', monospace;
 
-//Main include of Bootstrap
-@import "_variable";
-@import "bootstrap/scss/bootstrap.scss";
+//Main includes
+@import "setup";
+@import "icons";
+@import "bootstrap/scss/bootstrap";
 
-//Include our shit
-@import "./core/alerts";
-@import "./core/hero";
-@import "./core/footer";
-@import "./core/icons";
-@import "./core/nav";
-@import "./core/buttons";
+//Main layout styling
+@import "layout";
+@import "syntaxHighlight";
 
 //Project View
-@import "./projectview/main";
-
-body {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-}
-
-img {
-  max-width: 100%;
-}
+@import "projects/main";
 
 .prj-icon {
-  @include media-breakpoint-up(md) {
-    height: 128px;
-  }
+    @include media-breakpoint-up(md) {
+        height: 128px;
+    }
 
-  background-size: cover;
-  background-position: center center;
+    background-size: cover;
+    background-position: center center;
 }
 
 .prj-about {
-  height: 64px !important;
+    height: 64px !important;
 }
 
 .prj-title {
-  text-decoration: none;
-  font-weight: 600;
-  color: var(--bs-body-color);
+    text-decoration: none;
+    font-weight: 600;
+    color: var(--bs-body-color);
 }
 
 .prj-title:hover {
-  text-decoration: none;
-}
-
-.btn-primary {
-  color: white !important;
-}
-
-input[data-readonly='true'] {
-  cursor: default;
-  opacity: 0.5;
-}
-
-.popover-search {
-  --bs-popover-max-width: 35em;
+    text-decoration: none;
 }

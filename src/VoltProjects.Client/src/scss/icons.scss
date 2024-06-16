@@ -1,25 +1,8 @@
-@import "icons-font";
-
-@font-face {
-  font-display: block;
-  font-family: $bootstrap-icons-font;
-  src: $bootstrap-icons-font-src;
-}
-
-.bi::before,
-[class^="bi-"]::before,
-[class*=" bi-"]::before {
-  display: inline-block;
-  font-family: $bootstrap-icons-font !important;
-  font-style: normal;
-  font-weight: normal !important;
-  font-variant: normal;
-  text-transform: none;
-  line-height: 1;
-  vertical-align: -.125em;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+/*
+ * Bootstrap Icons. Only includes what we are using.
+ * Icon map is overridden in setup.scss
+ */
+@import "bootstrap-icons/font/bootstrap-icons";
 
 .bi-discord::before { content: map-get($bootstrap-icons-map, "discord"); }
 .bi-github::before { content: map-get($bootstrap-icons-map, "github"); }

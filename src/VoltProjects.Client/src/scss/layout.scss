@@ -1,0 +1,122 @@
+/*
+ * Main layout styling
+ */
+
+//
+// General Layout
+//
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+  
+img {
+    max-width: 100%;
+}
+
+//Search page uses "data-readonly" on buttons that need to submit, but are readonly
+input[data-readonly='true'] {
+    cursor: default;
+    opacity: 0.5;
+}
+
+//
+// Buttons
+//
+.btn-outline {
+    --bs-btn-color: var(--bs-body-color);
+    --bs-btn-bg: var(--bs-body-bg);
+    --bs-btn-border-color: var(--bs-body-bg);
+    --bs-btn-hover-color: var(--bs-body-bg);
+    --bs-btn-hover-bg: var(--bs-body-color);
+    --bs-btn-hover-border-color: var(--bs-body-color);
+    --bs-btn-focus-shadow-rgb: 54, 54, 54;
+}
+
+.btn-primary {
+    color: white !important;
+}
+
+//
+// NavBar
+//
+.navbar-brand {
+    font-weight: 600;
+}
+
+//
+// Footer
+//
+.footer-container {
+    padding: 2rem 0;
+    margin-top: auto;
+    color: var(--bs-body-color) !important;
+}
+  
+//
+// Hero
+//
+.hero {
+    .hero-content {
+        display: flex;
+        flex-direction: column;
+        padding: 5em 0;
+        gap: 1em;
+
+        h1 {
+            font-size: calc(1.525rem + 3.3vw);
+            font-weight: 600;
+        }
+
+        .lead {
+            font-weight: 400;
+            font-size: calc(1.275rem + .3vw);
+        }
+
+        .actions {
+            display: flex;
+            gap: 1em;
+
+            .btn {
+                font-weight: 600;
+                @include button-size(.75em, 1.5em, 1.25em, .3em);
+            }
+        }
+    }
+}
+
+//
+// Alerts
+//
+.alert h5 {
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.alert h5::before {
+    font-family: $bootstrap-icons-font;
+    position: relative;
+    margin-right: .5em;
+    top: .2em;
+    font-size: 1.25em;
+    font-weight: 400;
+}
+
+.alert-info h5::before {
+    content: map-get($bootstrap-icons-map, "info-circle-fill");
+}
+
+.alert-warning h5::before {
+    content: map-get($bootstrap-icons-map, "exclamation-circle-fill");
+}
+
+.alert-danger h5::before {
+    content: map-get($bootstrap-icons-map, "x-circle-fill");
+}
+
+.alert-success h5::before {
+    content: map-get($bootstrap-icons-map, "lightbulb-fill");
+}
