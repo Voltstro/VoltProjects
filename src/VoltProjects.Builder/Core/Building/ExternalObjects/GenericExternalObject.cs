@@ -20,19 +20,7 @@ public class GenericExternalObject : IExternalObjectHandler
     {
         ExternalItem = externalItem;
     }
-    
-    /// <summary>
-    ///     <see cref="GenericExternalObject"/> that belongs to a <see cref="ProjectPage"/>
-    /// </summary>
-    /// <param name="fullFilePath"></param>
-    /// <param name="filePathRelativeToBuiltDocs"></param>
-    /// <param name="projectPage"></param>
-    public GenericExternalObject(string fullFilePath, string filePathRelativeToBuiltDocs, ProjectPage projectPage)
-        : this(fullFilePath, filePathRelativeToBuiltDocs, projectPage.ProjectVersion.Project.Name, projectPage.ProjectVersion.VersionTag)
-    {
-        ProjectPage = projectPage;
-    }
-    
+
     /// <summary>
     ///     Base constructor for a <see cref="GenericExternalObject"/>
     /// </summary>
@@ -50,6 +38,7 @@ public class GenericExternalObject : IExternalObjectHandler
         
         ObjectStream = File.OpenRead(fullFilePath);
         Hash = Helper.GetFileHash(ObjectStream);
+        ProjectPages = new List<ProjectPage>();
     }
     
     public string PathInBuiltDocs { get; }
@@ -65,6 +54,8 @@ public class GenericExternalObject : IExternalObjectHandler
         return Task.FromResult(ObjectStream);
     }
 
+   
+
     /// <summary>
     ///     Underlining <see cref="Stream"/> to a file's data
     /// </summary>
@@ -72,7 +63,7 @@ public class GenericExternalObject : IExternalObjectHandler
 
     #region Tracking
     
-    public ProjectPage? ProjectPage { get; }
+    public List<ProjectPage> ProjectPages { get; }
     
     public ProjectExternalItem? ExternalItem { get; }
 

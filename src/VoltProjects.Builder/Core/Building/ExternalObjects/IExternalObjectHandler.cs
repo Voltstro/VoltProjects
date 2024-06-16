@@ -38,7 +38,7 @@ public interface IExternalObjectHandler : IDisposable
     /// <summary>
     ///     <see cref="ProjectPage"/> that this object belongs to
     /// </summary>
-    public ProjectPage? ProjectPage { get; }
+    public List<ProjectPage> ProjectPages { get; }
     
     /// <summary>
     ///     <see cref="ProjectExternalItem"/> that this object belongs to

@@ -9,11 +9,10 @@ namespace VoltProjects.Builder.Core.Building.PageParsers;
 /// </summary>
 public sealed class DescriptionParser : IPageParser
 {
-    public List<IExternalObjectHandler>? FormatPage(string builtDocsLocation, ref ProjectPage page, ref HtmlDocument htmlDocument)
+    public void FormatPage(string builtDocsLocation, ProjectPage page, ref List<IExternalObjectHandler> externalObjects, ref HtmlDocument htmlDocument)
     {
         //Get first p block to get page description from
         HtmlNode? node = htmlDocument.DocumentNode.SelectSingleNode("//p[not(*)]");
         page.Description = node?.InnerText ?? page.Title;
-        return null;
     }
 }

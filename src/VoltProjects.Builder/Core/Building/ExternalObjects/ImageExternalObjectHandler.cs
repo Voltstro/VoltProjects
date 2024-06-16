@@ -14,9 +14,10 @@ public sealed class ImageExternalObjectHandler : GenericExternalObject
     /// </summary>
     /// <param name="fullFilePath"></param>
     /// <param name="filePathRelativeToBuiltDocs"></param>
-    /// <param name="projectPage"></param>
-    public ImageExternalObjectHandler(string fullFilePath, string filePathRelativeToBuiltDocs, ProjectPage projectPage)
-        : base(fullFilePath, Path.ChangeExtension(filePathRelativeToBuiltDocs, ".webp"), projectPage)
+    /// <param name="projectName"></param>
+    /// <param name="projectVersion"></param>
+    public ImageExternalObjectHandler(string fullFilePath, string filePathRelativeToBuiltDocs, string projectName, string projectVersion)
+        : base(fullFilePath, Path.ChangeExtension(filePathRelativeToBuiltDocs, ".webp"), projectName, projectVersion)
     {
     }
 

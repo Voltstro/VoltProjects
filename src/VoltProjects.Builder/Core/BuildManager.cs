@@ -112,8 +112,8 @@ public sealed class BuildManager
 
         //Pre-Process pages
         ProjectPage[] pages = buildResult.ProjectPages;
-        ListBuilder<IExternalObjectHandler> externalObjectsIncluded = new();
-        Parallel.ForEach(pages, (page, _) =>
+        List<IExternalObjectHandler> externalObjectsIncluded = new();
+        foreach (ProjectPage page in pages)
         {
             page.ProjectVersion = projectVersion;
             page.LanguageConfiguration = projectVersion.Language.Configuration;
@@ -125,9 +125,7 @@ public sealed class BuildManager
             //Run all page parses on this page
             foreach (IPageParser pageParser in pageParsers)
             {
-                List<IExternalObjectHandler>? externalObjects = pageParser.FormatPage(builtDocsLocation, ref page, ref doc);
-                if(externalObjects != null)
-                    externalObjectsIncluded.AddRange(externalObjects);
+                pageParser.FormatPage(builtDocsLocation, page, ref externalObjectsIncluded, ref doc);
             }
             
             //New HTML Content
@@ -146,7 +144,7 @@ public sealed class BuildManager
 
             //Calculate hash
             page.PageHash = page.CalculateHash();
-        });
+        }
         
         //Now handle project external items, adding onto our existing externalObjectsIncluded
         ProjectExternalItem[] externalItems = await dbContext.ProjectExternalItems
@@ -171,8 +169,7 @@ public sealed class BuildManager
         }
         
         //Our final list
-        IReadOnlyList<IExternalObjectHandler> finalStorageObjects = externalObjectsIncluded.AsList();
-        logger.LogInformation("Have gotten {ExternalObjectsCount} number of external objects... checking which need to be uploaded...", finalStorageObjects.Count);
+        logger.LogInformation("Have gotten {ExternalObjectsCount} number of external objects... checking which need to be uploaded...", externalObjectsIncluded.Count);
                 
         //We need to find objects that need to be uploaded, either because they are new, or out-dated (hash check)
         List<IExternalObjectHandler> storageObjectsToUpload = new();
@@ -182,7 +179,7 @@ public sealed class BuildManager
             .AsNoTracking()
             .Where(x => x.ProjectVersionId == projectVersion.Id)
             .ToArrayAsync(cancellationToken);
-        foreach (IExternalObjectHandler externalObject in finalStorageObjects)
+        foreach (IExternalObjectHandler externalObject in externalObjectsIncluded)
         {
             //Check if this storage item exists
             ProjectStorageItem? foundResult =
@@ -244,29 +241,31 @@ public sealed class BuildManager
         {
             //Create ProjectPageStorageItems
             IExternalObjectHandler[] uploadedPageStorageItems =
-                storageObjectsToUpload.Where(x => x.ProjectPage != null).ToArray();
-            ProjectPageStorageItem[] projectPageStorageItems =
-                new ProjectPageStorageItem[uploadedPageStorageItems.Length];
-            for (int i = 0; i < uploadedPageStorageItems.Length; i++)
+                storageObjectsToUpload.Where(x => x.ProjectPages.Count > 0).ToArray();
+            List<ProjectPageStorageItem> projectPageStorageItems = new();
+            foreach (IExternalObjectHandler externalObject in uploadedPageStorageItems)
             {
-                IExternalObjectHandler externalObject = uploadedPageStorageItems[i];
-                ProjectPage upsertedPage = pages.First(x => x.Path == externalObject.ProjectPage!.Path);
-                ProjectStorageItem upsertedStorageItem = storageItems.First(x => x.Path == externalObject.PathInBuiltDocs);
-
-                projectPageStorageItems[i] = new ProjectPageStorageItem
+                foreach (ProjectPage projectPage in externalObject.ProjectPages)
                 {
-                    PageId = upsertedPage.Id,
-                    StorageItemId = upsertedStorageItem.Id
-                };
+                    ProjectPage upsertedPage = pages.First(x => x.Path == projectPage.Path);
+                    IExternalObjectHandler o = externalObject;
+                    ProjectStorageItem upsertedStorageItem = storageItems.First(x => x.Path == o.PathInBuiltDocs);
+                    
+                    projectPageStorageItems.Add(new ProjectPageStorageItem
+                    {
+                        PageId = upsertedPage.Id,
+                        StorageItemId = upsertedStorageItem.Id
+                    });
+                }
             }
         
             //Upsert ProjectPageStorageItems
-            if (projectPageStorageItems.Length > 0)
-                await dbContext.UpsertProjectPageStorageItems(projectPageStorageItems);
+            if (projectPageStorageItems.Count > 0)
+                await dbContext.UpsertProjectPageStorageItems(projectPageStorageItems.ToArray());
         }
 
         //Cleanup
-        foreach (IExternalObjectHandler objectHandler in finalStorageObjects)
+        foreach (IExternalObjectHandler objectHandler in externalObjectsIncluded)
         {
             objectHandler.Dispose();
         }

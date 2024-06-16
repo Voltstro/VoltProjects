@@ -20,11 +20,11 @@ public sealed class CodeParser : IPageParser
         this.highlightService = highlightService;
     }
     
-    public List<IExternalObjectHandler>? FormatPage(string builtDocsLocation, ref ProjectPage page, ref HtmlDocument htmlDocument)
+    public void FormatPage(string builtDocsLocation, ProjectPage page, ref List<IExternalObjectHandler> externalObjects, ref HtmlDocument htmlDocument)
     {
         HtmlNodeCollection? codeBlocks = htmlDocument.DocumentNode.SelectNodes("//pre/code");
         if (codeBlocks is not { Count: > 0 })
-            return null;
+            return;
         
         foreach (HtmlNode codeBlock in codeBlocks)
         {
@@ -49,7 +49,5 @@ public sealed class CodeParser : IPageParser
 
             codeBlock.SetAttributeValue("class", "hljs shadow");
         }
-
-        return null;
     }
 }

@@ -15,7 +15,8 @@ public interface IPageParser
     /// </summary>
     /// <param name="builtDocsLocation"></param>
     /// <param name="page"></param>
+    /// <param name="externalObjects"></param>
     /// <param name="htmlDocument"></param>
     /// <returns></returns>
-    public List<IExternalObjectHandler>? FormatPage(string builtDocsLocation, ref ProjectPage page, ref HtmlDocument htmlDocument);
+    public void FormatPage(string builtDocsLocation, ProjectPage page, ref List<IExternalObjectHandler> externalObjects, ref HtmlDocument htmlDocument);
 }

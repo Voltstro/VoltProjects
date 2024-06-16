@@ -24,11 +24,12 @@ public class SrcAttributeParser : IPageParser
         this.storageService = storageService;
     }
     
-    public List<IExternalObjectHandler>? FormatPage(string builtDocsLocation, ref ProjectPage page, ref HtmlDocument htmlDocument)
+    public void FormatPage(string builtDocsLocation, ProjectPage page, ref List<IExternalObjectHandler> externalObjects, ref HtmlDocument htmlDocument)
     {
-        string pageCurrentPath = Path.Combine(builtDocsLocation, page.Path);
+        string pagePath = page.Path;
+        string pageCurrentPath = Path.Combine(builtDocsLocation, pagePath);
 
-        List<IExternalObjectHandler> externalObjects = new();
+        //List<IExternalObjectHandler> externalObjects = new();
         foreach (SrcType srcType in srcTypesXPaths)
         {
             HtmlNodeCollection? srcCollection = htmlDocument.DocumentNode.SelectNodes(srcType.XPath);
@@ -54,11 +55,23 @@ public class SrcAttributeParser : IPageParser
                     string objectPathInProject = Path.GetRelativePath(builtDocsLocation, objectPath);
                     string fullObjectPath = Path.Combine(builtDocsLocation, objectPathInProject);
 
-                    IExternalObjectHandler externalObject = srcType.ObjectType == SrcObjectType.Image
-                        ? new ImageExternalObjectHandler(fullObjectPath, objectPathInProject, page) 
-                        : new GenericExternalObject(fullObjectPath, objectPathInProject, page);
-                    externalObjects.Add(externalObject);
-
+                    //Check to see if we have created an object handler for this object already.
+                    IExternalObjectHandler? externalObject = externalObjects
+                        .FirstOrDefault(x => x.PathInBuiltDocs == objectPathInProject);
+                    if (externalObject == null)
+                    {
+                        string projectVersion = page.ProjectVersion.VersionTag;
+                        string projectName = page.ProjectVersion.Project.Name;
+                        
+                        externalObject = srcType.ObjectType == SrcObjectType.Image
+                            ? new ImageExternalObjectHandler(fullObjectPath, objectPathInProject, projectName, projectVersion) 
+                            : new GenericExternalObject(fullObjectPath, objectPathInProject, projectName, projectVersion);
+                        externalObjects.Add(externalObject);
+                    }
+                    
+                    //Add this page to the external object
+                    externalObject.ProjectPages.Add(page);
+                    
                     //Set object src to uploaded URL
                     string fullUrl = storageService.GetFullUploadUrl(externalObject);
                     htmlNode.SetAttributeValue("src", fullUrl);
@@ -66,7 +79,7 @@ public class SrcAttributeParser : IPageParser
             }
         }
 
-        return externalObjects;
+        //return externalObjects;
     }
 
     private record SrcType(string XPath, SrcObjectType ObjectType);
