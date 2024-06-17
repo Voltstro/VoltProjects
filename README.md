@@ -10,13 +10,13 @@ Volt Projects - An automatic documentation building and hosting service.
 
 ## What does it do?
 
-Volt Projects main purpose is to host a project's documentation. It handles the process of automatically updating and deploying a project's documentation.
+Volt Projects main purpose is to host a project's documentation. It handles the process of automatically updating and deploying a project's documentation. Volt Projects it self does not generate any static files, instead it can ingest documentation from any existing static doc builder.
 
 ## Getting Started
 
 ### Database Setup
 
-For either hosting or development of Volt Projects, you will need a Postgres 15 database. You can really use whatever service you want to run Postgres ([local install](https://www.postgresql.org/download/), [Docker](https://hub.docker.com/_/postgres/), etc), as long as VP can connect to it using a [connection string](https://www.npgsql.org/doc/connection-string-parameters.html).
+For either hosting or development of Volt Projects, you will need a Postgres 15 database. You can really use whatever service you want to run Postgres, ([local install](https://www.postgresql.org/download/), [Docker](https://hub.docker.com/_/postgres/), etc), as long as VP can connect to it using a [connection string](https://www.npgsql.org/doc/connection-string-parameters.html).
 
 You will obviously need the database for VP and a user to access the DB.
 
@@ -31,7 +31,7 @@ GRANT USAGE ON SCHEMA public TO voltprojects;
 ```
 
 > [!NOTE]
-> Do not use this passwords in a production environment! If your dumb enough to not realize this, then you should definitely not be hosting a production instance.
+> Do not use this password in a production environment! If your dumb enough to not realize this, then you should definitely not be hosting a production instance.
 
 ### Azure Blob Storage
 
@@ -99,16 +99,16 @@ Postgres 15
 
     ```sql
     INSERT INTO public.project
-    (id, "name", short_name, description, git_url, icon_path)
-    VALUES(1, 'VoltRpc', NULL, 'VoltRpc', 'https://github.com/Voltstro-Studios/VoltRpc', 'icon.svg');
-
+    ("name", short_name, description, git_url, icon_path, display_name)
+    VALUES('VoltRpc', NULL, 'An RPC library which is designed to be both simple to use and fast.', 'https://github.com/Voltstro-Studios/VoltRpc', 'icon.svg', 'VoltRpc');
+    
     INSERT INTO public.project_version
-    (id, project_id, version_tag, git_branch, git_tag, doc_builder_id, docs_path, docs_built_path, language_id, is_default)
-    VALUES(1, 1, 'latest', 'chore/vdocfx', NULL, 'vdocfx', 'docs/', 'docs/_site/VoltRpc/', 1, true);
-
+        (project_id, version_tag, git_branch, git_tag, doc_builder_id, docs_path, docs_built_path, language_id, is_default)
+        VALUES(1, 'latest', 'master', NULL, 'docfx', 'docs/', 'docs/_site/', 1, true);
+        
     INSERT INTO public.project_pre_build
-    (id, project_version_id, "order", command, arguments)
-    VALUES(1, 1, 1, 'dotnet', 'build src/VoltRpc.sln -c ReleaseNoPackage');
+        (project_version_id, "order", command, arguments)
+        VALUES(1, 1, 'docfx', 'metadata docs/docfx.json');
     ```
 
 6. Run Builder and Server projects. Make sure everything in builder goes well. You can access the server on `http://localhost:5000`.
