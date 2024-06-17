@@ -42,6 +42,20 @@ input[data-readonly='true'] {
 //
 // NavBar
 //
+:root {
+    --bs-navbar-bg-color: #1574a3;
+}
+
+@if $enable-dark-mode {
+    @include color-mode(dark, true) {
+        --bs-navbar-bg-color: var(--bs-body-bgblack);
+    }
+}
+
+.navbar {
+    background-color: var(--bs-navbar-bg-color);
+}
+
 .navbar-brand {
     font-weight: 600;
 }

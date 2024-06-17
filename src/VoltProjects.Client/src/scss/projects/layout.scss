@@ -154,3 +154,9 @@
 .popover-search {
     --bs-popover-max-width: 35em;
 }
+
+@include color-mode(light, true) {
+    .project-search-btn {
+        --bs-btn-bg: white;
+    }    
+}
