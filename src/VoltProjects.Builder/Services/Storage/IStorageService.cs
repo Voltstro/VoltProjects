@@ -8,17 +8,6 @@ namespace VoltProjects.Builder.Services.Storage;
 public interface IStorageService
 {
     /// <summary>
-    ///     Uploads a file to the storage provider
-    /// </summary>
-    /// <param name="fileStream"></param>
-    /// <param name="fileName"></param>
-    /// <param name="contentType"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    public Task<string> UploadFileAsync(Stream fileStream, string fileName, string contentType,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
     ///     Bulk upload a bunch of different files
     /// </summary>
     /// <param name="filesToUpload"></param>

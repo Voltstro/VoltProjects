@@ -2,25 +2,26 @@ using Azure;
 using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
-using Microsoft.Extensions.Options;
-using VoltProjects.Builder.Core;
 using VoltProjects.Builder.Core.Building.ExternalObjects;
 
 namespace VoltProjects.Builder.Services.Storage;
 
-public sealed class AzureStorageService : IStorageService
+/// <summary>
+///     <see cref="IStorageService"/> that uses Azure Storage
+/// </summary>
+internal sealed class AzureStorageService : IStorageService
 {
     private readonly StorageConfig config;
     private readonly BlobContainerClient storageClient;
     
     /// <summary>
-    ///     Creates a new <see cref="AzureStorageService"/>
+    ///     Creates a new <see cref="AzureStorageService"/> instance
     /// </summary>
     /// <param name="config"></param>
     /// <exception cref="FileNotFoundException"></exception>
-    public AzureStorageService(IOptions<VoltProjectsBuilderConfig> config)
+    public AzureStorageService(StorageConfig config)
     {
-        this.config = config.Value.StorageConfig;
+        this.config = config;
 
         string? azureCredentialString = Environment.GetEnvironmentVariable("VP_AZURE_CREDENTIAL");
         if (string.IsNullOrWhiteSpace(azureCredentialString))
@@ -28,20 +29,6 @@ public sealed class AzureStorageService : IStorageService
 
         BlobServiceClient blobServiceClient = new(azureCredentialString);
         storageClient = blobServiceClient.GetBlobContainerClient(this.config.ContainerName);
-    }
-    
-    public async Task<string> UploadFileAsync(Stream fileStream, string fileName, string contentType,
-        CancellationToken cancellationToken = default)
-    {
-        BlobClient? newBlob = storageClient.GetBlobClient(fileName);
-        BlobHttpHeaders blobHttpHeader = new() { ContentType = contentType };
-        
-        await newBlob.UploadAsync(fileStream, new BlobUploadOptions
-        {
-            HttpHeaders = blobHttpHeader
-        }, cancellationToken);
-        
-        return Path.Combine(config.PublicUrl, fileName);
     }
 
     public async Task UploadBulkFileAsync(IExternalObjectHandler[] filesToUpload, CancellationToken cancellationToken = default)
@@ -70,7 +57,8 @@ public sealed class AzureStorageService : IStorageService
             blobHttpHeader.ContentType = groupedStorageItem.ContentType;
             foreach (IExternalObjectHandler storageItem in groupedStorageItem.Items)
             {
-                BlobClient newBlob = storageClient.GetBlobClient(storageItem.UploadPath);
+                string uploadPath = Path.Combine(config.SubPath!, storageItem.UploadPath);
+                BlobClient newBlob = storageClient.GetBlobClient(uploadPath);
                 Stream fileStream = await storageItem.GetUploadFileStream();
                 tasks.Enqueue(newBlob.UploadAsync(fileStream, options, cancellationToken));
             }
@@ -81,8 +69,10 @@ public sealed class AzureStorageService : IStorageService
 
     public string GetFullUploadUrl(IExternalObjectHandler externalObject)
     {
-        Uri baseUri = new Uri(config.PublicUrl);
-        Uri fullUri = new Uri(baseUri, externalObject.UploadPath);
+        string baseUrl = $"https://{Path.Combine(config.BasePath!, config.SubPath ?? string.Empty)}";
+        
+        Uri baseUri = new(baseUrl);
+        Uri fullUri = new(baseUri, externalObject.UploadPath);
         return fullUri.ToString();
     }
 
