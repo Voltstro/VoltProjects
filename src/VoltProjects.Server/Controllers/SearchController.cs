@@ -19,7 +19,7 @@ namespace VoltProjects.Server.Controllers;
 ///     Controller for searching
 /// </summary>
 [Route("/search/")]
-[ResponseCache(NoStore = true)]
+[ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
 public sealed class SearchController : Controller
 {
     private readonly ILogger<SearchController> logger;

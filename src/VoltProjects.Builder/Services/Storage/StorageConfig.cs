@@ -24,4 +24,9 @@ public sealed class StorageConfig
     ///     Additional sub path to add to <see cref="BasePath"/>
     /// </summary>
     public string? SubPath { get; set; }
+
+    /// <summary>
+    ///     Cache-Control max age time (in seconds) of objects uploaded
+    /// </summary>
+    public int CacheTime { get; set; } = 2678400; //Default: 30 days
 }

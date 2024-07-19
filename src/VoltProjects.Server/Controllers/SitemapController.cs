@@ -8,6 +8,7 @@ namespace VoltProjects.Server.Controllers;
 /// <summary>
 ///     <see cref="Controller"/> for sitemap files
 /// </summary>
+[ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
 public class SitemapController : Controller
 {
     private readonly SitemapService sitemapService;

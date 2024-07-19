@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
+using Microsoft.Net.Http.Headers;
 using VoltProjects.Server.Models;
 using VoltProjects.Server.Models.View;
 using VoltProjects.Server.Shared;
@@ -19,7 +20,6 @@ namespace VoltProjects.Server.Controllers;
 /// <summary>
 ///     Main <see cref="Controller"/>, for the index and about pages
 /// </summary>
-[ResponseCache(Duration = 1209600)]
 public class MainController : Controller
 {
     private readonly IMemoryCache memoryCache;
@@ -74,6 +74,7 @@ public class MainController : Controller
             return projectInfos.ToArray();
         }))!;
         
+        Response.Headers[HeaderNames.CacheControl] = $"public,max-age={config.CacheTime}";
         return View(projectInfos);
     }
 

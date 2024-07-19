@@ -1,6 +1,7 @@
 using Google.Apis.Auth.OAuth2;
 using Google.Cloud.Storage.V1;
 using VoltProjects.Builder.Core.Building.ExternalObjects;
+using Object = Google.Apis.Storage.v1.Data.Object;
 
 namespace VoltProjects.Builder.Services.Storage;
 
@@ -23,19 +24,22 @@ internal sealed class GoogleStorageService : IStorageService
 
     public async Task UploadBulkFileAsync(IExternalObjectHandler[] filesToUpload, CancellationToken cancellationToken = default)
     {
-        Queue<Task<Google.Apis.Storage.v1.Data.Object>> tasks = new();
-
+        Queue<Task<Object>> tasks = new();
+        
         foreach (IExternalObjectHandler storageItem in filesToUpload)
         {
             Stream fileStream = await storageItem.GetUploadFileStream();
             string uploadPath = Path.Combine(config.SubPath!, storageItem.UploadPath);
+
+            Object storageObject = new()
+            {
+                Bucket = config.ContainerName,
+                Name = uploadPath,
+                CacheControl = $"public,max-age={config.CacheTime}",
+                ContentType = storageItem.ContentType
+            };
             
-            tasks.Enqueue(storageClient.UploadObjectAsync(
-                config.ContainerName,
-                uploadPath,
-                storageItem.ContentType,
-                fileStream,
-                cancellationToken: cancellationToken));
+            tasks.Enqueue(storageClient.UploadObjectAsync(storageObject, fileStream, cancellationToken: cancellationToken));
         }
         
         await Task.WhenAll(tasks);

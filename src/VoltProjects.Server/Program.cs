@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Rewrite;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
+using Microsoft.Net.Http.Headers;
 using OpenTelemetry.Trace;
 using Serilog;
 using VoltProjects.Server.Services;
@@ -88,7 +90,14 @@ try
     else
         app.UseDeveloperExceptionPage();
 
-    app.UseStaticFiles();
+    VoltProjectsConfig config = app.Services.GetRequiredService<IOptions<VoltProjectsConfig>>().Value;
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        OnPrepareResponse = ctx =>
+        {
+            ctx.Context.Response.Headers[HeaderNames.CacheControl] = $"public,max-age={config.CacheTime}";
+        }
+    });
     
     //Ensures '/' is added to the end of each request
     const string pattern = "^(((.*/)|(/?))[^/.]+(?!/$))$";

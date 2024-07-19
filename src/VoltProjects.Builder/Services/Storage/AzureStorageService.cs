@@ -35,7 +35,10 @@ internal sealed class AzureStorageService : IStorageService
     {
         IEnumerable<GroupedStorageItem> groupedStorageItems = filesToUpload.GroupBy(x => x.ContentType, item => item,
             (s, items) => new GroupedStorageItem(s, items.ToArray()));
-        BlobHttpHeaders blobHttpHeader = new();
+        BlobHttpHeaders blobHttpHeader = new()
+        {
+            CacheControl = $"public,max-age={config.CacheTime}"
+        };
         BlobUploadOptions options = new BlobUploadOptions
         {
             HttpHeaders = blobHttpHeader,

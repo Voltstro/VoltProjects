@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Net.Http.Headers;
 using VoltProjects.Server.Models;
 using VoltProjects.Server.Models.View;
 using VoltProjects.Server.Services;
@@ -27,7 +28,7 @@ public class ProjectController : Controller
 {
     private readonly VoltProjectDbContext dbContext;
     private readonly ProjectMenuService projectMenuService;
-    private readonly VoltProjectsConfig vpConfig;
+    private readonly VoltProjectsConfig config;
     
     private readonly IMemoryCache memoryCache;
     private readonly ILogger<ProjectController> logger;
@@ -41,7 +42,7 @@ public class ProjectController : Controller
     {
         this.dbContext = dbContext;
         this.projectMenuService = projectMenuService;
-        this.vpConfig = vpConfig.Value;
+        this.config = vpConfig.Value;
         this.memoryCache = memoryCache;
         this.logger = logger;
     }
@@ -105,7 +106,7 @@ public class ProjectController : Controller
                 return NotFound();
             
             //Send user agent to storage item
-            string storageItemUrl = $"{vpConfig.PublicUrl}{projectVersion.Project.Name}/{projectVersion.VersionTag}/{externalItemStorageItem.StorageItem.Path}";
+            string storageItemUrl = $"{config.PublicUrl}{projectVersion.Project.Name}/{projectVersion.VersionTag}/{externalItemStorageItem.StorageItem.Path}";
             return RedirectPermanent(storageItemUrl);
         }
         
@@ -125,8 +126,10 @@ public class ProjectController : Controller
         if (projectPage.ProjectTocId != null)
             tocItem = await HandleProjectToc(projectPage, requestPath, cancellationToken);
 
-        Uri baseUri = new(vpConfig.SiteUrl);
+        Uri baseUri = new(config.SiteUrl);
         Uri fullUrl = new(baseUri, requestPath);
+
+        Response.Headers[HeaderNames.CacheControl] = $"public,max-age={config.CacheTime}";
 
         return View("ProjectView", new ProjectViewModel
         {
