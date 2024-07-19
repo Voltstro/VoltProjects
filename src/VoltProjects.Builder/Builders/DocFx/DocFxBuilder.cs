@@ -6,7 +6,7 @@ using VoltProjects.Shared.Models;
 namespace VoltProjects.Builder.Builders.DocFx;
 
 [BuilderName(Name = "docfx")]
-public class DocFxBuilder : Core.Builder
+public class DocFxBuilder : IBuilder
 {
     private readonly Dictionary<string, string> cssClassMappings = new Dictionary<string, string>
     {
@@ -18,14 +18,14 @@ public class DocFxBuilder : Core.Builder
         ["CAUTION"] = "alert alert-danger"
     };
     
-    public override void PrepareBuilder(ref string[]? arguments, string docsPath, string docsBuiltPath)
+    public void PrepareBuilder(ref string[]? arguments, string docsPath, string docsBuiltPath)
     {
         string docsConfigPath = Path.Combine(docsPath, "docfx.json");
         if (!File.Exists(docsConfigPath))
             throw new FileNotFoundException($"docfx.json file was not found in {docsPath}!");
     }
 
-    public override BuildResult BuildProject(ProjectVersion projectVersion, string docsPath, string docsBuiltPath)
+    public BuildResult BuildProject(ProjectVersion projectVersion, string docsPath, string docsBuiltPath)
     {
         //Get all models first
         string[] modelFiles = Directory.GetFiles(docsBuiltPath, "*.raw.json", SearchOption.AllDirectories);

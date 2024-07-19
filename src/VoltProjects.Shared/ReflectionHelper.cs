@@ -16,4 +16,12 @@ public static class ReflectionHelper
             .Where(myType => myType.IsClass && !myType.IsAbstract && myType.IsSubclassOf(typeof(T)))
             .ToList();
     }
+    
+    public static IReadOnlyList<Type> GetAssignedFrom<T>() where T : class
+    {
+        return Assembly.GetAssembly(typeof(T))
+            .GetTypes()
+            .Where(x => x is { IsClass: true, IsAbstract: false } && typeof(T).IsAssignableFrom(x))
+            .ToList();
+    }
 }

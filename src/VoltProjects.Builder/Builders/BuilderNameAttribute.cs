@@ -1,7 +1,7 @@
-namespace VoltProjects.Builder.Core;
+namespace VoltProjects.Builder.Builders;
 
 /// <summary>
-///     Marks a <see cref="Builder"/>'s name
+///     Marks a <see cref="IBuilder"/>'s name
 /// </summary>
 [AttributeUsage(AttributeTargets.Class)]
 public sealed class BuilderNameAttribute : Attribute

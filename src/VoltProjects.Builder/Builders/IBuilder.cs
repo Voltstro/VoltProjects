@@ -1,11 +1,12 @@
+using VoltProjects.Builder.Core;
 using VoltProjects.Shared.Models;
 
-namespace VoltProjects.Builder.Core;
+namespace VoltProjects.Builder.Builders;
 
 /// <summary>
-///     Base class for all Doc Builders to implement
+///     Base interface for all Doc Builders to implement
 /// </summary>
-public abstract class Builder
+public interface IBuilder
 {
     /// <summary>
     ///     Method is called before the build process is executed. Arguments should be formatted, and anything the builder might need should be setup
@@ -13,7 +14,7 @@ public abstract class Builder
     /// <param name="arguments"></param>
     /// <param name="docsPath"></param>
     /// <param name="docsBuiltPath"></param>
-    public abstract void PrepareBuilder(ref string[]? arguments, string docsPath, string docsBuiltPath);
+    public void PrepareBuilder(ref string[]? arguments, string docsPath, string docsBuiltPath);
     
     /// <summary>
     ///     Process everything and convert into a standard VoltProjects format
@@ -22,5 +23,5 @@ public abstract class Builder
     /// <param name="docsPath"></param>
     /// <param name="docsBuiltPath"></param>
     /// <returns></returns>
-    public abstract BuildResult BuildProject(ProjectVersion projectVersion, string docsPath, string docsBuiltPath);
+    public BuildResult BuildProject(ProjectVersion projectVersion, string docsPath, string docsBuiltPath);
 }

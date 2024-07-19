@@ -3,13 +3,12 @@ using HtmlAgilityPack;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using VoltProjects.Builder.Core.Building.ExternalObjects;
 using VoltProjects.Builder.Core.Building.PageParsers;
+using VoltProjects.Builder.Builders;
 using VoltProjects.Builder.Services;
 using VoltProjects.Builder.Services.Storage;
 using VoltProjects.Shared;
-using VoltProjects.Shared.Collections;
 using VoltProjects.Shared.Models;
 using WebMarkupMin.Core;
 
@@ -23,7 +22,7 @@ public sealed class BuildManager
     private readonly ILogger<BuildManager> logger;
     private readonly HtmlMinifier htmlMinifier;
     private readonly IStorageService storageService;
-    private readonly Dictionary<string, Builder> builders;
+    private readonly Dictionary<string, IBuilder> builders;
     private readonly List<IPageParser> pageParsers;
 
     /// <summary>
@@ -44,15 +43,16 @@ public sealed class BuildManager
         this.logger = logger;
         this.htmlMinifier = htmlMinifier;
         this.storageService = storageService;
-        builders = new Dictionary<string, Builder>();
-        IEnumerable<Type> foundBuilders = ReflectionHelper.GetInheritedTypes<Builder>();
+        builders = new Dictionary<string, IBuilder>();
+
+        IEnumerable<Type> foundBuilders = ReflectionHelper.GetAssignedFrom<IBuilder>();
 
         //Create all builders
         foreach (Type foundBuilder in foundBuilders)
         {
             BuilderNameAttribute attribute = (BuilderNameAttribute)Attribute.GetCustomAttribute(foundBuilder, typeof(BuilderNameAttribute))!;
 
-            Builder builder = (Builder)ActivatorUtilities.CreateInstance(serviceProvider, foundBuilder);
+            IBuilder builder = (IBuilder)ActivatorUtilities.CreateInstance(serviceProvider, foundBuilder);
             builders.Add(attribute.Name, builder);
             this.logger.LogDebug("Created builder {Builder}", attribute.Name);
         }
@@ -75,12 +75,12 @@ public sealed class BuildManager
     public async Task BuildProject(VoltProjectDbContext dbContext, ProjectVersion projectVersion, string projectPath, CancellationToken cancellationToken)
     {
         //First, get the builder
-        KeyValuePair<string, Builder>? buildFindResult = builders.FirstOrDefault(x => x.Key == projectVersion.DocBuilderId);
+        KeyValuePair<string, IBuilder>? buildFindResult = builders.FirstOrDefault(x => x.Key == projectVersion.DocBuilderId);
         if (buildFindResult == null)
             throw new NotImplementedException($"Builder {projectVersion.DocBuilderId} was not found!");
 
         //We have a builder
-        Builder builder = buildFindResult.Value.Value;
+        IBuilder builder = buildFindResult.Value.Value;
 
         //Check that docs exist
         string docsLocation = Path.Combine(projectPath, projectVersion.DocsPath);
@@ -271,7 +271,7 @@ public sealed class BuildManager
         }
     }
 
-    private void ExecuteDocBuilderProcess(Builder builder, ProjectVersion projectVersion, string docsLocation, string docsBuiltLocation)
+    private void ExecuteDocBuilderProcess(IBuilder builder, ProjectVersion projectVersion, string docsLocation, string docsBuiltLocation)
     {
         DocBuilder docBuilder = projectVersion.DocBuilder;
 

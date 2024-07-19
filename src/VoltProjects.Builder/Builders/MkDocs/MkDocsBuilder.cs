@@ -8,7 +8,7 @@ using YamlDotNet.Serialization.NamingConventions;
 namespace VoltProjects.Builder.Builders.MkDocs;
 
 [BuilderName(Name = "mkdocs")]
-public class MkDocsBuilder : Core.Builder
+public class MkDocsBuilder : IBuilder
 {
     private readonly IDeserializer ymlDeserializer;
     private readonly ISerializer ymlSerializer;
@@ -46,7 +46,7 @@ public class MkDocsBuilder : Core.Builder
         ["quote"] = "alert-light",
     };
     
-    public override void PrepareBuilder(ref string[]? arguments, string docsPath, string docsBuiltPath)
+    public void PrepareBuilder(ref string[]? arguments, string docsPath, string docsBuiltPath)
     {
         string configFile = Path.Combine(docsPath, "mkdocs.yml");
         if (!File.Exists(configFile))
@@ -72,7 +72,7 @@ public class MkDocsBuilder : Core.Builder
         File.WriteAllText(configFile, ymlConfig);
     }
 
-    public override BuildResult BuildProject(ProjectVersion projectVersion, string docsPath, string docsBuiltPath)
+    public BuildResult BuildProject(ProjectVersion projectVersion, string docsPath, string docsBuiltPath)
     {
         string menuFile = Path.Combine(docsBuiltPath, "menu.json");
         string tocFile = Path.Combine(docsBuiltPath, "tocs.json");
