@@ -6,6 +6,7 @@
   "scripts": {
     "build:dev": "tsc && vite build --mode development",
     "build": "tsc && vite build --mode production",
+    "build:dist": "tsc && vite build --mode production-dist",
     "watch": "tsc && vite build --watch --mode development",
     "lint": "eslint"
   },

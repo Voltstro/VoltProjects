@@ -3,6 +3,10 @@ import { resolve } from 'path';
 
 export default defineConfig(({ mode }) => {
 
+    let outDir = resolve(__dirname, '..', 'VoltProjects.Server', 'wwwroot');
+    if(mode === 'production-dist')
+        outDir = resolve(__dirname, 'dist');
+
     //Base vite config
     const config: UserConfig = {
         build: {
@@ -16,7 +20,7 @@ export default defineConfig(({ mode }) => {
                     search: resolve(__dirname, 'src/search.ts')
                 },
                 output: {
-                    dir: resolve(__dirname, '..', 'VoltProjects.Server', 'wwwroot'),
+                    dir: outDir,
                     entryFileNames: () => 'js/[name].js',
                     chunkFileNames: () => 'js/[name].[hash].js',
                     assetFileNames: () => 'assets/[name][extname]'

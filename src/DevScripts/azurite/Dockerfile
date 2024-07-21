@@ -1,14 +1,14 @@
 # Custom Dockerfile for setting up default azurite container
 # From: https://stackoverflow.com/a/72327313
 
-FROM mcr.microsoft.com/azure-storage/azurite:3.26.0
+FROM mcr.microsoft.com/azure-storage/azurite:3.31.0
 
 # Install azure-storage-blob python package
 RUN apk update && \
     apk --no-cache add py3-pip && \
     apk add --virtual=build gcc libffi-dev musl-dev python3-dev && \
     pip3 install --upgrade pip && \
-    pip3 install azure-storage-blob==12.18.2
+    pip3 install azure-storage-blob==12.21.0
 
 # Copy init_azurite.py script
 COPY ./init_azurite.py init_azurite.py
@@ -18,4 +18,4 @@ COPY ./init_containers init_containers
 
 # Run the blob emulator and initialize the blob containers
 CMD python3 init_azurite.py --directory=init_containers & \
-    azurite-blob --blobHost 0.0.0.0 --blobPort 10000
+    azurite-blob --blobHost 0.0.0.0 --blobPort 10000 --skipApiVersionCheck
