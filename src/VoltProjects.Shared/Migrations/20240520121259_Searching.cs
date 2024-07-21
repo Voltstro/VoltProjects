@@ -75,12 +75,12 @@ BEGIN
 		 	page.description,
 		 	page.page_content,
 		 	page.page_hash,
-			page.language_configuration
+		 	page.language_configuration
 	     FROM unnest(pages) AS page;
 	
     INSERT INTO public.project_page
         (project_version_id, path, published, published_date, title, title_display, word_count, project_toc_id, toc_rel, git_url, aside, metabar, description, content, page_hash, language_configuration)
-		SELECT * FROM temp_pages AS page
+    	SELECT * FROM temp_pages AS page
     ON CONFLICT (project_version_id, path)
     DO UPDATE SET 
         published = EXCLUDED.published,
@@ -98,7 +98,15 @@ BEGIN
         content = EXCLUDED.CONTENT,
         page_hash = EXCLUDED.page_hash,
         language_configuration = EXCLUDED.language_configuration
-	WHERE project_page.page_hash != EXCLUDED.page_hash;	
+		WHERE project_page.page_hash != EXCLUDED.page_hash;
+	
+	UPDATE public.project_page
+	SET published=false
+	WHERE
+		project_version_id = version_id
+	AND ""path"" NOT IN (SELECT path FROM temp_pages WHERE PATH IS NOT NULL);
+	
+	RETURN query SELECT * FROM public.project_page AS all_pages WHERE all_pages.project_version_id = version_id;	
 END;
 $function$
 ;
