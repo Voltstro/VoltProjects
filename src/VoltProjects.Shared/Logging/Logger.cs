@@ -16,7 +16,6 @@ public sealed class Logger : IDisposable
             .Enrich.FromLogContext()
             .Enrich.WithThreadId()
             .WriteTo.Console(outputTemplate: logFormat)
-            .WriteTo.File("Logs/log.log", rollingInterval: RollingInterval.Day, outputTemplate: logFormat)
             .ReadFrom.Configuration(configuration)
             .CreateLogger();
 
