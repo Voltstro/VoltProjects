@@ -14,7 +14,7 @@ internal static class StorageServiceInstaller
         if (string.IsNullOrWhiteSpace(storageConfig.ContainerName) || string.IsNullOrWhiteSpace(storageConfig.BasePath))
             throw new NullReferenceException("Both ContainerName and BasePath cannot be null or white space!");
 
-        if (storageConfig.SubPath != null && !storageConfig.SubPath.EndsWith('/'))
+        if (!string.IsNullOrWhiteSpace(storageConfig.SubPath) && !storageConfig.SubPath.EndsWith('/'))
             throw new ArgumentException("SubPath should end with a '/'!");
         
         switch(storageConfig.Provider)

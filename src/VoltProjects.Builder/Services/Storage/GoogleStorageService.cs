@@ -47,10 +47,8 @@ internal sealed class GoogleStorageService : IStorageService
 
     public string GetFullUploadUrl(IExternalObjectHandler externalObject)
     {
-        string baseUrl = $"https://{Path.Combine(config.BasePath!, config.SubPath ?? string.Empty)}";
-        
-        Uri baseUri = new(baseUrl);
-        Uri fullUri = new(baseUri, externalObject.UploadPath);
+        Uri baseUri = new(config.BasePath!);
+        Uri fullUri = new(baseUri, Path.Combine(config.SubPath ?? string.Empty, externalObject.UploadPath));
         return fullUri.ToString();
     }
 }
