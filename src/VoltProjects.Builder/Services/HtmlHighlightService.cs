@@ -1,4 +1,6 @@
 using System.IO.Compression;
+using System.Security.Cryptography;
+using System.Text;
 using Jint;
 using Jint.Native;
 using Microsoft.Extensions.Logging;
@@ -12,6 +14,7 @@ public sealed class HtmlHighlightService
 {
     private const string HlJsPath = "Data/highlight.js";
     private const string HlJsZip = "Data/highlight.zip";
+    private const string HlJsFileHash = "d3b7a8e4fb3c86f214a1bdbad45e7d52";
     
     private readonly ILogger<HtmlHighlightService> logger;
     
@@ -27,21 +30,31 @@ public sealed class HtmlHighlightService
     {
         this.logger = logger;
         parseLock = new object();
-        
+
         //Check if highlight.js exists
         if (!File.Exists(HlJsPath))
         {
             logger.LogWarning("highlight.js doesn't exist... extracting...");
-            if (!File.Exists(HlJsZip))
-                throw new FileNotFoundException("HLJs zip doesn't exist!");
-            
-            //Extracting time
-            ZipFile.ExtractToDirectory(HlJsZip, "Data/");
+            ExtractZip();
         }
-        
+
         //Read it
         string jsFile = File.ReadAllText(HlJsPath);
-        
+
+        //Check hash of js file
+        byte[] jsFileBytes = Encoding.UTF8.GetBytes(jsFile);
+        byte[] jsFileHashBytes = MD5.HashData(jsFileBytes);
+        string jsFileHash = BitConverter.ToString(jsFileHashBytes).Replace("-", string.Empty).ToLowerInvariant();
+
+        if (jsFileHash != HlJsFileHash)
+        {
+            this.logger.LogWarning("highlight.js file does not have excepted hash. Most like needs updating. Re-extracting...");
+            ExtractZip();
+
+            //Re-read
+            jsFile = File.ReadAllText(HlJsPath);
+        }
+
         //Create Jint Engine
         engine = new Engine();
         engine.Execute(jsFile);
@@ -73,5 +86,14 @@ public sealed class HtmlHighlightService
             logger.LogError(ex, "Error while highlighting code block!");
             return codeBlock;
         }
+    }
+
+    private void ExtractZip()
+    {
+        if (!File.Exists(HlJsZip))
+            throw new FileNotFoundException("HLJs zip doesn't exist!");
+            
+        //Extracting time
+        ZipFile.ExtractToDirectory(HlJsZip, "Data/", true);
     }
 }
