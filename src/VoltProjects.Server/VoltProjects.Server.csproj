@@ -9,14 +9,14 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="HtmlSanitizer" Version="8.0.865" />
-      <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.4" />
-      <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="8.0.4" />
-      <PackageReference Include="Nerdbank.GitVersioning" Version="3.6.133">
+      <PackageReference Include="HtmlSanitizer" Version="8.1.870" />
+      <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.7" />
+      <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="8.0.7" />
+      <PackageReference Include="Nerdbank.GitVersioning" Version="3.6.141">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
-      <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.8.1" />
+      <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.9.0" />
     </ItemGroup>
 
     <ItemGroup>
