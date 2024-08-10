@@ -1,4 +1,8 @@
+// ReSharper disable ExplicitCallerInfoArgument
+
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -43,6 +47,18 @@ public sealed class SearchController : Controller
     [HttpPost]
     public async Task<IActionResult> Index(string query, int page, int size, int[] projectId, int[] projectVersionId, CancellationToken cancellationToken)
     {
+        IEnumerable<KeyValuePair<string, object?>> tags = new List<KeyValuePair<string, object?>>
+        {
+            new("requestMethod", Request.Method),
+            new("query", query),
+            new("page", page),
+            new("size", size),
+            new("projectIds", projectId),
+            new("projectVersionId", projectVersionId)
+        };
+        
+        using Activity? searchActivity = Tracking.TrackingActivitySource.StartActivity(name: "SearchView-Search", kind: ActivityKind.Internal, tags: tags);
+        
         //Page should always be 1 or more
         page = page <= 0 ? 1 : page;
 

@@ -35,6 +35,7 @@ public class MkDocsBuilder : IBuilder
         ["tip"] = "alert-success",
         ["success"] = "alert-success",
         
+        ["attention"] = "alert-warning",
         ["warning"] = "alert-warning",
         
         ["failure"] = "alert-danger",
