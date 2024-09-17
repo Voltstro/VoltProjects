@@ -49,87 +49,7 @@ public sealed class VoltProjectDbContext : DbContext
     public DbSet<ProjectExternalItem> ProjectExternalItems { get; set; }
     
     public DbSet<ProjectExternalItemStorageItem> ProjectExternalItemStorageItems { get; set; }
-    
-    /// <summary>
-    ///     Upserts <see cref="ProjectToc"/>s
-    /// </summary>
-    /// <param name="tocs"></param>
-    /// <param name="projectVersion"></param>
-    /// <returns></returns>
-    public async Task<ProjectToc[]> UpsertProjectTOCs(ProjectToc[] tocs, ProjectVersion projectVersion)
-    {
-        (object?[] objectValues, string[] objectPlaceholders) = DbContextExtensions.GenerateParams(tocs, x => new { x.TocRel, x.TocItem }, true, 1);
-        objectValues[0] = projectVersion.Id;
-        
-        string paramsPlaceholder = string.Join(",", objectPlaceholders);
 
-        return await ProjectTocs.FromSqlRaw(
-                $"SELECT * FROM public.upsert_project_tocs(@p0, ARRAY[{paramsPlaceholder}]::upsertedtoc[]);", objectValues)
-            .AsNoTracking()
-            .ToArrayAsync();
-    }
-
-    /// <summary>
-    ///     Upserts <see cref="ProjectPage"/>
-    /// </summary>
-    /// <param name="pages"></param>
-    /// <param name="projectVersion"></param>
-    public async Task<ProjectPage[]> UpsertProjectPages(ProjectPage[] pages, ProjectVersion projectVersion)
-    {
-        (object?[] objectValues, string[] objectPlaceholders) = DbContextExtensions.GenerateParams(pages, x => new { x.PublishedDate, x.Title, x.TitleDisplay, x.GitUrl, x.Aside, x.Metabar, x.WordCount, x.ProjectTocId, x.TocRel, x.Path, x.Description, x.Content, x.PageHash }, true, 1);
-        objectValues[0] = projectVersion.Id;
-        
-        string paramsPlaceholder = string.Join(",", objectPlaceholders);
-
-        return await ProjectPages
-            .FromSqlRaw($"SELECT * FROM public.upsert_project_pages(@p0, ARRAY[{paramsPlaceholder}]::upsertedpage[]);",
-                objectValues).AsNoTracking().ToArrayAsync();
-    }
-
-    public async Task<ProjectStorageItem[]> UpsertProjectStorageAssets(ProjectStorageItem[] storageItems)
-    {
-        (object?[] objectValues, string[] objectPlaceholders)  = DbContextExtensions.GenerateParams(storageItems, x => new { x.ProjectVersionId, x.Path, x.Hash }, false);
-        string paramsPlaceholder = string.Join(",", objectPlaceholders);
-
-        return await ProjectStorageItems.FromSqlRaw(@$"
-INSERT INTO public.project_storage_item 
-(project_version_id, path, hash)
-VALUES {paramsPlaceholder}
-ON CONFLICT (project_version_id, path)
-DO UPDATE SET 
-	hash = EXCLUDED.hash
-RETURNING *;
-", objectValues).AsNoTracking().ToArrayAsync();
-        
-        //await Database.ExecuteSqlRawAsync(, objectValues);
-    }
-
-    public async Task UpsertProjectPageStorageItems(ProjectPageStorageItem[] pageStorageItems)
-    {
-        (object?[] objectValues, string[] objectPlaceholders)  = DbContextExtensions.GenerateParams(pageStorageItems, x => new { x.PageId, x.StorageItemId }, false);
-        string paramsPlaceholder = string.Join(",", objectPlaceholders);
-        
-        await Database.ExecuteSqlRawAsync($@"
-INSERT INTO public.project_page_storage_item
-(page_id, storage_item_id)
-VALUES {paramsPlaceholder}
-ON CONFLICT DO NOTHING;
-", objectValues);
-    }
-    
-    public async Task UpsertProjectExternalItemStorageItemItems(ProjectExternalItemStorageItem[] pageStorageItems)
-    {
-        (object?[] objectValues, string[] objectPlaceholders)  = DbContextExtensions.GenerateParams(pageStorageItems, x => new { x.ProjectExternalItemId, x.StorageItemId }, false);
-        string paramsPlaceholder = string.Join(",", objectPlaceholders);
-        
-        await Database.ExecuteSqlRawAsync($@"
-INSERT INTO public.project_external_item_storage_item
-(project_external_item_id, storage_item_id)
-VALUES {paramsPlaceholder}
-ON CONFLICT DO NOTHING;
-", objectValues);
-    }
-    
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder
@@ -140,195 +60,345 @@ ON CONFLICT DO NOTHING;
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         //Default Values
-        
-        //Project
-        modelBuilder.Entity<Project>()
-            .Property(p => p.LastUpdateTime)
-            .HasDefaultValueSql("now()");
+        {
+            //Language
+            modelBuilder.Entity<Language>()
+                .Property(p => p.Configuration)
+                .HasDefaultValueSql("'english'");
+            
+            //Project
+            modelBuilder.Entity<Project>()
+                .Property(p => p.LastUpdateTime)
+                .HasDefaultValueSql("now()");
 
-        modelBuilder.Entity<Project>()
-            .Property(p => p.CreationTime)
-            .HasDefaultValueSql("now()");
-        
-        //Project Version
-        modelBuilder.Entity<ProjectVersion>()
-            .Property(p => p.LastUpdateTime)
-            .HasDefaultValueSql("now()");
+            modelBuilder.Entity<Project>()
+                .Property(p => p.CreationTime)
+                .HasDefaultValueSql("now()");
+            
+            //Project Version
+            modelBuilder.Entity<ProjectVersion>()
+                .Property(p => p.LastUpdateTime)
+                .HasDefaultValueSql("now()");
 
-        modelBuilder.Entity<ProjectVersion>()
-            .Property(p => p.CreationTime)
-            .HasDefaultValueSql("now()");
-        
-        //Project Menu
-        modelBuilder.Entity<ProjectMenu>()
-            .Property(p => p.LastUpdateTime)
-            .HasDefaultValueSql("now()");
+            modelBuilder.Entity<ProjectVersion>()
+                .Property(p => p.CreationTime)
+                .HasDefaultValueSql("now()");
+            
+            //Project Menu
+            modelBuilder.Entity<ProjectMenu>()
+                .Property(p => p.LastUpdateTime)
+                .HasDefaultValueSql("now()");
 
-        modelBuilder.Entity<ProjectMenu>()
-            .Property(p => p.CreationTime)
-            .HasDefaultValueSql("now()");
-        
-        //Project Page
-        modelBuilder.Entity<ProjectPage>()
-            .Property(p => p.LastUpdateTime)
-            .HasDefaultValueSql("now()");
+            modelBuilder.Entity<ProjectMenu>()
+                .Property(p => p.CreationTime)
+                .HasDefaultValueSql("now()");
+            
+            //Project Page
+            modelBuilder.Entity<ProjectPage>()
+                .Property(p => p.LastUpdateTime)
+                .HasDefaultValueSql("now()");
 
-        modelBuilder.Entity<ProjectPage>()
-            .Property(p => p.CreationTime)
-            .HasDefaultValueSql("now()");
-        
-        //Project TOC
-        modelBuilder.Entity<ProjectToc>()
-            .Property(p => p.LastUpdateTime)
-            .HasDefaultValueSql("now()");
+            modelBuilder.Entity<ProjectPage>()
+                .Property(p => p.CreationTime)
+                .HasDefaultValueSql("now()");
 
-        modelBuilder.Entity<ProjectToc>()
-            .Property(p => p.CreationTime)
-            .HasDefaultValueSql("now()");
-        
-        //Project Storage Item
-        modelBuilder.Entity<ProjectStorageItem>()
-            .Property(p => p.LastUpdateTime)
-            .HasDefaultValueSql("now()");
+            modelBuilder.Entity<ProjectPage>()
+                .Property(p => p.LanguageConfiguration)
+                .HasDefaultValueSql("'english'");
+            
+            //Project TOC
+            modelBuilder.Entity<ProjectToc>()
+                .Property(p => p.LastUpdateTime)
+                .HasDefaultValueSql("now()");
 
-        modelBuilder.Entity<ProjectStorageItem>()
-            .Property(p => p.CreationTime)
-            .HasDefaultValueSql("now()");
-        
-        //Project Pre Build
-        modelBuilder.Entity<ProjectPreBuild>()
-            .Property(p => p.LastUpdateTime)
-            .HasDefaultValueSql("now()");
+            modelBuilder.Entity<ProjectToc>()
+                .Property(p => p.CreationTime)
+                .HasDefaultValueSql("now()");
+            
+            //Project Storage Item
+            modelBuilder.Entity<ProjectStorageItem>()
+                .Property(p => p.LastUpdateTime)
+                .HasDefaultValueSql("now()");
 
-        modelBuilder.Entity<ProjectPreBuild>()
-            .Property(p => p.CreationTime)
-            .HasDefaultValueSql("now()");
-        
-        //Project Build Event
-        modelBuilder.Entity<ProjectBuildEvent>()
-            .Property(p => p.Date)
-            .HasDefaultValueSql("now()");
-        
-        //External Item
-        modelBuilder.Entity<ProjectExternalItem>()
-            .Property(p => p.CreationTime)
-            .HasDefaultValueSql("now()");
+            modelBuilder.Entity<ProjectStorageItem>()
+                .Property(p => p.CreationTime)
+                .HasDefaultValueSql("now()");
+            
+            //Project Pre Build
+            modelBuilder.Entity<ProjectPreBuild>()
+                .Property(p => p.LastUpdateTime)
+                .HasDefaultValueSql("now()");
 
-        modelBuilder.Entity<ProjectExternalItem>()
-            .Property(p => p.LastUpdateTime)
-            .HasDefaultValueSql("now()");
-        
+            modelBuilder.Entity<ProjectPreBuild>()
+                .Property(p => p.CreationTime)
+                .HasDefaultValueSql("now()");
+            
+            //Project Build Event
+            modelBuilder.Entity<ProjectBuildEvent>()
+                .Property(p => p.Date)
+                .HasDefaultValueSql("now()");
+            
+            //External Item
+            modelBuilder.Entity<ProjectExternalItem>()
+                .Property(p => p.CreationTime)
+                .HasDefaultValueSql("now()");
+
+            modelBuilder.Entity<ProjectExternalItem>()
+                .Property(p => p.LastUpdateTime)
+                .HasDefaultValueSql("now()");
+        }
         
         //Unique Keys
-        
-        //Project Unique Keys
-        modelBuilder.Entity<Project>()
-            .Property(p => p.Id).UseIdentityAlwaysColumn();
-        
-        modelBuilder.Entity<Project>()
-            .HasIndex(p => new { p.Name })
-            .IsUnique();
-        
-        //Project Build Event
-        modelBuilder.Entity<ProjectBuildEvent>()
-            .Property(p => p.Id).UseIdentityAlwaysColumn();
-        
-        //Project Menu
-        modelBuilder.Entity<ProjectMenu>()
-            .Property(p => p.Id).UseIdentityAlwaysColumn();
-        
-        modelBuilder.Entity<ProjectMenu>()
-            .HasIndex(p => new { p.ProjectVersionId })
-            .IsUnique();
+        {
+            //Project Unique Keys
+            modelBuilder.Entity<Project>()
+                .Property(p => p.Id).UseIdentityAlwaysColumn();
+            
+            modelBuilder.Entity<Project>()
+                .HasIndex(p => new { p.Name })
+                .IsUnique();
+            
+            //Project Build Event
+            modelBuilder.Entity<ProjectBuildEvent>()
+                .Property(p => p.Id).UseIdentityAlwaysColumn();
+            
+            //Project Menu
+            modelBuilder.Entity<ProjectMenu>()
+                .Property(p => p.Id).UseIdentityAlwaysColumn();
+            
+            modelBuilder.Entity<ProjectMenu>()
+                .HasIndex(p => new { p.ProjectVersionId })
+                .IsUnique();
 
-        //Project Page Unique Keys
-        modelBuilder.Entity<ProjectPage>()
-            .Property(p => p.Id).UseIdentityAlwaysColumn();
-        
-        modelBuilder.Entity<ProjectPage>()
-            .HasIndex(p => new { p.ProjectVersionId, p.Path })
-            .IsUnique();
-        
-        //Project Page Contributor
-        modelBuilder.Entity<ProjectPageContributor>()
-            .Property(p => p.Id).UseIdentityAlwaysColumn();
-        
-        modelBuilder.Entity<ProjectPageContributor>()
-            .HasIndex(p => new { p.PageId })
-            .IsUnique();
-        
-        modelBuilder.Entity<ProjectPageContributor>()
-            .HasIndex(p => new { p.PageId, p.GitHubUserId })
-            .IsUnique();
-        
-        //Project Pre Build
-        modelBuilder.Entity<ProjectPreBuild>()
-            .Property(p => p.Id).UseIdentityAlwaysColumn();
-        
-        //Storage Item
-        modelBuilder.Entity<ProjectStorageItem>()
-            .HasIndex(p => new { p.ProjectVersionId, p.Path })
-            .IsUnique();
+            //Project Page Unique Keys
+            modelBuilder.Entity<ProjectPage>()
+                .Property(p => p.Id).UseIdentityAlwaysColumn();
+            
+            modelBuilder.Entity<ProjectPage>()
+                .HasIndex(p => new { p.ProjectVersionId, p.Path })
+                .IsUnique();
+            
+            //Project Page Contributor
+            modelBuilder.Entity<ProjectPageContributor>()
+                .Property(p => p.Id).UseIdentityAlwaysColumn();
+            
+            modelBuilder.Entity<ProjectPageContributor>()
+                .HasIndex(p => new { p.PageId })
+                .IsUnique();
+            
+            modelBuilder.Entity<ProjectPageContributor>()
+                .HasIndex(p => new { p.PageId, p.GitHubUserId })
+                .IsUnique();
+            
+            //Project Page Storage Item
+            modelBuilder.Entity<ProjectPageStorageItem>()
+                .HasIndex(p => new { p.PageId, p.StorageItemId })
+                .IsUnique();
+            
+            //Project Pre Build
+            modelBuilder.Entity<ProjectPreBuild>()
+                .Property(p => p.Id).UseIdentityAlwaysColumn();
+            
+            //Storage Item
+            modelBuilder.Entity<ProjectStorageItem>()
+                .HasIndex(p => new { p.ProjectVersionId, p.Path })
+                .IsUnique();
 
-        //Project TOC
-        modelBuilder.Entity<ProjectToc>()
-            .Property(p => p.Id).UseIdentityAlwaysColumn();
+            //Project TOC
+            modelBuilder.Entity<ProjectToc>()
+                .Property(p => p.Id).UseIdentityAlwaysColumn();
+            
+            modelBuilder.Entity<ProjectToc>()
+                .HasIndex(p => new { p.ProjectVersionId, p.TocRel })
+                .IsUnique();
+            
+            //Project Version
+            modelBuilder.Entity<ProjectVersion>()
+                .Property(p => p.Id).UseIdentityAlwaysColumn();
+            
+            modelBuilder.Entity<ProjectVersion>()
+                .HasIndex(p => new { p.ProjectId, p.VersionTag, p.LanguageId })
+                .IsUnique();
+            
+            modelBuilder.Entity<ProjectVersion>()
+                .HasIndex(p => new { p.ProjectId, p.VersionTag, p.LanguageId, p.IsDefault })
+                .HasFilter("is_default = true")
+                .IsUnique();
+            
+            //External Items
+            modelBuilder.Entity<ProjectExternalItem>()
+                .HasIndex(p => new { p.ProjectVersionId, p.Path })
+                .IsUnique();
+            
+            //External Item Storage Items
+            modelBuilder.Entity<ProjectExternalItemStorageItem>()
+                .HasIndex(p => new { p.ProjectExternalItemId, p.StorageItemId })
+                .IsUnique();
+        }
         
-        modelBuilder.Entity<ProjectToc>()
-            .HasIndex(p => new { p.ProjectVersionId, p.TocRel })
-            .IsUnique();
         
-        //Project Version
-        modelBuilder.Entity<ProjectVersion>()
-            .Property(p => p.Id).UseIdentityAlwaysColumn();
+        //Checks
+        {
+            modelBuilder.Entity<ProjectPage>()
+                .ToTable(t => t.HasCheckConstraint("ck_toc_nullability_same",
+                    "(project_toc_id IS NULL AND toc_rel IS NULL) OR (project_toc_id IS NOT NULL AND toc_rel IS NOT NULL)"));
+        }
         
-        modelBuilder.Entity<ProjectVersion>()
-            .HasIndex(p => new { p.ProjectId, p.VersionTag, p.LanguageId })
-            .IsUnique();
         
-        modelBuilder.Entity<ProjectVersion>()
-            .HasIndex(p => new { p.ProjectId, p.VersionTag, p.LanguageId, p.IsDefault })
-            .HasFilter("is_default = true")
-            .IsUnique();
+        //FKs
+        {
+            //Project
+            //modelBuilder.Entity<Project>().HasMany(e => e.ProjectVersions).WithOne(e => e.Project)
+            //    .HasForeignKey(x => x.Project).OnDelete(DeleteBehavior.Restrict);
+            
+            //ProjectBuildEvent
+            modelBuilder.Entity<ProjectBuildEvent>()
+                .HasOne(p => p.Project)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            //ProjectExternalItem
+            modelBuilder.Entity<ProjectExternalItem>()
+                .HasOne(p => p.ProjectVersion)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            //ProjectExternalItemStorageItem
+            modelBuilder.Entity<ProjectExternalItemStorageItem>()
+                .HasOne(p => p.ProjectExternalItem)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ProjectExternalItemStorageItem>()
+                .HasOne(p => p.StorageItem)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            //ProjectMenu
+            modelBuilder.Entity<ProjectMenu>()
+                .HasOne(p => p.ProjectVersion)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            //ProjectPage
+            modelBuilder.Entity<ProjectPage>()
+                .HasOne(p => p.ProjectVersion)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ProjectPage>()
+                .HasOne(p => p.ParentPage)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ProjectPage>()
+                .HasOne(p => p.ProjectToc)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            //ProjectPageContributor
+            modelBuilder.Entity<ProjectPageContributor>()
+                .HasOne(p => p.Page)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            //ProjectPageStorageItem
+            modelBuilder.Entity<ProjectPageStorageItem>()
+                .HasOne(p => p.Page)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            modelBuilder.Entity<ProjectPageStorageItem>()
+                .HasOne(p => p.StorageItem)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            //ProjectPreBuild
+            modelBuilder.Entity<ProjectPreBuild>()
+                .HasOne(p => p.ProjectVersion)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            //ProjectStorageItem
+            modelBuilder.Entity<ProjectStorageItem>()
+                .HasOne(p => p.ProjectVersion)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            //ProjectToc
+            modelBuilder.Entity<ProjectToc>()
+                .HasOne(p => p.ProjectVersion)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            //ProjectVersion
+            modelBuilder.Entity<ProjectVersion>()
+                .HasOne(p => p.Project)
+                .WithMany(p => p.ProjectVersions)
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            modelBuilder.Entity<ProjectVersion>()
+                .HasOne(p => p.DocBuilder)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ProjectVersion>()
+                .HasOne(p => p.Language)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
+
+            
+        }
         
-        //External Items
-        modelBuilder.Entity<ProjectExternalItem>()
-            .HasIndex(p => new { p.ProjectVersionId, p.Path })
-            .IsUnique();
         
-        //External Item Storage Items
-        modelBuilder.Entity<ProjectExternalItemStorageItem>()
-            .HasIndex(p => new { p.ProjectExternalItemId, p.StorageItemId })
-            .IsUnique();
+        //Collations
+        {
+            modelBuilder.HasCollation("vp_collation_nondeterministic", "en-u-ks-primary", "icu", false);
+
+            modelBuilder.Entity<Project>()
+                .Property(p => p.Name)
+                .UseCollation("vp_collation_nondeterministic");
+
+            modelBuilder.Entity<ProjectVersion>()
+                .Property(p => p.VersionTag)
+                .UseCollation("vp_collation_nondeterministic");
+        }
         
         //Seed data
+        {
+            //Doc Builder
+            modelBuilder.Entity<DocBuilder>()
+                .HasData(new DocBuilder
+                {
+                    Id = "vdocfx",
+                    Name = "VDocFx",
+                    Application = "vdocfx",
+                    Arguments = ["build", "--output-type PageJson", "--output {0}"],
+                    EnvironmentVariables = ["DOCS_GITHUB_TOKEN="]
+                }, new DocBuilder
+                {
+                    Id = "docfx",
+                    Name = "DocFx",
+                    Application = "docfx",
+                    Arguments = ["build", "--exportRawModel"]
+                }, new DocBuilder
+                {
+                    Id = "mkdocs",
+                    Name = "MkDocs",
+                    Application = "python",
+                    Arguments = ["-m mkdocs", "build"]
+                });
         
-        //Doc Builder
-        modelBuilder.Entity<DocBuilder>()
-            .HasData(new DocBuilder
-            {
-                Id = "vdocfx",
-                Name = "VDocFx",
-                Application = "vdocfx",
-                Arguments = ["build", "--output-type PageJson", "--output {0}"],
-                EnvironmentVariables = ["DOCS_GITHUB_TOKEN="]
-            }, new DocBuilder
-            {
-                Id = "docfx",
-                Name = "DocFx",
-                Application = "docfx",
-                Arguments = ["build", "--exportRawModel"]
-            });
+            //Language
+            modelBuilder.Entity<Language>()
+                .Property(p => p.Id).UseIdentityAlwaysColumn();
         
-        //Language
-        modelBuilder.Entity<Language>()
-            .Property(p => p.Id).UseIdentityAlwaysColumn();
-        
-        modelBuilder.Entity<Language>()
-            .HasData(new Language
-            {
-                Id = 1,
-                Name = "en"
-            });
+            modelBuilder.Entity<Language>()
+                .HasData(new Language
+                {
+                    Id = 1,
+                    Name = "en"
+                });
+        }
     }
 }

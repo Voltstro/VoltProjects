@@ -4,6 +4,47 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.1] - 2024-09-17
+
+### Added
+
+- Add activity to Sitemap Background Service
+- Add activity to DB migrations
+
+### Changed
+
+- Update deps
+- Update tracking initialization
+
+### Fixed
+
+- Fix OpenTelemetry not recording exceptions
+- Fix error page ProjectNav partial having incorrect path
+
+## [2.2.0] - 2024-08-10
+
+### Added
+
+- MKDocs Ingestion Support
+- Site-wide search
+- Contrast NavBar in light mode
+- Page storage items are now more "generic", allowing other assets like JS to be uploaded and served by an object storage provider
+- Added more SEO tags
+- Added Google Cloud Storage as an object storage provider
+- Added caching controls to uploaded storage objects
+- Added display name to projects
+
+### Changed
+
+- Changed "Twitter" to "X"
+- Changed FK relations to restrict on delete
+- Update deps
+
+### Fixed
+
+- Make project name case-insensitive, to fix issue where if someone provided a project name in lower case, it ending in a 404
+- Added constraint on `project_page_storage_item`, fixing duplicated data
+
 ## [2.1.4] - 2024-04-17
 
 ### Changed

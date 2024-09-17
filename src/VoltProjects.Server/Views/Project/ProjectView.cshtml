@@ -1,13 +1,19 @@
 @model VoltProjects.Server.Models.View.ProjectViewModel
 
 @{
-    ViewBag.Title = $"{Model.ProjectPage.Title} - {Model.ProjectPage.ProjectVersion.Project.Name}";
+    ViewBag.Title = $"{Model.ProjectPage.Title} - {Model.ProjectPage.ProjectVersion.Project.DisplayName}";
     ViewBag.Description = Model.ProjectPage.Description;
+}
+
+@section TopInclude
+{
+    <meta name="vpProjectId" content="@Model.ProjectPage.ProjectVersion.ProjectId" />
+    <meta name="vpProjectVersionId" content="@Model.ProjectPage.ProjectVersionId" />
 }
 
 @section NavbarSecond
 {
-    <partial name="ProjectNav" model="Model.ProjectNavModel"/>
+    <partial name="Shared/ProjectNav" model="Model.ProjectNavModel"/>
 }
 
 <div class="container layout @(Model.ProjectPage is { Aside: true } ? "layout-article" : "") @(Model.ProjectPage.Aside && Model.Toc == null ? "layout-aside" : "")">

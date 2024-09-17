@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Common;
 using System.Data.Entity;
+using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.Json;
@@ -49,6 +50,9 @@ public static class DbContextExtensions
 
     public static IHost HandleDbMigrations(this IHost host)
     {
+        // ReSharper disable once ExplicitCallerInfoArgument
+        using Activity? projectActivity = Tracking.TrackingActivitySource.StartActivity("DB-Migrations");
+        
         IServiceProvider services = host.Services.CreateScope().ServiceProvider;
         ILogger logger = services.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(DbContextExtensions));
         VoltProjectDbContext dbContext = services.GetRequiredService<VoltProjectDbContext>();

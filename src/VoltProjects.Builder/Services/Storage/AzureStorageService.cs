@@ -2,25 +2,26 @@ using Azure;
 using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
-using Azure.Storage.Blobs.Specialized;
-using Microsoft.Extensions.Options;
-using VoltProjects.Builder.Core;
+using VoltProjects.Builder.Core.Building.ExternalObjects;
 
 namespace VoltProjects.Builder.Services.Storage;
 
-public sealed class AzureStorageService : IStorageService
+/// <summary>
+///     <see cref="IStorageService"/> that uses Azure Storage
+/// </summary>
+internal sealed class AzureStorageService : IStorageService
 {
     private readonly StorageConfig config;
     private readonly BlobContainerClient storageClient;
     
     /// <summary>
-    ///     Creates a new <see cref="AzureStorageService"/>
+    ///     Creates a new <see cref="AzureStorageService"/> instance
     /// </summary>
     /// <param name="config"></param>
     /// <exception cref="FileNotFoundException"></exception>
-    public AzureStorageService(IOptions<VoltProjectsBuilderConfig> config)
+    public AzureStorageService(StorageConfig config)
     {
-        this.config = config.Value.StorageConfig;
+        this.config = config;
 
         string? azureCredentialString = Environment.GetEnvironmentVariable("VP_AZURE_CREDENTIAL");
         if (string.IsNullOrWhiteSpace(azureCredentialString))
@@ -29,26 +30,15 @@ public sealed class AzureStorageService : IStorageService
         BlobServiceClient blobServiceClient = new(azureCredentialString);
         storageClient = blobServiceClient.GetBlobContainerClient(this.config.ContainerName);
     }
-    
-    public async Task<string> UploadFileAsync(Stream fileStream, string fileName, string contentType,
-        CancellationToken cancellationToken = default)
-    {
-        BlobClient? newBlob = storageClient.GetBlobClient(fileName);
-        BlobHttpHeaders blobHttpHeader = new() { ContentType = contentType };
-        
-        await newBlob.UploadAsync(fileStream, new BlobUploadOptions
-        {
-            HttpHeaders = blobHttpHeader
-        }, cancellationToken);
-        
-        return Path.Combine(config.PublicUrl, fileName);
-    }
 
-    public async Task UploadBulkFileAsync(StorageItem[] filesToUpload, CancellationToken cancellationToken = default)
+    public async Task UploadBulkFileAsync(IExternalObjectHandler[] filesToUpload, CancellationToken cancellationToken = default)
     {
         IEnumerable<GroupedStorageItem> groupedStorageItems = filesToUpload.GroupBy(x => x.ContentType, item => item,
             (s, items) => new GroupedStorageItem(s, items.ToArray()));
-        BlobHttpHeaders blobHttpHeader = new();
+        BlobHttpHeaders blobHttpHeader = new()
+        {
+            CacheControl = $"public,max-age={config.CacheTime}"
+        };
         BlobUploadOptions options = new BlobUploadOptions
         {
             HttpHeaders = blobHttpHeader,
@@ -68,15 +58,24 @@ public sealed class AzureStorageService : IStorageService
             Queue<Task<Response<BlobContentInfo>>> tasks = new();
 
             blobHttpHeader.ContentType = groupedStorageItem.ContentType;
-            foreach (StorageItem storageItem in groupedStorageItem.Items)
+            foreach (IExternalObjectHandler storageItem in groupedStorageItem.Items)
             {
-                BlobClient newBlob = storageClient.GetBlobClient(storageItem.FileName);
-                tasks.Enqueue(newBlob.UploadAsync(storageItem.ItemStream, options, cancellationToken));
+                string uploadPath = Path.Combine(config.SubPath!, storageItem.UploadPath);
+                BlobClient newBlob = storageClient.GetBlobClient(uploadPath);
+                Stream fileStream = await storageItem.GetUploadFileStream();
+                tasks.Enqueue(newBlob.UploadAsync(fileStream, options, cancellationToken));
             }
 
             await Task.WhenAll(tasks);
         }
     }
-    
-    private record GroupedStorageItem(string ContentType, StorageItem[] Items);
+
+    public string GetFullUploadUrl(IExternalObjectHandler externalObject)
+    {
+        Uri baseUri = new(config.BasePath!);
+        Uri fullUri = new(baseUri, Path.Combine(config.ContainerName!, config.SubPath ?? string.Empty, externalObject.UploadPath));
+        return fullUri.ToString();
+    }
+
+    private record GroupedStorageItem(string ContentType, IExternalObjectHandler[] Items);
 }

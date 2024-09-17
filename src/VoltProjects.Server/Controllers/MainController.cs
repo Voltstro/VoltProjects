@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
+using Microsoft.Net.Http.Headers;
 using VoltProjects.Server.Models;
 using VoltProjects.Server.Models.View;
 using VoltProjects.Server.Shared;
@@ -19,9 +20,6 @@ namespace VoltProjects.Server.Controllers;
 /// <summary>
 ///     Main <see cref="Controller"/>, for the index and about pages
 /// </summary>
-#if !DEBUG
-[ResponseCache(Duration = 1209600)]
-#endif
 public class MainController : Controller
 {
     private readonly IMemoryCache memoryCache;
@@ -58,6 +56,7 @@ public class MainController : Controller
                 projectInfo = new ProjectInfo
                 {
                     Name = project.Project.Name,
+                    DisplayName = project.Project.DisplayName,
                     Description = project.Project.Description,
                     IconPath = Path.Combine(config.PublicUrl, project.Project.Name, project.Project.IconPath!),
                     DefaultVersion =
@@ -75,6 +74,7 @@ public class MainController : Controller
             return projectInfos.ToArray();
         }))!;
         
+        Response.Headers[HeaderNames.CacheControl] = $"public,max-age={config.CacheTime}";
         return View(projectInfos);
     }
 
@@ -99,9 +99,9 @@ public class MainController : Controller
                         },
                         new()
                         {
-                            Href = "https://twitter.com/Voltstro",
-                            Icon = "twitter",
-                            Name = "Twitter"
+                            Href = "https://x.com/Voltstro",
+                            Icon = "twitter-x",
+                            Name = "X (Formerly Twitter)"
                         },
                         new()
                         {

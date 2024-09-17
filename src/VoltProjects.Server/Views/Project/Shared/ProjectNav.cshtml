@@ -1,0 +1,38 @@
+@using VoltProjects.Server.Models
+@model VoltProjects.Server.Models.View.ProjectNavModel
+
+<nav class="navbar navbar-expand-md border-bottom">
+    <div class="container">
+        <a class="navbar-brand" href="@Model.BasePath">@Model.ProjectName</a>
+        <div class="collapse navbar-collapse" id="navbar">
+
+            <ul class="navbar-nav me-auto">
+                @foreach (MenuItem menuItem in Model.MenuItems)
+                {
+                    <li>
+                        <a class="nav-link @(menuItem.IsActive ? "active" : "")" href="@menuItem.Href">@menuItem.Title</a>
+                    </li>
+                }
+            </ul>
+            <ul class="d-flex m-0 p-0">
+                <form method="get" action="/search/" class="w-100">
+                    <input type="hidden" name="projectId" value="@Model.ProjectId"/>
+                    <input type="hidden" name="projectVersionId" value="@Model.ProjectVersionId"/>
+
+                    <div class="input-group">
+                        <input
+                            type="text"
+                            class="form-control project-search"
+                            placeholder="Search..."
+                            aria-label="Search"
+                            name="query"
+                            id="search-nav"
+                            autocomplete="off"
+                            />
+                        <button type="submit" class="btn btn-outline-secondary project-search-btn bi bi-search" aria-label="Submit Search"></button>
+                    </div>
+                </form>
+            </ul>
+        </div>
+    </div>
+</nav>

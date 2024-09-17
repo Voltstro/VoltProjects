@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Rewrite;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
+using Microsoft.Net.Http.Headers;
 using OpenTelemetry.Trace;
 using Serilog;
 using VoltProjects.Server.Services;
@@ -25,24 +27,28 @@ try
     builder.WebHost.ConfigureKestrel(kestrel => kestrel.AddServerHeader = false);
 
     //Setup tracking
-    builder.Services.AddTracking(builder.Configuration, tracerBuilder => tracerBuilder.AddAspNetCoreInstrumentation(
-        options =>
+    builder.Services.AddTracking(builder.Configuration, tracerBuilder =>
+    {
+        tracerBuilder.AddAspNetCoreInstrumentation(options =>
         {
+            options.RecordException = true;
             options.Filter = context =>
             {
                 //Filter out health requests
                 bool isHealthRequest = context.Request.Path.Value.Contains("healthz");
                 return !isHealthRequest;
             };
-        }));
+        });
+    });
 
     //Setup services
     builder.Services.Configure<VoltProjectsConfig>(
         builder.Configuration.GetSection(VoltProjectsConfig.VoltProjects));
     builder.Services.AddScoped<ProjectMenuService>();
-
+    builder.Services.AddSingleton<StructuredDataService>();
     builder.Services.AddSingleton<SitemapService>();
     builder.Services.AddHostedService<SitemapBackgroundService>();
+    builder.Services.AddSingleton<SearchService>();
 
     //Support razor pages runtime compilation for hot reloading
     IMvcBuilder mvcBuilder = builder.Services.AddControllersWithViews(
@@ -87,7 +93,14 @@ try
     else
         app.UseDeveloperExceptionPage();
 
-    app.UseStaticFiles();
+    VoltProjectsConfig config = app.Services.GetRequiredService<IOptions<VoltProjectsConfig>>().Value;
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        OnPrepareResponse = ctx =>
+        {
+            ctx.Context.Response.Headers[HeaderNames.CacheControl] = $"public,max-age={config.CacheTime}";
+        }
+    });
     
     //Ensures '/' is added to the end of each request
     const string pattern = "^(((.*/)|(/?))[^/.]+(?!/$))$";

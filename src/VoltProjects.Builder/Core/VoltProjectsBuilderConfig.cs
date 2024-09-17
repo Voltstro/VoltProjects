@@ -1,3 +1,5 @@
+using VoltProjects.Builder.Services.Storage;
+
 namespace VoltProjects.Builder.Core;
 
 /// <summary>
@@ -18,5 +20,5 @@ public sealed class VoltProjectsBuilderConfig
     /// <summary>
     ///     Configuration for Cloud storage
     /// </summary>
-    public StorageConfig StorageConfig { get; init; }
+    public StorageConfig? ObjectStorageProvider { get; init; }
 }

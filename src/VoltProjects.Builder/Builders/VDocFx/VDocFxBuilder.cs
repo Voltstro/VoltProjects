@@ -6,10 +6,10 @@ using VoltProjects.Shared.Models;
 namespace VoltProjects.Builder.Builders.VDocFx;
 
 /// <summary>
-///     <see cref="Builder"/> for VDocFx
+///     <see cref="IBuilder"/> for VDocFx
 /// </summary>
 [BuilderName(Name = "vdocfx")]
-internal sealed class VDocFxBuilder : Core.Builder
+internal sealed class VDocFxBuilder : IBuilder
 {
     private readonly ILogger<VDocFxBuilder> logger;
 
@@ -18,7 +18,7 @@ internal sealed class VDocFxBuilder : Core.Builder
         this.logger = logger;
     }
 
-    public override void PrepareBuilder(ref string[]? arguments, string docsPath, string docsBuiltPath)
+    public void PrepareBuilder(ref string[]? arguments, string docsPath, string docsBuiltPath)
     {
         string docsConfigPath = Path.Combine(docsPath, "vdocfx.yml");
         if (!File.Exists(docsConfigPath))
@@ -36,7 +36,7 @@ internal sealed class VDocFxBuilder : Core.Builder
         }
     }
 
-    public override BuildResult BuildProject(ProjectVersion projectVersion, string docsPath, string docsBuiltPath)
+    public BuildResult BuildProject(ProjectVersion projectVersion, string docsPath, string docsBuiltPath)
     {
         //Deal with menu first
         string menuFileLocation = Path.Combine(docsBuiltPath, "menu.json");

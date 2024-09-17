@@ -2,5 +2,9 @@
     "editor.codeActionsOnSave": {
       "source.fixAll.eslint": "explicit"
     },
-    "eslint.validate": ["javascript"]
+    "eslint.validate": [
+      "javascript"
+    ],
+    "editor.tabSize": 4,
+    "editor.detectIndentation": false
 }

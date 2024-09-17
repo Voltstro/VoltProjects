@@ -1,26 +1,46 @@
 ﻿# Build Stage
-FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
 WORKDIR /src
 
-# Copy what builder needs
+# Restore Projects
+COPY VoltProjects.Shared/VoltProjects.Shared.csproj VoltProjects.Shared/
+COPY VoltProjects.Builder/VoltProjects.Builder.csproj VoltProjects.Builder/
+RUN dotnet restore "VoltProjects.Builder/VoltProjects.Builder.csproj"
+
+# Copy everything else
 COPY version.json version.json
 COPY VoltProjects.Shared/ VoltProjects.Shared/
 COPY VoltProjects.Builder/ VoltProjects.Builder/
 
-# Restore and build the builder project
-WORKDIR "/src/VoltProjects.Builder"
-RUN dotnet restore "VoltProjects.Builder.csproj"
-RUN dotnet publish "VoltProjects.Builder.csproj" -c Release -o /app/publish /p:UseAppHost=false --no-restore
+# Build App
+RUN dotnet publish "VoltProjects.Builder/VoltProjects.Builder.csproj" -c Release -o /app/publish /p:UseAppHost=false --no-restore
+
+# MkDocs uses python, so setup that and the modules
+FROM python:3.12-alpine AS python
+WORKDIR /src
+
+COPY VoltProjects.Integration.MkDocs/ VoltProjects.Integration.MkDocs/
+RUN python -m venv VoltProjects.Integration.MkDocs/venv
+RUN VoltProjects.Integration.MkDocs/venv/bin/python -m pip install mkdocs VoltProjects.Integration.MkDocs/
 
 # Final Stage
-# We using SDK to run the app, as VDocFx needs it (plus projects may need it for thie pre-build commands)
+# We using SDK to run the app, as .NET doc projects need it
 FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS final
 WORKDIR /app
-COPY --from=build /app/publish .
+RUN apk add --no-cache python3 py3-pip
 
 # Install VDocFx
-RUN dotnet tool update -g vdocfx --version "1.0.0-0010-gaa68456a75" --add-source https://pkgs.dev.azure.com/Voltstro/VDocFx/_packaging/VDocFx/nuget/v3/index.json 
-RUN dotnet tool update -g docfx --version "2.75.2"
+RUN dotnet tool update -g vdocfx --version "1.0.0-0010-gaa68456a75" --add-source https://pkgs.dev.azure.com/Voltstro/VDocFx/_packaging/VDocFx/nuget/v3/index.json
+
+# Install DocFx
+RUN dotnet tool update -g docfx --version "2.77.0"
+
+# Install MKDocs
+COPY VoltProjects.Integration.MkDocs/ /src/VoltProjects.Integration.MkDocs/
+RUN python -m pip install mkdocs /src/VoltProjects.Integration.MkDocs/ --break-system-packages
+
+# Copy VoltProjects.Builder app
+COPY --from=build /app/publish .
 
 ENV DOTNET_ENVIRONMENT=Production
 ENV PATH="/root/.dotnet/tools/:$PATH"

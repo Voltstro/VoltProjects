@@ -2,6 +2,7 @@
 @model VoltProjects.Server.Models.View.ErrorViewModel
 @{
     ViewBag.Title = "Error";
+    ViewBag.IsError = true;
     ViewBag.Description = "VoltProjects - Error...";
 }
 
@@ -9,7 +10,7 @@
 {
 @section NavbarSecond
 {
-    <partial name="ProjectNav" model="Model.ProjectNavModel"/>
+    <partial name="/Views/Project/Shared/ProjectNav.cshtml" model="Model.ProjectNavModel"/>
 }
 }
 

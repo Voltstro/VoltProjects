@@ -2,10 +2,8 @@ using System.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using Sentry;
 using Sentry.Extensions.Logging;
 using Sentry.Extensions.Logging.Extensions.DependencyInjection;
 using Sentry.OpenTelemetry;
@@ -23,22 +21,16 @@ public static class Tracking
     {
         //Setup Sentry Options
         CustomSentryOptions options = new();
-        configuration.GetSection("Sentry").Bind(options);
-        options.Dsn ??= string.Empty;
+        IConfigurationSection optionsSection = configuration.GetSection("Sentry");
+        optionsSection.Bind(options);
+        if (string.IsNullOrWhiteSpace(options.Dsn))
+            return;
         
-        services.AddSingleton(options);
-        services.AddSingleton<ILoggerProvider, SentryLoggerProvider>();
-        
-        //Init Sentry
-        SentrySdk.Init(options);
-        services.AddSentry<CustomSentryOptions>();
-        
+        //Install open telemetry
         services.AddSingleton<MyResourceDetector>();
-        services
-            .AddOpenTelemetry()
+        services.AddOpenTelemetry()
             .ConfigureResource(builder =>
             {
-                
                 builder.AddDetector(sp => sp.GetRequiredService<MyResourceDetector>());
             })
             .WithTracing(builder =>
@@ -54,17 +46,16 @@ public static class Tracking
                         activity.SetTag("db.query", command.CommandText);
                     };
                 });
-                configure?.Invoke(builder);
+                builder.AddHttpClientInstrumentation();
                 
-                //Enable Sentry open telemetry
-                if(SentrySdk.IsEnabled)
-                    builder.AddSentry();
-            });
+                configure?.Invoke(builder);
 
-        // All logs should flow to the SentryLogger, regardless of level.
-        // Filtering of events is handled in SentryLogger, using SentryOptions.MinimumEventLevel
-        // Filtering of breadcrumbs is handled in SentryLogger, using SentryOptions.MinimumBreadcrumbLevel
-        //services.AddFilter<SentryLoggerProvider>(_ => true);
+                builder.AddSentry();
+            });
+        
+        //Install Sentry
+        services.Configure<CustomSentryOptions>(optionsSection);
+        services.AddSentry<CustomSentryOptions>();
     }
 }
 
@@ -72,7 +63,7 @@ internal class CustomSentryOptions : SentryLoggingOptions
 {
     public CustomSentryOptions()
     {
-        InitializeSdk = false;
+        InitializeSdk = true;
         this.UseOpenTelemetry();
         this.AddEntityFramework();
     }

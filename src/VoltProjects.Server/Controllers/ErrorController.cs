@@ -17,7 +17,7 @@ namespace VoltProjects.Server.Controllers;
 /// <summary>
 ///     <see cref="Controller"/> for the error view
 /// </summary>
-[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+[ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
 public class ErrorController : Controller
 {
     private readonly VoltProjectDbContext dbContext;

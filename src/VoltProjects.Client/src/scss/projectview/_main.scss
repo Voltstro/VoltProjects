@@ -1,9 +1,0 @@
-@import "layout";
-@import "nav";
-@import "toc";
-@import "syntaxHighlight";
-
-@import "docfx";
-
-// Ideally we would get rid of the dotnet/docfx specific stuff
-@import "dotnet";

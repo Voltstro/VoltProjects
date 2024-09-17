@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Security.Cryptography;
 using System.Text;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 namespace VoltProjects.Shared.Models;
 
@@ -104,6 +105,12 @@ public class ProjectPage
     ///     This page's hash
     /// </summary>
     public string? PageHash { get; set; }
+    
+    /// <summary>
+    ///     Postgres Language configuration. Should be the same from the set <see cref="Language.Configuration"/>
+    /// </summary>
+    [Column(TypeName = "regconfig")]
+    public uint LanguageConfiguration { get; set; }
     
     /// <summary>
     ///     When was this page last updated?

@@ -18,7 +18,8 @@ namespace VoltProjects.Shared.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.1")
+                .HasAnnotation("Npgsql:CollationDefinition:vp_collation_nondeterministic", "en-u-ks-primary,en-u-ks-primary,icu,False")
+                .HasAnnotation("ProductVersion", "8.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -67,6 +68,13 @@ namespace VoltProjects.Shared.Migrations
                             Application = "docfx",
                             Arguments = new[] { "build", "--exportRawModel" },
                             Name = "DocFx"
+                        },
+                        new
+                        {
+                            Id = "mkdocs",
+                            Application = "python",
+                            Arguments = new[] { "-m mkdocs", "build" },
+                            Name = "MkDocs"
                         });
                 });
 
@@ -78,6 +86,12 @@ namespace VoltProjects.Shared.Migrations
                         .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("Id"));
+
+                    b.Property<uint>("Configuration")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("regconfig")
+                        .HasColumnName("configuration")
+                        .HasDefaultValueSql("'english'");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -93,6 +107,7 @@ namespace VoltProjects.Shared.Migrations
                         new
                         {
                             Id = 1,
+                            Configuration = 0u,
                             Name = "en"
                         });
                 });
@@ -117,6 +132,11 @@ namespace VoltProjects.Shared.Migrations
                         .HasColumnType("text")
                         .HasColumnName("description");
 
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("display_name");
+
                     b.Property<string>("GitUrl")
                         .IsRequired()
                         .HasColumnType("text")
@@ -135,7 +155,8 @@ namespace VoltProjects.Shared.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text")
-                        .HasColumnName("name");
+                        .HasColumnName("name")
+                        .UseCollation("vp_collation_nondeterministic");
 
                     b.Property<string>("ShortName")
                         .HasColumnType("text")
@@ -340,6 +361,12 @@ namespace VoltProjects.Shared.Migrations
                         .HasColumnType("text")
                         .HasColumnName("git_url");
 
+                    b.Property<uint>("LanguageConfiguration")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("regconfig")
+                        .HasColumnName("language_configuration")
+                        .HasDefaultValueSql("'english'");
+
                     b.Property<DateTime>("LastUpdateTime")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
@@ -409,7 +436,10 @@ namespace VoltProjects.Shared.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_project_page_project_version_id_path");
 
-                    b.ToTable("project_page", (string)null);
+                    b.ToTable("project_page", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_toc_nullability_same", "(project_toc_id IS NULL AND toc_rel IS NULL) OR (project_toc_id IS NOT NULL AND toc_rel IS NOT NULL)");
+                        });
                 });
 
             modelBuilder.Entity("VoltProjects.Shared.Models.ProjectPageContributor", b =>
@@ -464,11 +494,12 @@ namespace VoltProjects.Shared.Migrations
                     b.HasKey("Id")
                         .HasName("pk_project_page_storage_item");
 
-                    b.HasIndex("PageId")
-                        .HasDatabaseName("ix_project_page_storage_item_page_id");
-
                     b.HasIndex("StorageItemId")
                         .HasDatabaseName("ix_project_page_storage_item_storage_item_id");
+
+                    b.HasIndex("PageId", "StorageItemId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_project_page_storage_item_page_id_storage_item_id");
 
                     b.ToTable("project_page_storage_item", (string)null);
                 });
@@ -670,7 +701,8 @@ namespace VoltProjects.Shared.Migrations
                     b.Property<string>("VersionTag")
                         .IsRequired()
                         .HasColumnType("text")
-                        .HasColumnName("version_tag");
+                        .HasColumnName("version_tag")
+                        .UseCollation("vp_collation_nondeterministic");
 
                     b.HasKey("Id")
                         .HasName("pk_project_version");
@@ -698,7 +730,7 @@ namespace VoltProjects.Shared.Migrations
                     b.HasOne("VoltProjects.Shared.Models.ProjectVersion", "Project")
                         .WithMany()
                         .HasForeignKey("ProjectVersionId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_project_build_event_project_version_project_version_id");
 
@@ -710,7 +742,7 @@ namespace VoltProjects.Shared.Migrations
                     b.HasOne("VoltProjects.Shared.Models.ProjectVersion", "ProjectVersion")
                         .WithMany()
                         .HasForeignKey("ProjectVersionId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_project_external_item_project_version_project_version_id");
 
@@ -722,14 +754,14 @@ namespace VoltProjects.Shared.Migrations
                     b.HasOne("VoltProjects.Shared.Models.ProjectExternalItem", "ProjectExternalItem")
                         .WithMany()
                         .HasForeignKey("ProjectExternalItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_project_external_item_storage_item_project_external_item_pr");
 
                     b.HasOne("VoltProjects.Shared.Models.ProjectStorageItem", "StorageItem")
                         .WithMany()
                         .HasForeignKey("StorageItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_project_external_item_storage_item_project_storage_item_sto");
 
@@ -743,7 +775,7 @@ namespace VoltProjects.Shared.Migrations
                     b.HasOne("VoltProjects.Shared.Models.ProjectVersion", "ProjectVersion")
                         .WithMany()
                         .HasForeignKey("ProjectVersionId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_project_menu_project_version_project_version_id");
 
@@ -755,17 +787,19 @@ namespace VoltProjects.Shared.Migrations
                     b.HasOne("VoltProjects.Shared.Models.ProjectPage", "ParentPage")
                         .WithMany()
                         .HasForeignKey("ParentPageId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_project_page_project_page_parent_page_id");
 
                     b.HasOne("VoltProjects.Shared.Models.ProjectToc", "ProjectToc")
                         .WithMany()
                         .HasForeignKey("ProjectTocId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_project_page_project_toc_project_toc_id");
 
                     b.HasOne("VoltProjects.Shared.Models.ProjectVersion", "ProjectVersion")
                         .WithMany()
                         .HasForeignKey("ProjectVersionId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_project_page_project_version_project_version_id");
 
@@ -781,7 +815,7 @@ namespace VoltProjects.Shared.Migrations
                     b.HasOne("VoltProjects.Shared.Models.ProjectPage", "Page")
                         .WithMany()
                         .HasForeignKey("PageId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_project_page_contributor_project_page_page_id");
 
@@ -793,14 +827,14 @@ namespace VoltProjects.Shared.Migrations
                     b.HasOne("VoltProjects.Shared.Models.ProjectPage", "Page")
                         .WithMany()
                         .HasForeignKey("PageId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_project_page_storage_item_project_page_page_id");
 
                     b.HasOne("VoltProjects.Shared.Models.ProjectStorageItem", "StorageItem")
                         .WithMany()
                         .HasForeignKey("StorageItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_project_page_storage_item_project_storage_item_storage_item");
 
@@ -814,7 +848,7 @@ namespace VoltProjects.Shared.Migrations
                     b.HasOne("VoltProjects.Shared.Models.ProjectVersion", "ProjectVersion")
                         .WithMany()
                         .HasForeignKey("ProjectVersionId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_project_pre_build_project_version_project_version_id");
 
@@ -826,7 +860,7 @@ namespace VoltProjects.Shared.Migrations
                     b.HasOne("VoltProjects.Shared.Models.ProjectVersion", "ProjectVersion")
                         .WithMany()
                         .HasForeignKey("ProjectVersionId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_project_storage_item_project_version_project_version_id");
 
@@ -838,7 +872,7 @@ namespace VoltProjects.Shared.Migrations
                     b.HasOne("VoltProjects.Shared.Models.ProjectVersion", "ProjectVersion")
                         .WithMany()
                         .HasForeignKey("ProjectVersionId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_project_toc_project_version_project_version_id");
 
@@ -850,21 +884,21 @@ namespace VoltProjects.Shared.Migrations
                     b.HasOne("VoltProjects.Shared.Models.DocBuilder", "DocBuilder")
                         .WithMany()
                         .HasForeignKey("DocBuilderId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_project_version_doc_builder_doc_builder_id");
 
                     b.HasOne("VoltProjects.Shared.Models.Language", "Language")
                         .WithMany()
                         .HasForeignKey("LanguageId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_project_version_language_language_id");
 
                     b.HasOne("VoltProjects.Shared.Models.Project", "Project")
                         .WithMany()
                         .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_project_version_project_project_id");
 

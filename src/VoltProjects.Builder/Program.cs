@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
@@ -21,10 +22,11 @@ try
     builder.Services.AddTracking(builder.Configuration);
     
     //Setup Config
-    builder.Services.Configure<VoltProjectsBuilderConfig>(builder.Configuration.GetSection("Config"));
-
+    IConfigurationSection config = builder.Configuration.GetSection("Config");
+    builder.Services.Configure<VoltProjectsBuilderConfig>(config);
+    
     //Our singletons
-    builder.Services.AddSingleton<IStorageService, AzureStorageService>();
+    builder.Services.InstallStorageServiceProvider(config.Get<VoltProjectsBuilderConfig>()!);
     builder.Services.AddSingleton<HtmlMinifier>();
     builder.Services.AddSingleton<HtmlHighlightService>();
     builder.Services.AddSingleton<ProjectRepoService>();
