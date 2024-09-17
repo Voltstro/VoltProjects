@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -43,64 +44,68 @@ public sealed class SitemapBackgroundService : BackgroundService
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            logger.LogInformation("Generating new sitemap...");
-            
-            //Base XML document
-            XNamespace xmlns = "http://www.sitemaps.org/schemas/sitemap/0.9";
-            XElement baseSitemapRoot = new(xmlns + "urlset");
-
-            //Add VoltProject's pages
-            foreach (string baseSitePath in baseSitePaths)
+            // ReSharper disable once ExplicitCallerInfoArgument
+            using (Tracking.TrackingActivitySource.StartActivity("Sitemap-Generate"))
             {
-                baseSitemapRoot.Add(CreatePageLoc(xmlns, baseSitePath));
-            }
+                  logger.LogInformation("Generating new sitemap...");
             
-            //Setup index sitemap
-            XElement indexSitemapRoot = new(xmlns + "sitemapindex");
-            indexSitemapRoot.Add(CreatePageLoc(xmlns, "sitemap.xml.gz", null, "sitemap"));
-            
-            //Add VoltProject's main pages
-            VoltProjectDbContext context = await contextFactory.CreateDbContextAsync(stoppingToken);
-            
-            //Get all projects, and go through their project versions
-            Dictionary<string, XDocument> projectSitemaps = new();
-            Project[] projects = await context.Projects
-                .AsNoTracking()
-                .ToArrayAsync(stoppingToken);
-            foreach (Project project in projects)
-            {
-                ProjectVersion[] versions = await context.ProjectVersions
-                    .AsNoTracking()
-                    .Where(x => x.ProjectId == project.Id).ToArrayAsync(stoppingToken);
+                //Base XML document
+                XNamespace xmlns = "http://www.sitemaps.org/schemas/sitemap/0.9";
+                XElement baseSitemapRoot = new(xmlns + "urlset");
 
-                foreach (ProjectVersion version in versions)
+                //Add VoltProject's pages
+                foreach (string baseSitePath in baseSitePaths)
                 {
-                    //Add Project's sitemap URL to root one
-                    indexSitemapRoot.Add(CreatePageLoc(xmlns, Path.Combine(project.Name, version.VersionTag, "sitemap.xml.gz"), null, "sitemap"));
-                    
-                    //And generate project's sitemap
-                    XElement projectRoot = new(xmlns + "urlset");
-                    ProjectPage[] pages = await context.ProjectPages
-                        .AsNoTracking()
-                        .Where(x => x.ProjectVersionId == version.Id)
-                        .ToArrayAsync(stoppingToken);
-                    foreach (ProjectPage page in pages)
-                    {
-                        string pagePath = page.Path == "." ? string.Empty : $"{page.Path}";
-                        string fullPath = $"{project.Name}/{version.VersionTag}/{pagePath}";
-                        projectRoot.Add(CreatePageLoc(xmlns, fullPath, page.PublishedDate));
-                    }
-
-                    string projectKey = $"{project.Name}/{version.VersionTag}";
-                    projectSitemaps.Add(projectKey, new XDocument(projectRoot));
+                    baseSitemapRoot.Add(CreatePageLoc(xmlns, baseSitePath));
                 }
-            }
+                
+                //Setup index sitemap
+                XElement indexSitemapRoot = new(xmlns + "sitemapindex");
+                indexSitemapRoot.Add(CreatePageLoc(xmlns, "sitemap.xml.gz", null, "sitemap"));
+                
+                //Add VoltProject's main pages
+                VoltProjectDbContext context = await contextFactory.CreateDbContextAsync(stoppingToken);
+                
+                //Get all projects, and go through their project versions
+                Dictionary<string, XDocument> projectSitemaps = new();
+                Project[] projects = await context.Projects
+                    .AsNoTracking()
+                    .ToArrayAsync(stoppingToken);
+                foreach (Project project in projects)
+                {
+                    ProjectVersion[] versions = await context.ProjectVersions
+                        .AsNoTracking()
+                        .Where(x => x.ProjectId == project.Id).ToArrayAsync(stoppingToken);
 
-            XDocument indexSitemap = new(indexSitemapRoot);
-            XDocument baseSitemap = new(baseSitemapRoot);
-            sitemapService.SetSitemaps(indexSitemap, baseSitemap, projectSitemaps);
-            
-            logger.LogInformation("Done generating new sitemap...");
+                    foreach (ProjectVersion version in versions)
+                    {
+                        //Add Project's sitemap URL to root one
+                        indexSitemapRoot.Add(CreatePageLoc(xmlns, Path.Combine(project.Name, version.VersionTag, "sitemap.xml.gz"), null, "sitemap"));
+                        
+                        //And generate project's sitemap
+                        XElement projectRoot = new(xmlns + "urlset");
+                        ProjectPage[] pages = await context.ProjectPages
+                            .AsNoTracking()
+                            .Where(x => x.ProjectVersionId == version.Id)
+                            .ToArrayAsync(stoppingToken);
+                        foreach (ProjectPage page in pages)
+                        {
+                            string pagePath = page.Path == "." ? string.Empty : $"{page.Path}";
+                            string fullPath = $"{project.Name}/{version.VersionTag}/{pagePath}";
+                            projectRoot.Add(CreatePageLoc(xmlns, fullPath, page.PublishedDate));
+                        }
+
+                        string projectKey = $"{project.Name}/{version.VersionTag}";
+                        projectSitemaps.Add(projectKey, new XDocument(projectRoot));
+                    }
+                }
+
+                XDocument indexSitemap = new(indexSitemapRoot);
+                XDocument baseSitemap = new(baseSitemapRoot);
+                sitemapService.SetSitemaps(indexSitemap, baseSitemap, projectSitemaps);
+                
+                logger.LogInformation("Done generating new sitemap...");
+            }
 
             //Wait for next generation time
             await Task.Delay(config.SitemapGenerationDelayTime, stoppingToken);

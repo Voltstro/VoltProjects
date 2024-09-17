@@ -27,16 +27,19 @@ try
     builder.WebHost.ConfigureKestrel(kestrel => kestrel.AddServerHeader = false);
 
     //Setup tracking
-    builder.Services.AddTracking(builder.Configuration, tracerBuilder => tracerBuilder.AddAspNetCoreInstrumentation(
-        options =>
+    builder.Services.AddTracking(builder.Configuration, tracerBuilder =>
+    {
+        tracerBuilder.AddAspNetCoreInstrumentation(options =>
         {
+            options.RecordException = true;
             options.Filter = context =>
             {
                 //Filter out health requests
                 bool isHealthRequest = context.Request.Path.Value.Contains("healthz");
                 return !isHealthRequest;
             };
-        }));
+        });
+    });
 
     //Setup services
     builder.Services.Configure<VoltProjectsConfig>(
