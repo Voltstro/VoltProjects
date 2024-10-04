@@ -8,6 +8,7 @@ namespace VoltProjects.Builder.Builders.VDocFx;
 /// <summary>
 ///     <see cref="IBuilder"/> for VDocFx
 /// </summary>
+[Obsolete("VDocFX is now obsolete. Please switch to docfx v2.")]
 [BuilderName(Name = "vdocfx")]
 internal sealed class VDocFxBuilder : IBuilder
 {
