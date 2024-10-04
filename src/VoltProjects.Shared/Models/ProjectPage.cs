@@ -40,12 +40,14 @@ public class ProjectPage
     /// <summary>
     ///     The ID of the parent page
     /// </summary>
+    [Obsolete("This was the original idea for handling breadcrumbs, but will be changed in a later release.")]
     [ForeignKey("ParentPage")]
     public int? ParentPageId { get; set; }
     
     /// <summary>
     ///     The parent page
     /// </summary>
+    [Obsolete("This was the original idea for handling breadcrumbs, but will be changed in a later release.")]
     public ProjectPage? ParentPage { get; set; }
 
     /// <summary>

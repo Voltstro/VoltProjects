@@ -350,7 +350,6 @@ public sealed class VoltProjectDbContext : DbContext
             
         }
         
-        
         //Collations
         {
             modelBuilder.HasCollation("vp_collation_nondeterministic", "en-u-ks-primary", "icu", false);
@@ -362,6 +361,16 @@ public sealed class VoltProjectDbContext : DbContext
             modelBuilder.Entity<ProjectVersion>()
                 .Property(p => p.VersionTag)
                 .UseCollation("vp_collation_nondeterministic");
+        }
+        
+        //Ignore
+        {
+            //Project Page
+            modelBuilder.Entity<ProjectPage>()
+#pragma warning disable CS0618 // Type or member is obsolete
+                .Ignore(p => p.ParentPageId)
+                .Ignore(p => p.ParentPage);
+#pragma warning restore CS0618 // Type or member is obsolete
         }
         
         //Seed data
