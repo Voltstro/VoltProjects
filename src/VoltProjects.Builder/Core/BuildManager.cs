@@ -55,6 +55,10 @@ public sealed class BuildManager
             IBuilder builder = (IBuilder)ActivatorUtilities.CreateInstance(serviceProvider, foundBuilder);
             builders.Add(attribute.Name, builder);
             this.logger.LogDebug("Created builder {Builder}", attribute.Name);
+
+            Attribute? obsoleteAttribute = Attribute.GetCustomAttribute(foundBuilder, typeof(ObsoleteAttribute));
+            if (obsoleteAttribute != null)
+                this.logger.LogWarning("Notice: Builder {BuilderName} has been marked as obsolete. {ObsoleteMessage}", attribute.Name, (obsoleteAttribute as ObsoleteAttribute)!.Message);
         }
 
         pageParsers = new List<IPageParser>
