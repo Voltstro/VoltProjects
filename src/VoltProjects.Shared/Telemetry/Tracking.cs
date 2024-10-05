@@ -8,22 +8,50 @@ using Sentry.Extensions.Logging;
 using Sentry.Extensions.Logging.Extensions.DependencyInjection;
 using Sentry.OpenTelemetry;
 
-namespace VoltProjects.Shared;
+namespace VoltProjects.Shared.Telemetry;
 
 /// <summary>
 ///     Extensions for application tracking
 /// </summary>
 public static class Tracking
 {
-    public static readonly ActivitySource TrackingActivitySource = new("VoltProjects");
+    private static readonly ActivitySource TrackingActivitySource = new("VoltProjects");
+
+    /// <summary>
+    ///     Starts a new tracking activity
+    /// </summary>
+    /// <param name="area"></param>
+    /// <param name="name"></param>
+    /// <param name="activityKind"></param>
+    /// <param name="tags"></param>
+    /// <returns></returns>
+    public static Activity StartActivity(string area, string name, ActivityKind activityKind = ActivityKind.Internal, IEnumerable<KeyValuePair<string, object?>>? tags = null)
+    {
+        return TrackingActivitySource.StartActivity(name: $"{area}.{name}", kind: activityKind, tags: tags)!;
+    }
     
+    /// <summary>
+    ///     Installs tracking to services
+    /// </summary>
+    /// <param name="services"></param>
+    /// <param name="configuration"></param>
+    /// <param name="configure"></param>
     public static void AddTracking(this IServiceCollection services, IConfiguration configuration, Action<TracerProviderBuilder>? configure = null)
     {
-        //Setup Sentry Options
-        CustomSentryOptions options = new();
-        IConfigurationSection optionsSection = configuration.GetSection("Sentry");
-        optionsSection.Bind(options);
-        if (string.IsNullOrWhiteSpace(options.Dsn))
+        //Get main tracking config
+        TrackingConfig config = new();
+        IConfigurationSection configSection = configuration.GetSection(TrackingConfig.SectionName);
+        configSection.Bind(config);
+        bool otlpEnabled = !string.IsNullOrWhiteSpace(config.OtlpEndpoint);
+        
+        //Also get sentry options
+        CustomSentryOptions sentryConfig = new();
+        IConfigurationSection sentryConfigSection = configSection.GetSection("Sentry");
+        sentryConfigSection.Bind(sentryConfig);
+        bool sentryEnabled = !string.IsNullOrWhiteSpace(sentryConfig.Dsn);
+        
+        //Neither sentry nor otlp is enabled
+        if(!otlpEnabled && !sentryEnabled)
             return;
         
         //Install open telemetry
@@ -47,15 +75,29 @@ public static class Tracking
                     };
                 });
                 builder.AddHttpClientInstrumentation();
-                
                 configure?.Invoke(builder);
+                
+                //Otlp
+                if (otlpEnabled)
+                {
+                    builder.AddOtlpExporter(otlp =>
+                    {
+                        otlp.Endpoint = new Uri(config.OtlpEndpoint!);
+                        otlp.Headers = config.OtlpHeaders;
+                    });
+                }
 
-                builder.AddSentry();
+                //Sentry
+                if(sentryEnabled)
+                    builder.AddSentry();
             });
         
         //Install Sentry
-        services.Configure<CustomSentryOptions>(optionsSection);
-        services.AddSentry<CustomSentryOptions>();
+        if (sentryEnabled)
+        {
+            services.Configure<CustomSentryOptions>(sentryConfigSection);
+            services.AddSentry<CustomSentryOptions>();
+        }
     }
 }
 

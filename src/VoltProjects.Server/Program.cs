@@ -14,6 +14,7 @@ using VoltProjects.Server.Services;
 using VoltProjects.Server.Shared;
 using VoltProjects.Shared;
 using VoltProjects.Shared.Logging;
+using VoltProjects.Shared.Telemetry;
 
 //Create application
 WebApplicationBuilder builder = WebApplication.CreateBuilder();

@@ -1,5 +1,3 @@
-// ReSharper disable ExplicitCallerInfoArgument
-
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -18,6 +16,7 @@ using VoltProjects.Server.Services;
 using VoltProjects.Server.Shared;
 using VoltProjects.Shared;
 using VoltProjects.Shared.Models;
+using VoltProjects.Shared.Telemetry;
 
 namespace VoltProjects.Server.Controllers;
 
@@ -60,7 +59,7 @@ public class ProjectController : Controller
     [Route("/{projectName}/{version?}/{**fullPath}")]
     public async Task<IActionResult> ProjectView(string projectName, string? version, string? fullPath, CancellationToken cancellationToken)
     {
-        using Activity? projectActivity = Tracking.TrackingActivitySource.StartActivity("ProjectView-Main");
+        using Activity projectActivity = Tracking.StartActivity(ActivityArea.Project, "main");
         
         //Default path (if none was provided)
         if (string.IsNullOrWhiteSpace(fullPath))
@@ -116,7 +115,7 @@ public class ProjectController : Controller
         //Get project menu
         ProjectNavModel navModel;
         {
-            Activity? projectNavActivity = Tracking.TrackingActivitySource.StartActivity("ProjectView-ProjectNav");
+            Activity projectNavActivity = Tracking.StartActivity(ActivityArea.Project, "nav");
             navModel = await projectMenuService.GetProjectMenu(requestPath, baseProjectPath, projectPage.ProjectVersion, cancellationToken);
             projectNavActivity?.Dispose();
         }
@@ -147,7 +146,7 @@ public class ProjectController : Controller
 
     private async Task<IActionResult> GetProjectLatestRedirect(string projectName, string? previousVersion, string? fullPath, CancellationToken cancellationToken)
     {
-        using Activity? projectGetLatestActivity = Tracking.TrackingActivitySource.StartActivity("ProjectView-GetLatest");
+        using Activity projectGetLatestActivity = Tracking.StartActivity(ActivityArea.Project, "getlatest");
         
         //Find default version
         ProjectVersion? latestProjectVersion = await dbContext.ProjectVersions
@@ -167,13 +166,13 @@ public class ProjectController : Controller
 
     private async Task<TocItem?> HandleProjectToc(ProjectPage projectPage, string requestPath, CancellationToken cancellationToken)
     {
-        using Activity? projectHandleProjectTocActivity = Tracking.TrackingActivitySource.StartActivity("ProjectView-HandleProjectToc");
+        using Activity projectHandleProjectTocActivity = Tracking.StartActivity(ActivityArea.Project, "toc");
         
         int tocId = projectPage.ProjectTocId!.Value;
         string tocMemoryCacheKeyName = $"ProjectToc-{tocId}";
         ProjectToc? projectToc = await memoryCache.GetOrCreateAsync(tocMemoryCacheKeyName, async entry =>
         {
-            using Activity? projectGetTocActivity = Tracking.TrackingActivitySource.StartActivity("ProjectView-GetProjectToc");
+            using Activity projectGetTocActivity = Tracking.StartActivity(ActivityArea.Project, "toc.get");
             ProjectToc? projectToc = await dbContext.ProjectTocs
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Id == tocId, cancellationToken: cancellationToken);
@@ -185,9 +184,9 @@ public class ProjectController : Controller
         TocItem? tocItem = null;
         if (projectToc != null)
         {
-            Activity? projectProcessTocActivity = Tracking.TrackingActivitySource.StartActivity("ProjectView-ProcessToc");
+            Activity projectProcessTocActivity = Tracking.StartActivity(ActivityArea.Project, "toc.process");
             tocItem = ProcessTocItems(projectToc.TocItem, projectPage.TocRel!, requestPath);
-            projectProcessTocActivity?.Dispose();
+            projectProcessTocActivity.Dispose();
         }
 
         return tocItem;

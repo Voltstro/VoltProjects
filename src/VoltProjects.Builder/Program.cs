@@ -8,6 +8,7 @@ using VoltProjects.Builder.Services;
 using VoltProjects.Builder.Services.Storage;
 using VoltProjects.Shared;
 using VoltProjects.Shared.Logging;
+using VoltProjects.Shared.Telemetry;
 using WebMarkupMin.Core;
 using IStorageService = VoltProjects.Builder.Services.Storage.IStorageService;
 

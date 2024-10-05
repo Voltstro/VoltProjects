@@ -1,5 +1,3 @@
-// ReSharper disable ExplicitCallerInfoArgument
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -16,6 +14,7 @@ using VoltProjects.Server.Models.View;
 using VoltProjects.Server.Services;
 using VoltProjects.Shared;
 using VoltProjects.Shared.Models;
+using VoltProjects.Shared.Telemetry;
 
 namespace VoltProjects.Server.Controllers;
 
@@ -57,7 +56,7 @@ public sealed class SearchController : Controller
             new("projectVersionId", projectVersionId)
         };
         
-        using Activity? searchActivity = Tracking.TrackingActivitySource.StartActivity(name: "SearchView-Search", kind: ActivityKind.Internal, tags: tags);
+        using Activity searchActivity = Tracking.StartActivity(ActivityArea.Search, "main", tags: tags);
         
         //Page should always be 1 or more
         page = page <= 0 ? 1 : page;

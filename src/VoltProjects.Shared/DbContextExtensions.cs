@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Common;
-using System.Data.Entity;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -14,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Npgsql;
+using VoltProjects.Shared.Telemetry;
 
 namespace VoltProjects.Shared;
 
@@ -51,7 +51,7 @@ public static class DbContextExtensions
     public static IHost HandleDbMigrations(this IHost host)
     {
         // ReSharper disable once ExplicitCallerInfoArgument
-        using Activity? projectActivity = Tracking.TrackingActivitySource.StartActivity("DB-Migrations");
+        using Activity? projectActivity = Tracking.StartActivity(ActivityArea.Database, "migrate");
         
         IServiceProvider services = host.Services.CreateScope().ServiceProvider;
         ILogger logger = services.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(DbContextExtensions));
@@ -82,11 +82,13 @@ public static class DbContextExtensions
                 {
                     dbContext.Database.Migrate();
                     transaction.Commit();
+                    
+                    logger.LogInformation("Migrations complete!");
                 }
                 catch (Exception ex)
                 {
                     transaction.RollbackToSavepoint("Migrations");
-                    logger.LogError("An error occured while migrating the db!", ex);
+                    logger.LogError(ex, "An error occured while migrating the database!");
                     throw;
                 }
             }

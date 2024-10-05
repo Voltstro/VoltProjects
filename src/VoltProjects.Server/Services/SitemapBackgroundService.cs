@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -13,6 +12,7 @@ using Microsoft.Extensions.Options;
 using VoltProjects.Server.Shared;
 using VoltProjects.Shared;
 using VoltProjects.Shared.Models;
+using VoltProjects.Shared.Telemetry;
 
 namespace VoltProjects.Server.Services;
 
@@ -26,7 +26,7 @@ public sealed class SitemapBackgroundService : BackgroundService
     private readonly IDbContextFactory<VoltProjectDbContext> contextFactory;
     private readonly SitemapService sitemapService;
     
-    private readonly string[] baseSitePaths = { "/", "/about/" };
+    private readonly string[] baseSitePaths = ["/", "/about/"];
 
     public SitemapBackgroundService(
         ILogger<SitemapBackgroundService> logger,
@@ -44,8 +44,7 @@ public sealed class SitemapBackgroundService : BackgroundService
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            // ReSharper disable once ExplicitCallerInfoArgument
-            using (Tracking.TrackingActivitySource.StartActivity("Sitemap-Generate"))
+            using (Tracking.StartActivity(ActivityArea.Sitemap, "generate"))
             {
                   logger.LogInformation("Generating new sitemap...");
             
@@ -75,7 +74,8 @@ public sealed class SitemapBackgroundService : BackgroundService
                 {
                     ProjectVersion[] versions = await context.ProjectVersions
                         .AsNoTracking()
-                        .Where(x => x.ProjectId == project.Id).ToArrayAsync(stoppingToken);
+                        .Where(x => x.ProjectId == project.Id)
+                        .ToArrayAsync(stoppingToken);
 
                     foreach (ProjectVersion version in versions)
                     {
