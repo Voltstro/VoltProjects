@@ -287,11 +287,6 @@ public sealed class VoltProjectDbContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<ProjectPage>()
-                .HasOne(p => p.ParentPage)
-                .WithMany()
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<ProjectPage>()
                 .HasOne(p => p.ProjectToc)
                 .WithMany()
                 .OnDelete(DeleteBehavior.Restrict);
@@ -363,28 +358,11 @@ public sealed class VoltProjectDbContext : DbContext
                 .UseCollation("vp_collation_nondeterministic");
         }
         
-        //Ignore
-        {
-            //Project Page
-            modelBuilder.Entity<ProjectPage>()
-#pragma warning disable CS0618 // Type or member is obsolete
-                .Ignore(p => p.ParentPageId)
-                .Ignore(p => p.ParentPage);
-#pragma warning restore CS0618 // Type or member is obsolete
-        }
-        
         //Seed data
         {
             //Doc Builder
             modelBuilder.Entity<DocBuilder>()
                 .HasData(new DocBuilder
-                {
-                    Id = "vdocfx",
-                    Name = "VDocFx",
-                    Application = "vdocfx",
-                    Arguments = ["build", "--output-type PageJson", "--output {0}"],
-                    EnvironmentVariables = ["DOCS_GITHUB_TOKEN="]
-                }, new DocBuilder
                 {
                     Id = "docfx",
                     Name = "DocFx",

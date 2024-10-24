@@ -36,19 +36,6 @@ public class ProjectPage
     ///     The date to display as published
     /// </summary>
     public DateTime PublishedDate { get; set; }
-    
-    /// <summary>
-    ///     The ID of the parent page
-    /// </summary>
-    [Obsolete("This was the original idea for handling breadcrumbs, but will be changed in a later release.")]
-    [ForeignKey("ParentPage")]
-    public int? ParentPageId { get; set; }
-    
-    /// <summary>
-    ///     The parent page
-    /// </summary>
-    [Obsolete("This was the original idea for handling breadcrumbs, but will be changed in a later release.")]
-    public ProjectPage? ParentPage { get; set; }
 
     /// <summary>
     ///     Page Title
@@ -143,8 +130,6 @@ public class ProjectPage
         hash.AppendData(Encoding.UTF8.GetBytes(Content));
         
         //Ints
-        if(ParentPageId != null)
-            hash.AppendData(BitConverter.GetBytes(ParentPageId.Value));
         if(WordCount != null)
             hash.AppendData(BitConverter.GetBytes(WordCount.Value));
         if(ProjectTocId != null)
