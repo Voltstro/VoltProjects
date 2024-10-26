@@ -36,9 +36,11 @@ public sealed class VoltProjectDbContext : DbContext
     
     public DbSet<ProjectPageStorageItem> ProjectPageStorageItems { get; set; }
 
-    public DbSet<ProjectMenu> ProjectMenus { get; set; }
+    public DbSet<ProjectMenuItem> ProjectMenuItems { get; set; }
     
     public DbSet<ProjectToc> ProjectTocs { get; set; }
+    
+    public DbSet<ProjectTocItem> ProjectTocItems { get; set; }
     
     public DbSet<ProjectStorageItem> ProjectStorageItems { get; set; }
 
@@ -81,15 +83,6 @@ public sealed class VoltProjectDbContext : DbContext
                 .HasDefaultValueSql("now()");
 
             modelBuilder.Entity<ProjectVersion>()
-                .Property(p => p.CreationTime)
-                .HasDefaultValueSql("now()");
-            
-            //Project Menu
-            modelBuilder.Entity<ProjectMenu>()
-                .Property(p => p.LastUpdateTime)
-                .HasDefaultValueSql("now()");
-
-            modelBuilder.Entity<ProjectMenu>()
                 .Property(p => p.CreationTime)
                 .HasDefaultValueSql("now()");
             
@@ -163,11 +156,11 @@ public sealed class VoltProjectDbContext : DbContext
                 .Property(p => p.Id).UseIdentityAlwaysColumn();
             
             //Project Menu
-            modelBuilder.Entity<ProjectMenu>()
+            modelBuilder.Entity<ProjectMenuItem>()
                 .Property(p => p.Id).UseIdentityAlwaysColumn();
             
-            modelBuilder.Entity<ProjectMenu>()
-                .HasIndex(p => new { p.ProjectVersionId })
+            modelBuilder.Entity<ProjectMenuItem>()
+                .HasIndex(p => new { p.ProjectVersionId, p.Href })
                 .IsUnique();
 
             //Project Page Unique Keys
@@ -211,6 +204,12 @@ public sealed class VoltProjectDbContext : DbContext
             modelBuilder.Entity<ProjectToc>()
                 .HasIndex(p => new { p.ProjectVersionId, p.TocRel })
                 .IsUnique();
+            
+            //ProjectTocItem
+            modelBuilder.Entity<ProjectTocItem>()
+                .HasIndex(p => new { p.ProjectTocId, p.ProjectVersionId, p.Title, p.ParentTocItemId, p.Href })
+                .IsUnique()
+                .AreNullsDistinct(false);
             
             //Project Version
             modelBuilder.Entity<ProjectVersion>()
@@ -273,11 +272,11 @@ public sealed class VoltProjectDbContext : DbContext
                 .HasOne(p => p.StorageItem)
                 .WithMany()
                 .OnDelete(DeleteBehavior.Restrict);
-            
-            //ProjectMenu
-            modelBuilder.Entity<ProjectMenu>()
+
+            //ProjectMenuItem
+            modelBuilder.Entity<ProjectMenuItem>()
                 .HasOne(p => p.ProjectVersion)
-                .WithMany()
+                .WithMany(p => p.MenuItems)
                 .OnDelete(DeleteBehavior.Restrict);
             
             //ProjectPage
@@ -325,6 +324,22 @@ public sealed class VoltProjectDbContext : DbContext
                 .HasOne(p => p.ProjectVersion)
                 .WithMany()
                 .OnDelete(DeleteBehavior.Restrict);
+            
+            //ProjectTocItem
+            modelBuilder.Entity<ProjectTocItem>()
+                .HasOne(p => p.ProjectToc)
+                .WithMany(x => x.TocItems)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ProjectTocItem>()
+                .HasOne(p => p.ProjectVersion)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ProjectTocItem>()
+                .HasOne(p => p.ParentTocItem)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Cascade);
             
             //ProjectVersion
             modelBuilder.Entity<ProjectVersion>()

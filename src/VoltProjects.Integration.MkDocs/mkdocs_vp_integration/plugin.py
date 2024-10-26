@@ -15,7 +15,7 @@ from mkdocs.structure.nav import Navigation
 class VPIntegrationPlugin(BasePlugin):
     logger = get_plugin_logger(__name__)
 
-    menu: LinkItem = LinkItem(None, None, [])
+    menu: list[LinkItem] = []
     tocs: list[TocHolder] = []
     pages: list[VPPage] = []
 
@@ -38,33 +38,35 @@ class VPIntegrationPlugin(BasePlugin):
             if item.is_section:
                 has_menu_href = False
 
-                new_toc_item = LinkItem(None, None, [])
+                #new_toc_item = LinkItem(None, None, [])
+                new_toc_items = []
+
                 for child_item in item.children:
                     # Write TOC
                     if child_item.is_page:
-                        new_toc_item.Items.append(LinkItem(child_item.url, child_item.title, None))
+                        new_toc_items.append(LinkItem(child_item.url, child_item.title, None))
 
                         # First page will be this menu's URL
                         if not has_menu_href:
                             item_link_item.Href = child_item.url
                             has_menu_href = True
 
-                new_toc_holder = TocHolder(str(len(self.tocs)), new_toc_item)
+                new_toc_holder = TocHolder(str(len(self.tocs)), new_toc_items)
                 self.tocs.append(new_toc_holder)
 
                 # Menus should always have at least one link
                 if not has_menu_href:
                     self.logger.warning(f"Failed to find menu item {item.title}'s first page link!")
 
-            self.menu.Items.append(item_link_item)
+            self.menu.append(item_link_item)
 
-    
+
     def on_page_content(self, html: str, *, page: Page, config: MkDocsConfig, files: Files) -> str | None:
         toc_index = None
 
         # Need to find page's TOC
         for toc in self.tocs:
-            toc_index = self.find_page_toc(page.url, toc, toc.toc_item)
+            toc_index = self.find_page_toc(page.url, toc, toc.toc_items)
             if toc_index is not None:
                 break
 
@@ -77,7 +79,8 @@ class VPIntegrationPlugin(BasePlugin):
         self.logger.info("Writing files...")
 
         # Write menu
-        menu_json = dumps(self.menu, indent=4, cls=LinkItem.LinkItemJsonEncoder)
+        menu_obj = {'menu': self.menu}
+        menu_json = dumps(menu_obj, indent=4, cls=LinkItem.LinkItemJsonEncoder)
         with open(path.join(config.site_dir, "menu.json"), "w") as menu_out:
             menu_out.write(menu_json)
 
@@ -94,14 +97,14 @@ class VPIntegrationPlugin(BasePlugin):
             pages_out.write(pages_json)     
 
 
-    def find_page_toc(self, page_url: str, toc_holder: TocHolder, toc: LinkItem) -> str:
-        if toc.Href == page_url:
-            return toc_holder.toc_index
+    def find_page_toc(self, page_url: str, toc_holder: TocHolder, toc_items: list[LinkItem]) -> str:
+        for toc_item in toc_items:
+            if toc_item.Href == page_url:
+                return toc_holder.toc_index
         
-        if toc.Items and len(toc.Items) > 0:
-            for child_toc in toc.Items:
-                result = self.find_page_toc(page_url, toc_holder, child_toc)
+            if toc_item.Items and len(toc_item.Items) > 0:
+                result = self.find_page_toc(page_url, toc_holder, toc_item.Items)
                 if result is not None:
                     return result
-                
+
         return None

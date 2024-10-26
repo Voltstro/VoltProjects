@@ -26,12 +26,6 @@ public class ProjectToc
     ///     Toc item's relativity in the project
     /// </summary>
     public string TocRel { get; set; }
-
-    /// <summary>
-    ///     Project's TOC
-    /// </summary>
-    [Column(TypeName = "jsonb")]
-    public LinkItem TocItem { get; set; }
     
     /// <summary>
     ///     When was the last time this TOC was updated
@@ -42,4 +36,6 @@ public class ProjectToc
     ///     When was this TOC created?
     /// </summary>
     public DateTime CreationTime { get; set; }
+    
+    public ICollection<ProjectTocItem> TocItems { get; } = new List<ProjectTocItem>();
 }

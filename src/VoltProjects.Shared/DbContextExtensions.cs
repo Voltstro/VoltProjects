@@ -106,7 +106,7 @@ public static class DbContextExtensions
     /// <param name="paramCountAllocStartIndex"></param>
     /// <typeparam name="TEntity"></typeparam>
     /// <returns></returns>
-    internal static (object?[], string[]) GenerateParams<TEntity>(TEntity[] values, Expression<Func<TEntity, object?>> paramsExpression, bool includeRow = true, int paramCountAllocStartIndex = 0)
+    public static (object?[], string[]) GenerateParams<TEntity>(TEntity[] values, Expression<Func<TEntity, object?>> paramsExpression, bool includeRow = true, int paramCountAllocStartIndex = 0)
     {
         IReadOnlyList<PropertyInfo> properties = paramsExpression.GetPropertyAccessList();
         int propertiesCount = properties.Count;

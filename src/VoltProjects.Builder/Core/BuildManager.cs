@@ -106,13 +106,55 @@ public sealed class BuildManager
         //Build models
         BuildResult buildResult = builder.BuildProject(projectVersion, docsLocation, builtDocsLocation);
         
-        //Upsert results into DB
-        //Upsert project menu
-        ProjectMenu projectMenu = buildResult.ProjectMenu;
-        await dbContext.UpsertProjectMenu(projectMenu);
-
+        //Upsert project menu items, and delete any unused ones
+        ProjectMenuItem[] menuItems = await dbContext.UpsertProjectMenuItems(buildResult.ProjectMenuItems);
+        await dbContext.DeleteProjectMenuItemsNotInValues(menuItems, projectVersion.Id);
+        
         //Upsert project TOCs
-        ProjectToc[] tocItems = await dbContext.UpsertProjectTOCs(buildResult.ProjectTocs, projectVersion);
+        ProjectToc[] tocItems = await dbContext.UpsertProjectTocs(buildResult.ProjectTocs);
+        
+        //Deal with project TOC items
+        List<ProjectTocItem> rootTocItems = buildResult.ProjectTocItems.Where(x => x.ParentTocItem == null).ToList();
+        foreach (ProjectTocItem rootTocItem in rootTocItems)
+        {
+            ProjectToc tocItem = tocItems.First(x => x.TocRel == rootTocItem.ProjectToc.TocRel);
+            rootTocItem.ProjectTocId = tocItem.Id;
+        }
+        
+        rootTocItems = (await dbContext.UpsertProjectTocItems(rootTocItems.ToArray())).ToList();
+        
+        //Now child TOC items
+        List<ProjectTocItem> childTocItems = buildResult.ProjectTocItems.Where(x => x.ParentTocItem != null).ToList();
+        List<ProjectTocItem> upsertTocItems = [];
+        while (childTocItems.Count > 0)
+        {
+            int lastChildTocItemSize = childTocItems.Count;
+            upsertTocItems.Clear();
+            for (int i = 0; i < childTocItems.Count; i++)
+            {
+                ProjectTocItem childTocItem = childTocItems[i];
+                ProjectTocItem? rootTocItem = rootTocItems.FirstOrDefault(x => x.Href == childTocItem.ParentTocItem!.Href && x.Title == childTocItem.ParentTocItem.Title);
+                if(rootTocItem == null)
+                    continue;
+
+                childTocItem.ProjectTocId = tocItems.First(x => x.TocRel == childTocItem.ProjectToc.TocRel).Id;
+                childTocItem.ParentTocItemId = rootTocItem.Id;
+                upsertTocItems.Add(childTocItem);
+                childTocItems.Remove(childTocItem);
+            }
+
+            //Stop infinite loops
+            if (lastChildTocItemSize == childTocItems.Count)
+                throw new Exception(
+                    $"{lastChildTocItemSize} TOC items existed before child's parents were processed, but by the end there was still that many!");
+            
+            //Upsert this batch
+            ProjectTocItem[] batchUpsertResults = await dbContext.UpsertProjectTocItems(upsertTocItems.ToArray());
+            rootTocItems.AddRange(batchUpsertResults);
+        }
+
+        // Delete any not upsertted
+        await dbContext.DeleteProjectTocItemsNotInValues(rootTocItems.ToArray(), projectVersion.Id);
 
         //Pre-Process pages
         ProjectPage[] pages = buildResult.ProjectPages;
@@ -142,8 +184,10 @@ public sealed class BuildManager
             if (page.ProjectToc != null)
             {
                 ProjectToc? toc = tocItems.FirstOrDefault(x => x.TocRel == page.ProjectToc.TocRel);
-                page.ProjectTocId = toc.Id;
-                page.ProjectToc = null;
+                if (toc == null)
+                    logger.LogWarning("Page {PagePath} has a TOC rel of {TocRel}, which was not found in the upserted TOCs!", page.Path, page.ProjectToc.TocRel);
+                else
+                    page.ProjectTocId = toc.Id;
             }
 
             //Calculate hash

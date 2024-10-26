@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -12,7 +13,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
 using VoltProjects.Server.Models;
 using VoltProjects.Server.Models.View;
-using VoltProjects.Server.Services;
 using VoltProjects.Server.Shared;
 using VoltProjects.Shared;
 using VoltProjects.Shared.Models;
@@ -26,7 +26,6 @@ namespace VoltProjects.Server.Controllers;
 public class ProjectController : Controller
 {
     private readonly VoltProjectDbContext dbContext;
-    private readonly ProjectMenuService projectMenuService;
     private readonly VoltProjectsConfig config;
     
     private readonly IMemoryCache memoryCache;
@@ -34,13 +33,11 @@ public class ProjectController : Controller
 
     public ProjectController(
         VoltProjectDbContext dbContext,
-        ProjectMenuService projectMenuService,
         IOptions<VoltProjectsConfig> vpConfig,
         IMemoryCache memoryCache,
         ILogger<ProjectController> logger)
     {
         this.dbContext = dbContext;
-        this.projectMenuService = projectMenuService;
         this.config = vpConfig.Value;
         this.memoryCache = memoryCache;
         this.logger = logger;
@@ -72,7 +69,9 @@ public class ProjectController : Controller
         ProjectPage? projectPage = await dbContext.ProjectPages
             .AsNoTracking()
             .Include(x => x.ProjectVersion)
-            .ThenInclude(x => x.Project)
+                .ThenInclude(x => x.Project)
+            .Include(x => 
+                    x.ProjectVersion.MenuItems!.OrderBy(m => m.ItemOrder))
             .FirstOrDefaultAsync(x =>
                 x.Path == fullPath &&
                 x.ProjectVersion.VersionTag == version &&
@@ -84,14 +83,14 @@ public class ProjectController : Controller
         if (projectPage == null)
         {
             //Try to get project version
-            ProjectVersion? projectVersion = await dbContext.ProjectVersions
+            ProjectVersion? foundProjectVersion = await dbContext.ProjectVersions
                 .AsNoTracking()
                 .Include(x => x.Project)
                 .FirstOrDefaultAsync(x => x.VersionTag == version && x.Project.Name == projectName,
                     cancellationToken: cancellationToken);
 
             //Invalid project version
-            if (projectVersion == null)
+            if (foundProjectVersion == null)
                 return await GetProjectLatestRedirect(projectName, version, fullPath, cancellationToken);
 
             ProjectExternalItemStorageItem? externalItemStorageItem = dbContext.ProjectExternalItemStorageItems
@@ -99,31 +98,92 @@ public class ProjectController : Controller
                 .Include(x => x.StorageItem)
                 .Include(x => x.ProjectExternalItem)
                 .ThenInclude(x => x.ProjectVersion)
-                .FirstOrDefault(x => x.StorageItem.Path == fullPath && x.ProjectExternalItem.ProjectVersionId == projectVersion.Id);
+                .FirstOrDefault(x => x.StorageItem.Path == fullPath && x.ProjectExternalItem.ProjectVersionId == foundProjectVersion.Id);
 
             if (externalItemStorageItem == null)
                 return NotFound();
             
             //Send user agent to storage item
-            string storageItemUrl = $"{config.PublicUrl}{projectVersion.Project.Name}/{projectVersion.VersionTag}/{externalItemStorageItem.StorageItem.Path}";
+            string storageItemUrl = $"{config.PublicUrl}{foundProjectVersion.Project.Name}/{foundProjectVersion.VersionTag}/{externalItemStorageItem.StorageItem.Path}";
             return RedirectPermanent(storageItemUrl);
         }
+
+        ProjectVersion projectVersion = projectPage.ProjectVersion;
+        Project project = projectVersion.Project;
         
         string requestPath = Request.Path;
-        string baseProjectPath = $"/{Path.Combine(projectPage.ProjectVersion.Project.Name, projectPage.ProjectVersion.VersionTag)}";
+        string baseProjectPath = $"/{Path.Combine(project.Name, projectVersion.VersionTag)}";
 
-        //Get project menu
+        //Build project nav
         ProjectNavModel navModel;
+        using (Tracking.StartActivity(ActivityArea.Project, "nav"))
         {
-            Activity projectNavActivity = Tracking.StartActivity(ActivityArea.Project, "nav");
-            navModel = await projectMenuService.GetProjectMenu(requestPath, baseProjectPath, projectPage.ProjectVersion, cancellationToken);
-            projectNavActivity?.Dispose();
+            ProjectMenuItem[] menuItems = projectVersion.MenuItems!.ToArray();
+            MenuItem[] builtMenuItems = new MenuItem[menuItems.Length];
+            for (int i = 0; i < builtMenuItems.Length; i++)
+            {
+                string menuPagePath = menuItems[i].Href;
+                builtMenuItems[i] = new MenuItem
+                {
+                    Title = menuItems[i].Title,
+                    Href = Path.Combine(baseProjectPath, menuPagePath),
+                    IsActive = requestPath.Contains(menuPagePath)
+                };
+            }
+
+            navModel = new ProjectNavModel
+            {
+                ProjectId = project.Id,
+                ProjectName = project.DisplayName,
+                BasePath = baseProjectPath,
+                GitUrl = $"{project.GitUrl}/tree/{projectVersion.GitTag ?? projectVersion.GitBranch}",
+                MenuItems = builtMenuItems
+            };
         }
         
         //Figure out TOC stuff
-        TocItem? tocItem = null;
+        List<TocItem>? tocItems = null;
         if (projectPage.ProjectTocId != null)
-            tocItem = await HandleProjectToc(projectPage, requestPath, cancellationToken);
+        {
+            tocItems = [];
+            ProjectToc toc = dbContext.ProjectTocs
+                .AsNoTracking()
+                .Include(x => x.TocItems.OrderBy(y => y.ItemOrder))
+                .First(x => x.Id == projectPage.ProjectTocId);
+
+            foreach (ProjectTocItem projectTocItem in toc.TocItems)
+            {
+                TocItem builtTocItem = new()
+                {
+                    Id = projectTocItem.Id,
+                    Title = projectTocItem.Title,
+                    Href = projectTocItem.Href == null ? null : Path.Combine(projectPage.TocRel!, projectTocItem.Href),
+                    IsActive = projectTocItem.Href != null && requestPath.Contains(projectTocItem.Href)
+                };
+
+                if (projectTocItem.ParentTocItemId != null)
+                {
+                    TocItem? parentTocItem = FindParentTocItem(tocItems, projectTocItem.ParentTocItemId.Value);
+                    if (parentTocItem == null)
+                    {
+                        logger.LogWarning("Failed getting built parent TOC item");
+                        break;
+                    }
+
+                    //Make parent active too
+                    if (builtTocItem.IsActive)
+                        parentTocItem.IsActive = true;
+
+                    parentTocItem.Items ??= [];
+                    parentTocItem.Items.Add(builtTocItem);
+                }
+                else
+                {
+                    tocItems.Add(builtTocItem);
+                }
+
+            }
+        }
 
         Uri baseUri = new(config.SiteUrl);
         Uri fullUrl = new(baseUri, requestPath);
@@ -140,7 +200,7 @@ public class ProjectController : Controller
                 ProjectPage = projectPage,
                 PageFullUrl = fullUrl
             },
-            Toc = tocItem
+            TocItems = tocItems
         });
     }
 
@@ -164,59 +224,23 @@ public class ProjectController : Controller
         return RedirectToAction("ProjectView", "Project", new { projectName, version = latestProjectVersion.VersionTag, fullPath});
     }
 
-    private async Task<TocItem?> HandleProjectToc(ProjectPage projectPage, string requestPath, CancellationToken cancellationToken)
+    private TocItem? FindParentTocItem(List<TocItem> tocItems, int childTocId)
     {
-        using Activity projectHandleProjectTocActivity = Tracking.StartActivity(ActivityArea.Project, "toc");
-        
-        int tocId = projectPage.ProjectTocId!.Value;
-        string tocMemoryCacheKeyName = $"ProjectToc-{tocId}";
-        ProjectToc? projectToc = await memoryCache.GetOrCreateAsync(tocMemoryCacheKeyName, async entry =>
+        foreach (TocItem item in tocItems)
         {
-            using Activity projectGetTocActivity = Tracking.StartActivity(ActivityArea.Project, "toc.get");
-            ProjectToc? projectToc = await dbContext.ProjectTocs
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.Id == tocId, cancellationToken: cancellationToken);
-                
-            entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(6);
-            return projectToc;
-        });
+            if (item.Id == childTocId)
+            {
+                return item;
+            }
 
-        TocItem? tocItem = null;
-        if (projectToc != null)
-        {
-            Activity projectProcessTocActivity = Tracking.StartActivity(ActivityArea.Project, "toc.process");
-            tocItem = ProcessTocItems(projectToc.TocItem, projectPage.TocRel!, requestPath);
-            projectProcessTocActivity.Dispose();
+            if (item.Items != null)
+            {
+                TocItem? result = FindParentTocItem(item.Items, childTocId);
+                if (result != null)
+                    return result;
+            }
         }
 
-        return tocItem;
-    }
-
-    private static TocItem ProcessTocItems(LinkItem linkItem, string pageRel, string requestPath)
-    {
-        bool isActive = linkItem.Href != null && requestPath.Contains(linkItem.Href);
-        
-        //Process child items first
-        TocItem[]? children = linkItem.Items != null ? new TocItem[linkItem.Items.Length] : null;
-        for (int i = 0; i < children?.Length; i++)
-        {
-            LinkItem childLinkItem = linkItem.Items![i];
-            TocItem newChildItem = children[i] = ProcessTocItems(childLinkItem, pageRel, requestPath);
-            
-            //Child is active, then so will this one
-            if (newChildItem.IsActive)
-                isActive = true;
-        }
-
-        //Now root item
-        TocItem newItem = new()
-        {
-            Title = linkItem.Title,
-            Href = linkItem.Href != null ? Path.Combine(pageRel, linkItem.Href) : null,
-            IsActive = isActive,
-            Items = children
-        };
-        
-        return newItem;
+        return null;
     }
 }

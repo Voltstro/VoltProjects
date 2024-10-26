@@ -13,16 +13,19 @@ public struct BuildResult
     /// <param name="projectMenu"></param>
     /// <param name="tocs"></param>
     /// <param name="pages"></param>
-    public BuildResult(ProjectMenu projectMenu, ProjectToc[] tocs, ProjectPage[] pages)
+    public BuildResult(ProjectMenuItem[] projectMenuItems, ProjectToc[] tocs, ProjectTocItem[] projectTocItems, ProjectPage[] pages)
     {
-        ProjectMenu = projectMenu;
+        ProjectMenuItems = projectMenuItems;
         ProjectTocs = tocs;
+        ProjectTocItems = projectTocItems;
         ProjectPages = pages;
     }
     
-    public ProjectMenu ProjectMenu { get; }
+    public ProjectMenuItem[] ProjectMenuItems { get; }
     
     public ProjectToc[] ProjectTocs { get; }
+    
+    public ProjectTocItem[] ProjectTocItems { get; }
     
     public ProjectPage[] ProjectPages { get; }
 }

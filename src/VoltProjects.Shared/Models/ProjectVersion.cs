@@ -67,4 +67,9 @@ public class ProjectVersion
     ///     When was this project created?
     /// </summary>
     public DateTime CreationTime { get; set; }
+    
+    /// <summary>
+    ///     All <see cref="ProjectMenuItem"/>s this project has
+    /// </summary>
+    public ICollection<ProjectMenuItem>? MenuItems { get; } = new List<ProjectMenuItem>();
 }

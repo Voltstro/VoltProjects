@@ -45,7 +45,6 @@ try
     //Setup services
     builder.Services.Configure<VoltProjectsConfig>(
         builder.Configuration.GetSection(VoltProjectsConfig.VoltProjects));
-    builder.Services.AddScoped<ProjectMenuService>();
     builder.Services.AddSingleton<StructuredDataService>();
     builder.Services.AddSingleton<SitemapService>();
     builder.Services.AddHostedService<SitemapBackgroundService>();

@@ -19,7 +19,7 @@ public static class VoltProjectsDbContextProcedures
     public static async Task<ProjectToc[]> UpsertProjectTOCs(this VoltProjectDbContext dbContext, ProjectToc[] tocs,
         ProjectVersion projectVersion)
     {
-        (object?[] objectValues, string[] objectPlaceholders) = DbContextExtensions.GenerateParams(tocs, x => new { x.TocRel, x.TocItem }, true, 1);
+        (object?[] objectValues, string[] objectPlaceholders) = DbContextExtensions.GenerateParams(tocs, x => new { x.TocRel }, true, 1);
         objectValues[0] = projectVersion.Id;
         
         string paramsPlaceholder = string.Join(",", objectPlaceholders);
@@ -31,24 +31,6 @@ public static class VoltProjectsDbContextProcedures
             .AsNoTracking()
             .ToArrayAsync();
 #pragma warning restore EF1002
-    }
-
-    /// <summary>
-    ///     Upsert a <see cref="ProjectMenu"/>
-    /// </summary>
-    /// <param name="dbContext"></param>
-    /// <param name="projectMenu"></param>
-    public static async Task UpsertProjectMenu(this VoltProjectDbContext dbContext, ProjectMenu projectMenu)
-    {
-        string linkItemJson = JsonSerializer.Serialize(projectMenu.LinkItem);
-        await dbContext.Database.ExecuteSqlRawAsync("""
-                                                     INSERT INTO public.project_menu
-                                                        (project_version_id, link_item)
-                                                     VALUES (@p0, @p1::jsonb)
-                                                     ON CONFLICT (project_version_id)
-                                                     DO UPDATE SET
-                                                        link_item = EXCLUDED.link_item;
-                                                     """, projectMenu.ProjectVersionId, linkItemJson);
     }
 
     /// <summary>
