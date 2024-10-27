@@ -76,7 +76,7 @@ public sealed class BuildManager
     /// <param name="projectVersion"></param>
     /// <param name="projectPath"></param>
     /// <param name="cancellationToken"></param>
-    public async Task BuildProject(VoltProjectDbContext dbContext, ProjectVersion projectVersion, string projectPath, CancellationToken cancellationToken)
+    public async Task<BuildProjectResult> BuildProject(VoltProjectDbContext dbContext, ProjectVersion projectVersion, string projectPath, CancellationToken cancellationToken)
     {
         //First, get the builder
         KeyValuePair<string, IBuilder>? buildFindResult = builders.FirstOrDefault(x => x.Key == projectVersion.DocBuilderId);
@@ -96,8 +96,17 @@ public sealed class BuildManager
         if(Directory.Exists(builtDocsLocation))
             Directory.Delete(builtDocsLocation, true);
 
-        //First, run the build process
-        ExecuteDocBuilderProcess(builder, projectVersion, docsLocation, builtDocsLocation);
+        List<ProjectBuildEventLog> buildEventLogs = new();
+        
+        ProjectPreBuild[] prebuildCommands = await dbContext.PreBuildCommands
+            .AsNoTracking()
+            .Where(x => x.ProjectVersionId == projectVersion.Id)
+            .OrderBy(x => x.Order)
+            .ToArrayAsync(cancellationToken);
+        
+        //Run pre-build, then build
+        buildEventLogs.AddRange(ExecuteDocPreBuildCommands(prebuildCommands, projectPath));
+        buildEventLogs.AddRange(ExecuteDocBuilderProcess(builder, projectVersion, docsLocation, builtDocsLocation));
         
         //Now check that built docs exist
         if (!Directory.Exists(builtDocsLocation))
@@ -317,21 +326,91 @@ public sealed class BuildManager
         {
             objectHandler.Dispose();
         }
+
+        return new BuildProjectResult
+        {
+            BuildEventLogs = buildEventLogs
+        };
     }
 
-    private void ExecuteDocBuilderProcess(IBuilder builder, ProjectVersion projectVersion, string docsLocation, string docsBuiltLocation)
+    private List<ProjectBuildEventLog> ExecuteDocPreBuildCommands(ProjectPreBuild[] preBuildCommands, string repoPath)
+    {
+        //Run prebuild
+        List<ProjectBuildEventLog> eventLogs = new();
+        foreach (ProjectPreBuild prebuildCommand in preBuildCommands)
+        {
+            string? arguments = prebuildCommand.Arguments;
+            arguments ??= string.Empty;
+            ProcessStartInfo startInfo = new(prebuildCommand.Command, arguments)
+            {
+                WorkingDirectory = repoPath,
+                RedirectStandardError = true,
+                RedirectStandardOutput = true
+            };
+            
+            Process process = new()
+            {
+                StartInfo = startInfo
+            };
+
+            process.OutputDataReceived += (sender, args) =>
+            {
+                string? data = args.Data;
+                if(string.IsNullOrWhiteSpace(data))
+                    return;
+                
+                logger.LogInformation("[Pre-Build Process]: {Data}", data);
+                eventLogs.Add(new ProjectBuildEventLog
+                {
+                    LogLevelId = 1,
+                    Date = DateTime.UtcNow,
+                    Message = data
+                });
+            };
+            process.ErrorDataReceived += (sender, args) =>
+            {
+                string? data = args.Data;
+                if(string.IsNullOrWhiteSpace(data))
+                    return;
+                
+                logger.LogError("[Pre-Build Process]: {Data}", data);
+                eventLogs.Add(new ProjectBuildEventLog
+                {
+                    LogLevelId = 2,
+                    Date = DateTime.UtcNow,
+                    Message = data
+                });
+            };
+            process.Start();
+            process.BeginErrorReadLine();
+            process.BeginOutputReadLine();
+            process.WaitForExit();
+            process.CancelErrorRead();
+            process.CancelOutputRead();
+
+            if (process.ExitCode != 0)
+                throw new Exception("Action process failed to run!");
+            
+            process.Dispose();
+        }
+
+        return eventLogs;
+    }
+
+    private List<ProjectBuildEventLog> ExecuteDocBuilderProcess(IBuilder builder, ProjectVersion projectVersion, string docsLocation, string docsBuiltLocation)
     {
         DocBuilder docBuilder = projectVersion.DocBuilder;
 
         string[]? arguments = docBuilder.Arguments;
         builder.PrepareBuilder(ref arguments, docsLocation, docsBuiltLocation);
 
-        arguments ??= Array.Empty<string>();
+        arguments ??= [];
 
-        ProcessStartInfo processStartInfo = new(docBuilder.Application)
+        ProcessStartInfo processStartInfo = new(docBuilder.Application, string.Join(' ', arguments))
         {
-            Arguments = string.Join(' ', arguments),
-            WorkingDirectory = docsLocation
+            WorkingDirectory = docsLocation,
+            RedirectStandardError = true,
+            RedirectStandardOutput = true
         };
         
         //TODO: Better way of doing this, please...
@@ -345,15 +424,49 @@ public sealed class BuildManager
                 processStartInfo.EnvironmentVariables[splitEnv[0]] = splitEnv[1];
             }
 
+        List<ProjectBuildEventLog> eventLogs = new List<ProjectBuildEventLog>();
         Process process = new();
         process.StartInfo = processStartInfo;
+        process.EnableRaisingEvents = true;
+        process.OutputDataReceived += (sender, args) =>
+        {
+            string? data = args.Data;
+            if(string.IsNullOrWhiteSpace(data))
+                return;
+            logger.LogInformation("[Build Process]: {Data}", data);
+            eventLogs.Add(new ProjectBuildEventLog
+            {
+                LogLevelId = 1,
+                Date = DateTime.UtcNow,
+                Message = data
+            });
+        };
+        process.ErrorDataReceived += (sender, args) =>
+        {
+            string? data = args.Data;
+            if(string.IsNullOrWhiteSpace(data))
+                return;
+            logger.LogError("[Build Process]: {Data}", data);
+            eventLogs.Add(new ProjectBuildEventLog
+            {
+                LogLevelId = 2,
+                Date = DateTime.UtcNow,
+                Message = data
+            });
+        };
         process.Start();
 
+        process.BeginErrorReadLine();
+        process.BeginOutputReadLine();
         process.WaitForExit();
+        
+        process.CancelErrorRead();
+        process.CancelOutputRead();
 
         if (process.ExitCode != 0)
             throw new Exception("Builder failed to exit cleanly!");
         
         process.Dispose();
+        return eventLogs;
     }
 }

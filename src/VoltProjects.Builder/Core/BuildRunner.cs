@@ -138,34 +138,6 @@ public sealed class BuildRunner : IDisposable
                     };
                     dbContext.ProjectBuildEvents.Add(buildEvent);
                     await dbContext.SaveChangesAsync(cancellationToken);
-                
-                    //Run prebuild
-                    ProjectPreBuild[] prebuildCommands = await dbContext.PreBuildCommands
-                        .AsNoTracking()
-                        .Where(x => x.ProjectVersionId == projectVersion.Id)
-                        .OrderBy(x => x.Order)
-                        .ToArrayAsync(cancellationToken);
-                    foreach (ProjectPreBuild prebuildCommand in prebuildCommands)
-                    {
-                        ProcessStartInfo startInfo = new(prebuildCommand.Command, prebuildCommand.Arguments)
-                        {
-                            WorkingDirectory = repoPath
-                        };
-
-                        Process actionProcess = new()
-                        {
-                            StartInfo = startInfo
-                        };
-
-                        actionProcess.Start();
-                        actionProcess.WaitForExit();
-
-                        if (actionProcess.ExitCode != 0)
-                            throw new Exception("Action process failed to run!");
-
-                        actionProcess.Kill(true);
-                        actionProcess.Dispose();
-                    }
                     
                     IDbContextTransaction transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
                     const string transactionName = "ProjectBuild";
@@ -175,8 +147,16 @@ public sealed class BuildRunner : IDisposable
                     try
                     {
                         //Now run build
-                        await buildManager.BuildProject(dbContext, projectVersion, repoPath, cancellationToken);
+                        BuildProjectResult buildResult = await buildManager.BuildProject(dbContext, projectVersion, repoPath, cancellationToken);
 
+                        //Add logs
+                        foreach (ProjectBuildEventLog buildEventLog in buildResult.BuildEventLogs)
+                        {
+                            buildEventLog.BuildEventId = buildEvent.Id;
+                        }
+                        await dbContext.InsertProjectBuildEventLogs(buildResult.BuildEventLogs.ToArray());
+                        
+                        //Update event
                         buildEvent.Successful = true;
                         buildEvent.Message = "Successfully Built Project";
                     }

@@ -116,4 +116,17 @@ public static class DbProcedures
 		                                             AND project_version_id = @p0;
 		                                             """, objectValues);
 	}
+
+	public static async Task InsertProjectBuildEventLogs(this VoltProjectDbContext dbContext,
+		ProjectBuildEventLog[] projectBuildEventLogs)
+	{
+		(object?[] objectValues, string[] objectPlaceholders) = DbContextExtensions.GenerateParams(projectBuildEventLogs, x => new { x.BuildEventId, x.Message, x.Date, x.LogLevelId }, false);
+
+		string paramsPlaceholder = string.Join(",", objectPlaceholders);
+		await dbContext.Database.ExecuteSqlRawAsync($"""
+		                                       INSERT INTO public.project_build_event_log
+		                                       (build_event_id, message, "date", log_level_id)
+		                                       VALUES{paramsPlaceholder};
+		                                       """, objectValues);
+	}
 }

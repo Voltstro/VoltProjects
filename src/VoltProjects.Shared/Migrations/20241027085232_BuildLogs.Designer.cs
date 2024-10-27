@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using VoltProjects.Shared;
@@ -11,9 +12,11 @@ using VoltProjects.Shared;
 namespace VoltProjects.Shared.Migrations
 {
     [DbContext(typeof(VoltProjectDbContext))]
-    partial class VoltProjectDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241027085232_BuildLogs")]
+    partial class BuildLogs
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

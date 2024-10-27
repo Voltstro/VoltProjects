@@ -23,10 +23,14 @@ public sealed class VoltProjectDbContext : DbContext
     }
     
     public DbSet<DocBuilder> DocBuilders { get; set; }
+    
+    public DbSet<LogLevel> LogLevels { get; set; }
 
     public DbSet<Project> Projects { get; set; }
     
     public DbSet<ProjectBuildEvent> ProjectBuildEvents { get; set; }
+    
+    public DbSet<ProjectBuildEventLog> ProjectBuildEventLogs { get; set; }
     
     public DbSet<ProjectBuildSchedule> ProjectBuildSchedules { get; set; }
     
@@ -170,6 +174,11 @@ public sealed class VoltProjectDbContext : DbContext
                 .Property(p => p.Id)
                 .UseIdentityAlwaysColumn();
             
+            //ProjectBuildEventLog
+            modelBuilder.Entity<ProjectBuildEventLog>()
+                .Property(p => p.Id)
+                .UseIdentityAlwaysColumn();
+            
             //ProjectBuildSchedule
             modelBuilder.Entity<ProjectBuildSchedule>()
                 .Property(p => p.Id)
@@ -276,6 +285,18 @@ public sealed class VoltProjectDbContext : DbContext
                 .WithMany()
                 .OnDelete(DeleteBehavior.Restrict);
 
+            //ProjectBuildEventLog
+            modelBuilder.Entity<ProjectBuildEventLog>()
+                .HasOne(p => p.BuildEvent)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ProjectBuildEventLog>()
+                .HasOne(p => p.LogLevel)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
+                
+                //ProjectBuildSchedule
             modelBuilder.Entity<ProjectBuildSchedule>()
                 .HasOne(p => p.ProjectVersion)
                 .WithMany()
@@ -418,13 +439,26 @@ public sealed class VoltProjectDbContext : DbContext
         
             //Language
             modelBuilder.Entity<Language>()
-                .Property(p => p.Id).UseIdentityAlwaysColumn();
+                .Property(p => p.Id)
+                .UseIdentityAlwaysColumn();
         
             modelBuilder.Entity<Language>()
                 .HasData(new Language
                 {
                     Id = 1,
                     Name = "en"
+                });
+            
+            //LogLevel
+            modelBuilder.Entity<LogLevel>()
+                .HasData(new LogLevel
+                {
+                    Id = 1,
+                    Name = "Info"
+                }, new LogLevel
+                {
+                    Id = 2,
+                    Name = "Error"
                 });
         }
     }
