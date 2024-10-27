@@ -8,7 +8,7 @@ namespace VoltProjects.Builder.Core;
 public sealed class VoltProjectsBuilderConfig
 {
     /// <summary>
-    ///     Delay time before attempting to do a rebuild
+    ///     Delay time for each job schedule check
     /// </summary>
     public TimeSpan DelayTime { get; init; }
 

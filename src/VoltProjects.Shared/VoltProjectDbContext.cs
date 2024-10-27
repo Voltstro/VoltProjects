@@ -28,6 +28,8 @@ public sealed class VoltProjectDbContext : DbContext
     
     public DbSet<ProjectBuildEvent> ProjectBuildEvents { get; set; }
     
+    public DbSet<ProjectBuildSchedule> ProjectBuildSchedules { get; set; }
+    
     public DbSet<ProjectVersion> ProjectVersions { get; set; }
     
     public DbSet<ProjectPage> ProjectPages { get; set; }
@@ -76,8 +78,16 @@ public sealed class VoltProjectDbContext : DbContext
             modelBuilder.Entity<Project>()
                 .Property(p => p.CreationTime)
                 .HasDefaultValueSql("now()");
+
+            modelBuilder.Entity<ProjectBuildSchedule>()
+                .Property(p => p.CreationTime)
+                .HasDefaultValueSql("now()");
             
-            //Project Version
+            modelBuilder.Entity<ProjectBuildSchedule>()
+                .Property(p => p.LastUpdateTime)
+                .HasDefaultValueSql("now()");
+            
+            //ProjectVersion
             modelBuilder.Entity<ProjectVersion>()
                 .Property(p => p.LastUpdateTime)
                 .HasDefaultValueSql("now()");
@@ -86,7 +96,7 @@ public sealed class VoltProjectDbContext : DbContext
                 .Property(p => p.CreationTime)
                 .HasDefaultValueSql("now()");
             
-            //Project Page
+            //ProjectPage
             modelBuilder.Entity<ProjectPage>()
                 .Property(p => p.LastUpdateTime)
                 .HasDefaultValueSql("now()");
@@ -128,7 +138,11 @@ public sealed class VoltProjectDbContext : DbContext
             
             //Project Build Event
             modelBuilder.Entity<ProjectBuildEvent>()
-                .Property(p => p.Date)
+                .Property(p => p.LastUpdateTime)
+                .HasDefaultValueSql("now()");
+            
+            modelBuilder.Entity<ProjectBuildEvent>()
+                .Property(p => p.CreationTime)
                 .HasDefaultValueSql("now()");
             
             //External Item
@@ -153,7 +167,13 @@ public sealed class VoltProjectDbContext : DbContext
             
             //Project Build Event
             modelBuilder.Entity<ProjectBuildEvent>()
-                .Property(p => p.Id).UseIdentityAlwaysColumn();
+                .Property(p => p.Id)
+                .UseIdentityAlwaysColumn();
+            
+            //ProjectBuildSchedule
+            modelBuilder.Entity<ProjectBuildSchedule>()
+                .Property(p => p.Id)
+                .UseIdentityAlwaysColumn();
             
             //Project Menu
             modelBuilder.Entity<ProjectMenuItem>()
@@ -253,6 +273,11 @@ public sealed class VoltProjectDbContext : DbContext
             //ProjectBuildEvent
             modelBuilder.Entity<ProjectBuildEvent>()
                 .HasOne(p => p.Project)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ProjectBuildSchedule>()
+                .HasOne(p => p.ProjectVersion)
                 .WithMany()
                 .OnDelete(DeleteBehavior.Restrict);
             
