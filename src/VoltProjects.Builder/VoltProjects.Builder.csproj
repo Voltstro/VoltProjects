@@ -16,7 +16,7 @@
         <PackageReference Include="Azure.Storage.Blobs" Version="12.21.2" />
         <PackageReference Include="Google.Cloud.Storage.V1" Version="4.10.0" />
         <PackageReference Include="HtmlAgilityPack" Version="1.11.67" />
-        <PackageReference Include="Jint" Version="3.1.5" />
+        <PackageReference Include="Jint" Version="4.1.0" />
         <PackageReference Include="LibGit2Sharp" Version="0.30.0" />
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
         <PackageReference Include="SixLabors.ImageSharp" Version="3.1.5" />
