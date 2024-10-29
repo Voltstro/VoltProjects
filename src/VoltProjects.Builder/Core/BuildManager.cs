@@ -117,7 +117,9 @@ public sealed class BuildManager
         
         //Upsert project menu items, and delete any unused ones
         ProjectMenuItem[] menuItems = await dbContext.UpsertProjectMenuItems(buildResult.ProjectMenuItems);
-        await dbContext.DeleteProjectMenuItemsNotInValues(menuItems, projectVersion.Id);
+        await dbContext.ProjectMenuItems
+            .Where(p => !menuItems.Contains(p) && p.ProjectVersionId == projectVersion.Id)
+            .ExecuteDeleteAsync(cancellationToken);
         
         //Upsert project TOCs
         ProjectToc[] tocItems = await dbContext.UpsertProjectTocs(buildResult.ProjectTocs);
@@ -163,7 +165,9 @@ public sealed class BuildManager
         }
 
         // Delete any not upsertted
-        await dbContext.DeleteProjectTocItemsNotInValues(rootTocItems.ToArray(), projectVersion.Id);
+        await dbContext.ProjectTocItems
+            .Where(p => !rootTocItems.Contains(p) && p.ProjectVersionId == projectVersion.Id)
+            .ExecuteDeleteAsync(cancellationToken);
 
         //Pre-Process pages
         ProjectPage[] pages = buildResult.ProjectPages;

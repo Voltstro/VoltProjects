@@ -74,28 +74,6 @@ public static class DbProcedures
 	}
 
 	/// <summary>
-	///		Deletes any <see cref="ProjectTocItem"/> that are not in <see cref="projectTocItems"/>
-	/// </summary>
-	/// <param name="dbContext"></param>
-	/// <param name="projectTocItems"></param>
-	/// <param name="projectVersionId"></param>
-	public static async Task DeleteProjectTocItemsNotInValues(this VoltProjectDbContext dbContext,
-		ProjectTocItem[] projectTocItems, int projectVersionId)
-	{
-		//Allocate first value to be project version id
-		(object?[] objectValues, string[] objectPlaceholders) = DbContextExtensions.GenerateParams(projectTocItems, x => new { x.Id }, false, 1);
-		objectValues[0] = projectVersionId;
-		
-		string paramsPlaceholder = string.Join(",", objectPlaceholders);
-		
-		await dbContext.Database.ExecuteSqlRawAsync($"""
-		                                       DELETE FROM public.project_toc_item
-		                                       WHERE id NOT IN (VALUES{paramsPlaceholder})
-		                                       AND project_version_id = @p0;
-		                                       """, objectValues);
-	}
-
-	/// <summary>
 	///		Upserts <see cref="ProjectMenuItem"/>
 	/// </summary>
 	/// <param name="dbContext"></param>
@@ -122,26 +100,6 @@ public static class DbProcedures
 		                                       		item_order = menu_items_values.item_order
 		                                       RETURNING pmi.*;	
 		                                       """, objectValues).ToArrayAsync();
-	}
-	
-	/// <summary>
-	///		Deletes any <see cref="ProjectMenuItem"/> that are not in <see cref="projectMenuItems"/>
-	/// </summary>
-	/// <param name="dbContext"></param>
-	/// <param name="projectMenuItems"></param>
-	/// <param name="projectVersionId"></param>
-	public static async Task DeleteProjectMenuItemsNotInValues(this VoltProjectDbContext dbContext, ProjectMenuItem[] projectMenuItems, int projectVersionId)
-	{
-		(object?[] objectValues, string[] objectPlaceholders) = DbContextExtensions.GenerateParams(projectMenuItems, x => new { x.Id }, false, 1);
-		objectValues[0] = projectVersionId;
-		
-		string paramsPlaceholder = string.Join(",", objectPlaceholders);
-		
-		await dbContext.Database.ExecuteSqlRawAsync($"""
-		                                             DELETE FROM public.project_menu_item
-		                                             WHERE id NOT IN (VALUES{paramsPlaceholder})
-		                                             AND project_version_id = @p0;
-		                                             """, objectValues);
 	}
 
 	/// <summary>
@@ -198,5 +156,82 @@ public static class DbProcedures
 		                                            		language_configuration = page_items_value.language_configuration
 		                                         RETURNING pp.*;
 		                                         """, objectValues).ToArrayAsync();
+	}
+	
+	/// <summary>
+	///     Upsert <see cref="ProjectPageStorageItem"/>s
+	/// </summary>
+	/// <param name="dbContext"></param>
+	/// <param name="pageStorageItems"></param>
+	public static async Task UpsertProjectPageStorageItems(this VoltProjectDbContext dbContext, ProjectPageStorageItem[] pageStorageItems)
+	{
+		(object?[] objectValues, string[] objectPlaceholders)  = DbContextExtensions.GenerateParams(pageStorageItems, x => new { x.PageId, x.StorageItemId }, false);
+		string paramsPlaceholder = string.Join(",", objectPlaceholders);
+        
+#pragma warning disable EF1002
+		await dbContext.Database.ExecuteSqlRawAsync($"""
+		                                             MERGE INTO public.project_page_storage_item AS ppsi
+		                                             	USING (SELECT * FROM (VALUES{paramsPlaceholder}) AS s(page_id, storage_item_id)) AS storage_item_values
+		                                             	ON storage_item_values.page_id = ppsi.page_id
+		                                             	AND storage_item_values.storage_item_id = ppsi.storage_item_id
+		                                             WHEN NOT MATCHED THEN 
+		                                             	INSERT (page_id, storage_item_id)
+		                                             	VALUES (storage_item_values.page_id, storage_item_values.storage_item_id);
+		                                             """, objectValues!);
+#pragma warning restore EF1002
+	}
+	
+	/// <summary>
+    ///     Upsert <see cref="ProjectStorageItem"/>s
+    /// </summary>
+    /// <param name="dbContext"></param>
+    /// <param name="storageItems"></param>
+    /// <returns></returns>
+    public static async Task<ProjectStorageItem[]> UpsertProjectStorageAssets(this VoltProjectDbContext dbContext, ProjectStorageItem[] storageItems)
+    {
+        (object?[] objectValues, string[] objectPlaceholders)  = DbContextExtensions.GenerateParams(storageItems, x => new { x.ProjectVersionId, x.Path, x.Hash }, false);
+        string paramsPlaceholder = string.Join(",", objectPlaceholders);
+
+#pragma warning disable EF1002
+        return await dbContext.ProjectStorageItems.FromSqlRaw($"""
+                                                               MERGE INTO public.project_storage_item AS psi
+                                                               	USING (SELECT * FROM (VALUES{paramsPlaceholder}) AS s(project_version_id, path, hash)) AS storage_item_values
+                                                               	ON storage_item_values.project_version_id = psi.project_version_id
+                                                               	AND storage_item_values.PATH = psi.PATH
+                                                               WHEN NOT MATCHED THEN 
+                                                               	INSERT (project_version_id, path, hash)
+                                                               	VALUES (storage_item_values.project_version_id, storage_item_values.path, storage_item_values.hash)
+                                                               WHEN MATCHED THEN
+                                                               	UPDATE SET
+                                                               		hash = storage_item_values.hash
+                                                               RETURNING psi.*;
+                                                               """, objectValues!)
+            .AsNoTracking()
+            .ToArrayAsync();
+#pragma warning restore EF1002
+    }
+	
+	/// <summary>
+	///     Upsert <see cref="ProjectExternalItemStorageItem"/>s
+	/// </summary>
+	/// <param name="dbContext"></param>
+	/// <param name="pageStorageItems"></param>
+	public static async Task UpsertProjectExternalItemStorageItemItems(this VoltProjectDbContext dbContext, ProjectExternalItemStorageItem[] pageStorageItems)
+	{
+		(object?[] objectValues, string[] objectPlaceholders)  = DbContextExtensions.GenerateParams(pageStorageItems, x => new { x.ProjectExternalItemId, x.StorageItemId }, false);
+		string paramsPlaceholder = string.Join(",", objectPlaceholders);
+        
+#pragma warning disable EF1002
+		await dbContext.Database.ExecuteSqlRawAsync($"""
+		                                             MERGE INTO public.project_external_item_storage_item AS eisi
+		                                             	USING (SELECT * FROM (VALUES{paramsPlaceholder}) AS s(project_external_item_id, storage_item_id)) AS storage_item_values
+		                                             	ON storage_item_values.project_external_item_id = eisi.project_external_item_id
+		                                             	AND storage_item_values.storage_item_id = eisi.storage_item_id
+		                                             WHEN NOT MATCHED THEN 
+		                                             	INSERT (project_external_item_id, storage_item_id)
+		                                             	VALUES (storage_item_values.project_external_item_id, storage_item_values.storage_item_id);
+
+		                                             """, objectValues!);
+#pragma warning restore EF1002
 	}
 }
