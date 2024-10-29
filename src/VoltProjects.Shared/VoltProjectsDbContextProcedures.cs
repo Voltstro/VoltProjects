@@ -10,52 +10,6 @@ namespace VoltProjects.Shared;
 public static class VoltProjectsDbContextProcedures
 {
     /// <summary>
-    ///     Upsert <see cref="ProjectToc"/>s against a <see cref="ProjectVersion"/>
-    /// </summary>
-    /// <param name="dbContext"></param>
-    /// <param name="tocs"></param>
-    /// <param name="projectVersion"></param>
-    /// <returns></returns>
-    public static async Task<ProjectToc[]> UpsertProjectTOCs(this VoltProjectDbContext dbContext, ProjectToc[] tocs,
-        ProjectVersion projectVersion)
-    {
-        (object?[] objectValues, string[] objectPlaceholders) = DbContextExtensions.GenerateParams(tocs, x => new { x.TocRel }, true, 1);
-        objectValues[0] = projectVersion.Id;
-        
-        string paramsPlaceholder = string.Join(",", objectPlaceholders);
-
-#pragma warning disable EF1002
-        return await dbContext.ProjectTocs
-            .FromSqlRaw(
-                $"SELECT * FROM public.upsert_project_tocs(@p0, ARRAY[{paramsPlaceholder}]::upsertedtoc[]);", objectValues!)
-            .AsNoTracking()
-            .ToArrayAsync();
-#pragma warning restore EF1002
-    }
-
-    /// <summary>
-    ///     Upsert <see cref="ProjectPage"/>s against a <see cref="ProjectVersion"/>
-    /// </summary>
-    /// <param name="dbContext"></param>
-    /// <param name="pages"></param>
-    /// <param name="projectVersion"></param>
-    /// <returns></returns>
-    public static async Task<ProjectPage[]> UpsertProjectPages(this VoltProjectDbContext dbContext, ProjectPage[] pages, ProjectVersion projectVersion)
-    {
-        (object?[] objectValues, string[] objectPlaceholders) = DbContextExtensions.GenerateParams(pages, x => new { x.PublishedDate, x.Title, x.TitleDisplay, x.GitUrl, x.Aside, x.Metabar, x.WordCount, x.ProjectTocId, x.TocRel, x.Path, x.Description, x.Content, x.PageHash, x.LanguageConfiguration }, true, 1);
-        objectValues[0] = projectVersion.Id;
-        
-        string paramsPlaceholder = string.Join(",", objectPlaceholders);
-        
-#pragma warning disable EF1002
-        return await dbContext.ProjectPages
-            .FromSqlRaw($"SELECT * FROM public.upsert_project_pages(@p0, ARRAY[{paramsPlaceholder}]::upsertedpage[]);", objectValues!)
-            .AsNoTracking()
-            .ToArrayAsync();
-#pragma warning restore EF1002
-    }
-    
-    /// <summary>
     ///     Upsert <see cref="ProjectStorageItem"/>s
     /// </summary>
     /// <param name="dbContext"></param>

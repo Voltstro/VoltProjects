@@ -5,6 +5,9 @@ using VoltProjects.Shared.Models;
 
 namespace VoltProjects.Builder.Core;
 
+/// <summary>
+///		Contains methods for <see cref="VoltProjectDbContext"/> that are more complex and require raw SQL
+/// </summary>
 [SuppressMessage("Security", "EF1002:Risk of vulnerability to SQL injection.")]
 public static class DbProcedures
 {
@@ -36,6 +39,12 @@ public static class DbProcedures
 	    return await results.ToArrayAsync();
     }
 
+	/// <summary>
+	///		Upserts <see cref="ProjectTocItem"/>
+	/// </summary>
+	/// <param name="dbContext"></param>
+	/// <param name="projectTocItems"></param>
+	/// <returns></returns>
 	public static async Task<ProjectTocItem[]> UpsertProjectTocItems(this VoltProjectDbContext dbContext,
 		ProjectTocItem[] projectTocItems)
 	{
@@ -64,6 +73,12 @@ public static class DbProcedures
 		return await results.ToArrayAsync();
 	}
 
+	/// <summary>
+	///		Deletes any <see cref="ProjectTocItem"/> that are not in <see cref="projectTocItems"/>
+	/// </summary>
+	/// <param name="dbContext"></param>
+	/// <param name="projectTocItems"></param>
+	/// <param name="projectVersionId"></param>
 	public static async Task DeleteProjectTocItemsNotInValues(this VoltProjectDbContext dbContext,
 		ProjectTocItem[] projectTocItems, int projectVersionId)
 	{
@@ -80,6 +95,12 @@ public static class DbProcedures
 		                                       """, objectValues);
 	}
 
+	/// <summary>
+	///		Upserts <see cref="ProjectMenuItem"/>
+	/// </summary>
+	/// <param name="dbContext"></param>
+	/// <param name="projectMenuItems"></param>
+	/// <returns></returns>
 	public static async Task<ProjectMenuItem[]> UpsertProjectMenuItems(this VoltProjectDbContext dbContext,
 		ProjectMenuItem[] projectMenuItems)
 	{
@@ -103,6 +124,12 @@ public static class DbProcedures
 		                                       """, objectValues).ToArrayAsync();
 	}
 	
+	/// <summary>
+	///		Deletes any <see cref="ProjectMenuItem"/> that are not in <see cref="projectMenuItems"/>
+	/// </summary>
+	/// <param name="dbContext"></param>
+	/// <param name="projectMenuItems"></param>
+	/// <param name="projectVersionId"></param>
 	public static async Task DeleteProjectMenuItemsNotInValues(this VoltProjectDbContext dbContext, ProjectMenuItem[] projectMenuItems, int projectVersionId)
 	{
 		(object?[] objectValues, string[] objectPlaceholders) = DbContextExtensions.GenerateParams(projectMenuItems, x => new { x.Id }, false, 1);
@@ -117,6 +144,11 @@ public static class DbProcedures
 		                                             """, objectValues);
 	}
 
+	/// <summary>
+	///		Bulk insert <see cref="ProjectBuildEventLog"/>
+	/// </summary>
+	/// <param name="dbContext"></param>
+	/// <param name="projectBuildEventLogs"></param>
 	public static async Task InsertProjectBuildEventLogs(this VoltProjectDbContext dbContext,
 		ProjectBuildEventLog[] projectBuildEventLogs)
 	{
@@ -128,5 +160,43 @@ public static class DbProcedures
 		                                       (build_event_id, message, "date", log_level_id)
 		                                       VALUES{paramsPlaceholder};
 		                                       """, objectValues);
+	}
+
+	/// <summary>
+	///		Upserts <see cref="ProjectPage"/>
+	/// </summary>
+	/// <param name="dbContext"></param>
+	/// <param name="projectPages"></param>
+	/// <returns></returns>
+	public static async Task<ProjectPage[]> UpsertProjectPages(this VoltProjectDbContext dbContext,
+		ProjectPage[] projectPages)
+	{
+		(object?[] objectValues, string[] objectPlaceholders) = DbContextExtensions.GenerateParams(projectPages, x => new { x.ProjectVersionId, x.Path, x.Published, x.PublishedDate, x.Title, x.TitleDisplay, x.WordCount, x.ProjectTocId, x.TocRel, x.GitUrl, x.Aside, x.Metabar, x.Description, x.Content, x.PageHash, x.LanguageConfiguration }, false);
+		
+		string paramsPlaceholder = string.Join(",", objectPlaceholders);
+		return await dbContext.ProjectPages.FromSqlRaw($"""
+		                                         MERGE INTO public.project_page AS pp
+		                                            	USING (SELECT * FROM (VALUES{paramsPlaceholder}) AS s(project_version_id, path, published, published_date, title, title_display, word_count, project_toc_id, toc_rel, git_url, aside, metabar, description, content, page_hash, language_configuration)) AS page_items_value
+		                                            	ON page_items_value.project_version_id = pp.project_version_id
+		                                            	AND page_items_value.path = pp.path
+		                                         WHEN NOT MATCHED THEN
+		                                         	INSERT (project_version_id, path, published, published_date, title, title_display, word_count, project_toc_id, toc_rel, git_url, aside, metabar, description, content, page_hash, language_configuration)
+		                                            	VALUES (page_items_value.project_version_id, page_items_value.path, page_items_value.published, page_items_value.published_date, page_items_value.title, page_items_value.title_display, page_items_value.word_count, page_items_value.project_toc_id::int, page_items_value.toc_rel, page_items_value.git_url, page_items_value.aside, page_items_value.metabar, page_items_value.description, page_items_value.content, page_items_value.page_hash, page_items_value.language_configuration)
+		                                         WHEN MATCHED THEN
+		                                            	UPDATE SET
+		                                            		published = page_items_value.published,
+		                                            		title = page_items_value.title,
+		                                            		title_display = page_items_value.title_display,
+		                                            		word_count = page_items_value.word_count,
+		                                            		project_toc_id = page_items_value.project_toc_id::int,
+		                                            		toc_rel = page_items_value.toc_rel,
+		                                            		git_url = page_items_value.git_url,
+		                                            		aside = page_items_value.aside,
+		                                            		metabar = page_items_value.metabar,
+		                                            		description = page_items_value.description,
+		                                            		page_hash = page_items_value.page_hash,
+		                                            		language_configuration = page_items_value.language_configuration
+		                                         RETURNING pp.*;
+		                                         """, objectValues).ToArrayAsync();
 	}
 }

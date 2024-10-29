@@ -170,6 +170,7 @@ public sealed class BuildManager
         List<IExternalObjectHandler> externalObjectsIncluded = new();
         foreach (ProjectPage page in pages)
         {
+            page.ProjectVersionId = projectVersion.Id;
             page.ProjectVersion = projectVersion;
             page.LanguageConfiguration = projectVersion.Language.Configuration;
 
@@ -268,7 +269,10 @@ public sealed class BuildManager
             storageItems = await dbContext.UpsertProjectStorageAssets(storageItems);
         
         //Upsert pages
-        pages = await dbContext.UpsertProjectPages(pages, projectVersion);
+        pages = await dbContext.UpsertProjectPages(pages);
+        await dbContext.ProjectPages
+            .Where(p => !pages.Contains(p) && p.ProjectVersionId == projectVersion.Id)
+            .ExecuteUpdateAsync(p => p.SetProperty(b => b.Published, false), cancellationToken);
 
         //Creation and upserting of ProjectExternalItemStorageItem
         {

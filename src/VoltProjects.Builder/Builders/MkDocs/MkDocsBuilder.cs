@@ -202,6 +202,7 @@ public class MkDocsBuilder : IBuilder
             {
                 ProjectVersionId = projectVersion.Id,
                 Path = pagePath,
+                Published = true,
                 Content = pageContent,
                 Aside = true,
                 Metabar = displayMetabar,
