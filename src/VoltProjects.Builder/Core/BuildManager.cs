@@ -521,13 +521,18 @@ public sealed class BuildManager
             ProjectTocItem? parentTocItem = tocItems.First(x => x.Id == tocItem.ParentTocItemId);
             while (parentTocItem != null)
             {
-                breadcrumbs.Add(new ProjectPageBreadcrumb
-                {
-                    BreadcrumbOrder = order++,
-                    Title = parentTocItem.Title,
-                    Href = parentTocItem.Href,
-                    ProjectPageId = projectPage.Id
-                });
+                ProjectPageBreadcrumb? existingParentBreadcrumb = breadcrumbs.FirstOrDefault(x =>
+                    x.ProjectPageId == projectPage.Id && x.Title == parentTocItem.Title &&
+                    x.Href == parentTocItem.Href);
+                
+                if(existingParentBreadcrumb == null)
+                    breadcrumbs.Add(new ProjectPageBreadcrumb
+                    {
+                        BreadcrumbOrder = order++,
+                        Title = parentTocItem.Title,
+                        Href = parentTocItem.Href,
+                        ProjectPageId = projectPage.Id
+                    });
 
                 if (parentTocItem.ParentTocItemId != null)
                     parentTocItem = tocItems.FirstOrDefault(x => x.Id == parentTocItem.ParentTocItemId);
@@ -537,13 +542,17 @@ public sealed class BuildManager
         }
         
         //Then add itself breadcrumb
-        breadcrumbs.Add(new ProjectPageBreadcrumb
-        {
-            BreadcrumbOrder = order++,
-            Title = tocItem.Title,
-            Href = tocItem.Href,
-            ProjectPageId = projectPage.Id
-        });
+        ProjectPageBreadcrumb? existingBreadcrumb = breadcrumbs.FirstOrDefault(x =>
+            x.ProjectPageId == projectPage.Id && x.Title == tocItem.Title &&
+            x.Href == tocItem.Href);
+        if(existingBreadcrumb == null)
+            breadcrumbs.Add(new ProjectPageBreadcrumb
+            {
+                BreadcrumbOrder = order++,
+                Title = tocItem.Title,
+                Href = tocItem.Href,
+                ProjectPageId = projectPage.Id
+            });
         
         //Now do child items
         List<ProjectTocItem> childTocItems = tocItems.Where(x => x.ParentTocItemId == tocItem.Id).ToList();

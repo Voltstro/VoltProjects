@@ -139,13 +139,13 @@ public static class DbProcedures
 		                                            	AND page_items_value.path = pp.path
 		                                         WHEN NOT MATCHED THEN
 		                                         	INSERT (project_version_id, path, published, published_date, title, title_display, word_count, project_toc_id, toc_rel, git_url, aside, metabar, description, content, page_hash, language_configuration)
-		                                            	VALUES (page_items_value.project_version_id, page_items_value.path, page_items_value.published, page_items_value.published_date, page_items_value.title, page_items_value.title_display, page_items_value.word_count, page_items_value.project_toc_id::int, page_items_value.toc_rel, page_items_value.git_url, page_items_value.aside, page_items_value.metabar, page_items_value.description, page_items_value.content, page_items_value.page_hash, page_items_value.language_configuration)
+		                                            	VALUES (page_items_value.project_version_id, page_items_value.path, page_items_value.published, page_items_value.published_date, page_items_value.title, page_items_value.title_display, page_items_value.word_count::int, page_items_value.project_toc_id::int, page_items_value.toc_rel, page_items_value.git_url, page_items_value.aside, page_items_value.metabar, page_items_value.description, page_items_value.content, page_items_value.page_hash, page_items_value.language_configuration)
 		                                         WHEN MATCHED THEN
 		                                            	UPDATE SET
 		                                            		published = page_items_value.published,
 		                                            		title = page_items_value.title,
 		                                            		title_display = page_items_value.title_display,
-		                                            		word_count = page_items_value.word_count,
+		                                            		word_count = page_items_value.word_count::int,
 		                                            		project_toc_id = page_items_value.project_toc_id::int,
 		                                            		toc_rel = page_items_value.toc_rel,
 		                                            		git_url = page_items_value.git_url,
@@ -251,6 +251,7 @@ public static class DbProcedures
 		                                                   	USING (SELECT * FROM (VALUES{paramsPlaceholder}) AS s(project_page_id, title, href, breadcrumb_order)) AS src
 		                                                   	ON tgt.href = src.href
 		                                                   	AND tgt.project_page_id = src.project_page_id
+		                                                   	AND tgt.title = src.title
 		                                                   WHEN MATCHED THEN UPDATE SET
 		                                                   	title = src.title,
 		                                                   	breadcrumb_order = src.breadcrumb_order

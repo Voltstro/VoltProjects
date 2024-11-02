@@ -208,7 +208,7 @@ public sealed class VoltProjectDbContext : DbContext
                 .UseIdentityAlwaysColumn();
 
             modelBuilder.Entity<ProjectPageBreadcrumb>()
-                .HasIndex(p => new { p.ProjectPageId, p.Href })
+                .HasIndex(p => new { p.ProjectPageId, p.Title, p.Href })
                 .IsUnique()
                 .AreNullsDistinct(false);
             

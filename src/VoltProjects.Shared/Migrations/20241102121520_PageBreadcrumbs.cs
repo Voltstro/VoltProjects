@@ -6,7 +6,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace VoltProjects.Shared.Migrations
 {
     /// <inheritdoc />
-    public partial class PageBreadcrumb : Migration
+    public partial class PageBreadcrumbs : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -34,9 +34,9 @@ namespace VoltProjects.Shared.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "ix_project_page_breadcrumb_project_page_id_href",
+                name: "ix_project_page_breadcrumb_project_page_id_title_href",
                 table: "project_page_breadcrumb",
-                columns: new[] { "project_page_id", "href" },
+                columns: new[] { "project_page_id", "title", "href" },
                 unique: true)
                 .Annotation("Npgsql:NullsDistinct", false);
         }

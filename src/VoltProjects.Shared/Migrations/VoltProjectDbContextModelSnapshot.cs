@@ -579,11 +579,11 @@ namespace VoltProjects.Shared.Migrations
                     b.HasKey("Id")
                         .HasName("pk_project_page_breadcrumb");
 
-                    b.HasIndex("ProjectPageId", "Href")
+                    b.HasIndex("ProjectPageId", "Title", "Href")
                         .IsUnique()
-                        .HasDatabaseName("ix_project_page_breadcrumb_project_page_id_href");
+                        .HasDatabaseName("ix_project_page_breadcrumb_project_page_id_title_href");
 
-                    NpgsqlIndexBuilderExtensions.AreNullsDistinct(b.HasIndex("ProjectPageId", "Href"), false);
+                    NpgsqlIndexBuilderExtensions.AreNullsDistinct(b.HasIndex("ProjectPageId", "Title", "Href"), false);
 
                     b.ToTable("project_page_breadcrumb", (string)null);
                 });
