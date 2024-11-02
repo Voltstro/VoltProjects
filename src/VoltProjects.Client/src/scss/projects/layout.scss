@@ -53,6 +53,10 @@
 .layout-aside {
     grid-template-columns: minmax(0, 1fr) minmax(12em, 15%);
     grid-template-areas: 'article aside';
+
+    @media only screen and (max-width: 1100px) {
+        grid-template-columns: 100%;
+    }
 }
 
 .layout-toc {
