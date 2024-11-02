@@ -110,6 +110,8 @@ public class ProjectPage
     ///     When was this page created?
     /// </summary>
     public DateTime CreationTime { get; set; }
+    
+    public List<ProjectPageBreadcrumb> Breadcrumbs { get; set; }
 
     /// <summary>
     ///     Calculate a sha256 hash of this project page

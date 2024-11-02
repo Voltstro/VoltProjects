@@ -234,4 +234,30 @@ public static class DbProcedures
 		                                             """, objectValues!);
 #pragma warning restore EF1002
 	}
+
+	/// <summary>
+	///		Upsert <see cref="ProjectPageBreadcrumb"/>
+	/// </summary>
+	/// <param name="dbContext"></param>
+	/// <param name="breadcrumbs"></param>
+	public static async Task<ProjectPageBreadcrumb[]> UpsertProjectPageBreadcrumbs(this VoltProjectDbContext dbContext,
+		ProjectPageBreadcrumb[] breadcrumbs)
+	{
+		(object?[] objectValues, string[] objectPlaceholders)  = DbContextExtensions.GenerateParams(breadcrumbs, x => new { x.ProjectPageId, x.Title, x.Href, x.BreadcrumbOrder }, false);
+		string paramsPlaceholder = string.Join(",", objectPlaceholders);
+
+		return await dbContext.ProjectPageBreadcrumbs.FromSqlRaw($"""
+		                                                   MERGE INTO public.project_page_breadcrumb AS tgt
+		                                                   	USING (SELECT * FROM (VALUES{paramsPlaceholder}) AS s(project_page_id, title, href, breadcrumb_order)) AS src
+		                                                   	ON tgt.href = src.href
+		                                                   	AND tgt.project_page_id = src.project_page_id
+		                                                   WHEN MATCHED THEN UPDATE SET
+		                                                   	title = src.title,
+		                                                   	breadcrumb_order = src.breadcrumb_order
+		                                                   WHEN NOT MATCHED THEN
+		                                                   	INSERT (project_page_id, title, href, breadcrumb_order)
+		                                                   	VALUES (src.project_page_id, src.title, src.href, src.breadcrumb_order)
+		                                                   RETURNING tgt.*;
+		                                                   """, objectValues).ToArrayAsync();
+	}
 }

@@ -38,6 +38,8 @@ public sealed class VoltProjectDbContext : DbContext
     
     public DbSet<ProjectPage> ProjectPages { get; set; }
     
+    public DbSet<ProjectPageBreadcrumb> ProjectPageBreadcrumbs { get; set; }
+    
     public DbSet<ProjectPageContributor> ProjectPageContributors { get; set; }
     
     public DbSet<ProjectPageStorageItem> ProjectPageStorageItems { get; set; }
@@ -200,6 +202,16 @@ public sealed class VoltProjectDbContext : DbContext
                 .HasIndex(p => new { p.ProjectVersionId, p.Path })
                 .IsUnique();
             
+            //ProjectPageBreadcrumb
+            modelBuilder.Entity<ProjectPageBreadcrumb>()
+                .Property(p => p.Id)
+                .UseIdentityAlwaysColumn();
+
+            modelBuilder.Entity<ProjectPageBreadcrumb>()
+                .HasIndex(p => new { p.ProjectPageId, p.Href })
+                .IsUnique()
+                .AreNullsDistinct(false);
+            
             //Project Page Contributor
             modelBuilder.Entity<ProjectPageContributor>()
                 .Property(p => p.Id).UseIdentityAlwaysColumn();
@@ -334,6 +346,12 @@ public sealed class VoltProjectDbContext : DbContext
             modelBuilder.Entity<ProjectPage>()
                 .HasOne(p => p.ProjectToc)
                 .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            //ProjectPageBreadcrumb
+            modelBuilder.Entity<ProjectPageBreadcrumb>()
+                .HasOne(p => p.ProjectPage)
+                .WithMany(p => p.Breadcrumbs)
                 .OnDelete(DeleteBehavior.Restrict);
             
             //ProjectPageContributor

@@ -72,6 +72,7 @@ public class ProjectController : Controller
                 .ThenInclude(x => x.Project)
             .Include(x => 
                     x.ProjectVersion.MenuItems!.OrderBy(m => m.ItemOrder))
+            .Include(x => x.Breadcrumbs.OrderBy(m => m.BreadcrumbOrder))
             .FirstOrDefaultAsync(x =>
                 x.Path == fullPath &&
                 x.ProjectVersion.VersionTag == version &&

@@ -328,7 +328,38 @@ public sealed class BuildManager
             if (projectPageStorageItems.Count > 0)
                 await dbContext.UpsertProjectPageStorageItems(projectPageStorageItems.ToArray());
         }
+        
+        //Calculate breadcrumbs for each page
+        List<ProjectPageBreadcrumb> breadcrumbs = new();
+        foreach (ProjectPage projectPage in pages)
+        {
+            List<ProjectPageBreadcrumb> pageBreadcrumbs = new();
+            int order = 0;
+            
+            //First, attempt menu
+            ProjectMenuItem? menuItem = menuItems.FirstOrDefault(x => projectPage.Path.Contains(x.Href));
+            if(menuItem != null)
+                pageBreadcrumbs.Add(new ProjectPageBreadcrumb
+                {
+                    BreadcrumbOrder = order++,
+                    Title = menuItem.Title,
+                    Href = menuItem.Href,
+                    ProjectPageId = projectPage.Id
+                });
+            
+            //Now TOC Items
+            FindBreadcrumbsInTocItems(rootTocItems, projectPage, ref order, ref pageBreadcrumbs);
+            
+            //if(pageBreadcrumbs.Count > 1)
+            breadcrumbs.AddRange(pageBreadcrumbs);
+        }
 
+        ProjectPageBreadcrumb[] upsertBreadcrumbs = await dbContext.UpsertProjectPageBreadcrumbs(breadcrumbs.ToArray());
+        await dbContext.ProjectPageBreadcrumbs
+            .Where(x => !upsertBreadcrumbs.Contains(x) && x.ProjectPage.ProjectVersionId == projectVersion.Id)
+            .ExecuteDeleteAsync(cancellationToken);
+        //dbContext.ProjectPageBreadcrumbs.AddRange(breadcrumbs);
+        
         //Cleanup
         foreach (IExternalObjectHandler objectHandler in externalObjectsIncluded)
         {
@@ -476,5 +507,46 @@ public sealed class BuildManager
         
         process.Dispose();
         return eventLogs;
+    }
+
+    private void FindBreadcrumbsInTocItems(List<ProjectTocItem> tocItems, ProjectPage projectPage, ref int order, ref List<ProjectPageBreadcrumb> breadcrumbs)
+    {
+        ProjectTocItem? tocItem = tocItems.FirstOrDefault(x => x.Href != null && projectPage.Path.Contains(x.Href));
+        if(tocItem == null)
+            return;
+        
+        //Ensure all parents are added
+        if (tocItem.ParentTocItemId != null)
+        {
+            ProjectTocItem? parentTocItem = tocItems.First(x => x.Id == tocItem.ParentTocItemId);
+            while (parentTocItem != null)
+            {
+                breadcrumbs.Add(new ProjectPageBreadcrumb
+                {
+                    BreadcrumbOrder = order++,
+                    Title = parentTocItem.Title,
+                    Href = parentTocItem.Href,
+                    ProjectPageId = projectPage.Id
+                });
+
+                if (parentTocItem.ParentTocItemId != null)
+                    parentTocItem = tocItems.FirstOrDefault(x => x.Id == parentTocItem.ParentTocItemId);
+                else
+                    parentTocItem = null;
+            }
+        }
+        
+        //Then add itself breadcrumb
+        breadcrumbs.Add(new ProjectPageBreadcrumb
+        {
+            BreadcrumbOrder = order++,
+            Title = tocItem.Title,
+            Href = tocItem.Href,
+            ProjectPageId = projectPage.Id
+        });
+        
+        //Now do child items
+        List<ProjectTocItem> childTocItems = tocItems.Where(x => x.ParentTocItemId == tocItem.Id).ToList();
+        FindBreadcrumbsInTocItems(childTocItems, projectPage, ref order, ref breadcrumbs);
     }
 }
