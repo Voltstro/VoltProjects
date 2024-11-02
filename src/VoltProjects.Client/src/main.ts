@@ -1,4 +1,4 @@
-import { getPreferredTheme, setTheme } from './theme';
+import { getPreferredTheme, setTheme, toggleTheme } from './theme';
 import { renderAside } from './nav';
 import { initToc } from './toc';
 import { initSearchNav } from './searchNav';
@@ -15,7 +15,7 @@ declare global {
 }
 
 window.vGlobal = {
-    setTheme: setTheme
+    toggleTheme: toggleTheme
 };
 
 setTheme(getPreferredTheme());

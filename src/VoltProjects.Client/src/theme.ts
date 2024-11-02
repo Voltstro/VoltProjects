@@ -4,6 +4,18 @@ const cookieThemeName = 'vp-theme';
 const allowedThemes: string[] = ['dark', 'light'];
 
 /**
+ * Toggles current theme
+ */
+export function toggleTheme(): void {
+    let currentTheme = document.documentElement.getAttribute('data-bs-theme');
+    if(!currentTheme)
+        currentTheme = getPreferredTheme();
+
+    const theme = currentTheme === 'light' ? 'dark' : 'light';
+    setTheme(theme);
+}
+
+/**
  * Changes current theme colour
  */
 export function setTheme(theme: 'light' | 'dark'): void {
@@ -15,17 +27,13 @@ export function setTheme(theme: 'light' | 'dark'): void {
     document.documentElement.setAttribute('data-bs-theme', theme);
     setStoredTheme(theme);
 
-    //Set button's active
-    const darkBtn = document.getElementById('theme-dark-btn');
-    const lightBtn = document.getElementById('theme-light-btn');
-
+    const themeBtnIcon = document.getElementById('theme-btn-icon');
+    let themeBtnClasses = 'bi bi-brightness-high-fill';
     if(theme === 'dark') {
-        darkBtn.setAttribute('class', 'dropdown-item active');
-        lightBtn.setAttribute('class', 'dropdown-item');
-    } else {
-        lightBtn.setAttribute('class', 'dropdown-item active');
-        darkBtn.setAttribute('class', 'dropdown-item');
+        themeBtnClasses = 'bi bi-moon-fill';
     }
+
+    themeBtnIcon.setAttribute('class', themeBtnClasses);
 }
 
 /**
