@@ -1,12 +1,15 @@
 using System;
 using System.Diagnostics;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Rewrite;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.Net.Http.Headers;
 using OpenTelemetry.Trace;
 using Serilog;
@@ -15,6 +18,7 @@ using VoltProjects.Server.Shared;
 using VoltProjects.Shared;
 using VoltProjects.Shared.Logging;
 using VoltProjects.Shared.Telemetry;
+using SameSiteMode = Microsoft.AspNetCore.Http.SameSiteMode;
 
 //Create application
 WebApplicationBuilder builder = WebApplication.CreateBuilder();
@@ -41,10 +45,14 @@ try
             };
         });
     });
-
+    
+    //Setup Config
+    VoltProjectsConfig config = new();
+    IConfigurationSection configSection = builder.Configuration.GetSection(VoltProjectsConfig.VoltProjects);
+    configSection.Bind(config);
+    
     //Setup services
-    builder.Services.Configure<VoltProjectsConfig>(
-        builder.Configuration.GetSection(VoltProjectsConfig.VoltProjects));
+    builder.Services.Configure<VoltProjectsConfig>(configSection);
     builder.Services.AddSingleton<StructuredDataService>();
     builder.Services.AddSingleton<SitemapService>();
     builder.Services.AddHostedService<SitemapBackgroundService>();
@@ -67,6 +75,7 @@ try
     //Setup VoltProjects DB
     builder.Services.UseVoltProjectDbContext(builder.Configuration, "Server");
 
+    //Health Endpoints
     builder.Services.AddHealthChecks();
     
     //CORS
@@ -74,12 +83,51 @@ try
     {
         options.AddDefaultPolicy(policyBuilder =>
         {
-            VoltProjectsConfig? config =
-                builder.Configuration.GetSection(VoltProjectsConfig.VoltProjects).Get<VoltProjectsConfig>();
-
-            policyBuilder.WithOrigins(config.CorsSites).AllowAnyHeader().AllowAnyMethod();
+            policyBuilder
+                .WithOrigins(config.CorsSites)
+                .AllowAnyHeader()
+                .AllowAnyMethod();
         });
     });
+    
+    //Auth
+    OpenIdConfig openIdConfig = config.OpenIdConfig;
+    builder.Services.AddAuthentication(options =>
+        {
+            options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+        })
+        .AddCookie(options =>
+        {
+            options.ExpireTimeSpan = openIdConfig.CookieExpiryTime;
+            options.Cookie.SameSite = SameSiteMode.Strict;
+        })
+        .AddOpenIdConnect(options =>
+        {
+            //Signin Request
+            options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+            options.CallbackPath = "/auth/login/callback/";
+            options.AuthenticationMethod = OpenIdConnectRedirectBehavior.RedirectGet;
+            options.ResponseMode = OpenIdConnectResponseMode.Query;
+            
+            //Signout Request
+            options.SignedOutCallbackPath = "/auth/logout/callback/";
+            
+            //OpenId details
+            options.ClientId = openIdConfig.ClientId;
+            options.ClientSecret = openIdConfig.ClientSecret;
+            options.Authority = openIdConfig.Authority;
+            options.ResponseType = "code";
+            
+            options.UsePkce = true;
+            options.GetClaimsFromUserInfoEndpoint = true;
+            options.MapInboundClaims = false;
+
+            foreach (string scope in openIdConfig.Scopes)
+            {
+                options.Scope.Add(scope);
+            }
+        });
 
     //Now setup the app
     WebApplication app = builder.Build();
@@ -92,8 +140,8 @@ try
         app.UseHsts();
     else
         app.UseDeveloperExceptionPage();
-
-    VoltProjectsConfig config = app.Services.GetRequiredService<IOptions<VoltProjectsConfig>>().Value;
+    
+    //Static files
     app.UseStaticFiles(new StaticFileOptions
     {
         OnPrepareResponse = ctx =>
@@ -108,15 +156,21 @@ try
         .AddRedirect(pattern, "$1/",301);
     app.UseRewriter(options);
     
+    //Custom Error Page
     app.UseStatusCodePagesWithReExecute("/Eroor/{0}");
     
+    //Response Caching
     app.UseResponseCaching();
+    
+    //Routing
     app.UseRouting();
     
-    //Use CORS
+    //Security
+    app.UseAuthentication();
+    app.UseAuthorization();
     app.UseCors();
     
-    //Map main endpoints
+    //Endpoints
     app.MapControllers();
     app.UseHealthChecks("/healthz/");
 

@@ -39,6 +39,7 @@ try
     //Setup DB
     builder.Services.UseVoltProjectDbContext(builder.Configuration, "Builder");
 
+    //Http Client
     builder.Services.AddHttpClient();
 
     //Setup app

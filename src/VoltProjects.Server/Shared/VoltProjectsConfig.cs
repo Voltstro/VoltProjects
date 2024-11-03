@@ -52,4 +52,6 @@ public sealed class VoltProjectsConfig
     public string SiteUrl { get; init; }
     
     public int CacheTime { get; set; } = 2678400; //Default: 30 days
+    
+    public OpenIdConfig OpenIdConfig { get; init; }
 }
