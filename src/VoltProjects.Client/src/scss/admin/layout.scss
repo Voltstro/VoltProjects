@@ -1,0 +1,24 @@
+.sidebar {
+    width: 230px;
+    height: 100%;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    left: 0;
+}
+
+.sidebar.show + .content {
+    margin-left: 230px;
+}
+
+.admin-header {
+    height: 4.8em;
+
+    > div {
+        padding: 1.05em;
+        
+        h2 {
+            font-weight: 600;
+        }
+    }
+}

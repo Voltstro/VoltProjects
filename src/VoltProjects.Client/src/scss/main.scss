@@ -15,6 +15,9 @@
 //Project View
 @import "projects/main";
 
+//Admin
+@import "admin/";
+
 .prj-icon {
     @include media-breakpoint-up(md) {
         height: 128px;

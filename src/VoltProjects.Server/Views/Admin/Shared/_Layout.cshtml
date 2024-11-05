@@ -1,0 +1,79 @@
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@using VoltProjects.Server.Shared.Helpers
+
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="@MvcHelper.GetUserTheme(Context.Request)">
+<head>
+    @await Component.InvokeAsync("MetaTags")
+    <link rel="icon" type="image/x-icon" href="~/favicon.ico"/>
+    <link rel="preload" as="style" href="~/assets/main.css" asp-append-version="true"/>
+    <link rel="stylesheet" href="~/assets/main.css" asp-append-version="true"/>
+    @await RenderSectionAsync("TopInclude", false)
+</head>
+
+<body>
+<main class="vh-100 d-flex flex-nowrap">
+    <div id="sidebar" class="sidebar collapse collapse-horizontal show text-bg-dark border-end shadow">
+        <div class="d-flex flex-column flex-shrink-0 h-100">
+            <div class="border-bottom admin-header">
+                <div>
+                    <h2 class="fs-5">
+                        Volt Projects
+                        <br/>
+                        Admin
+                    </h2>
+                </div>
+            </div>
+            <ul class="nav nav-pills flex-column mb-auto pt-4 p-3">
+                <li class="nav-item">
+                    <a class="nav-link bi bi-house text-white @Html.ActiveClass("Admin", "Index")" asp-controller="Admin" asp-action="Index">
+                        Home
+                    </a>
+                </li>
+                <li>
+                    <a class="nav-link bi bi-kanban text-white @Html.ActiveClass("Admin", "Projects")" asp-controller="Admin" asp-action="Projects">
+                        Projects
+                    </a>
+                </li>
+                <li>
+                    <a class="nav-link bi bi-building text-white @Html.ActiveClass("Admin", "Builds")">
+                        Builds
+                    </a>
+                </li>
+            </ul>
+            <hr>
+            <div class="dropdown p-3 pt-0">
+                <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    <img src="https://github.com/Voltstro.png" alt="" width="32" height="32" class="rounded-circle me-2">
+                    <strong>@User.FindFirstValue("name")</strong>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
+                    <li>
+                        <a class="dropdown-item" asp-controller="Main" asp-action="Index">Public Site</a>
+                    </li>
+                    <li>
+                        <hr class="dropdown-divider"/>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" asp-controller="Admin" asp-action="Signout">Sign out</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="content w-100">
+        <div class="border-bottom admin-header">
+            <div>
+                <h2>@ViewBag.TItle</h2>
+            </div>
+        </div>
+        @RenderBody()
+    </div>
+    
+    @await RenderSectionAsync("BottomJs", false)
+</main>
+<script type="module" src="~/js/main.js" asp-append-version="true" defer></script>
+@await RenderSectionAsync("BottomInclude", false)
+</body>
+</html>

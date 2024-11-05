@@ -100,7 +100,7 @@ try
         .AddCookie(options =>
         {
             options.ExpireTimeSpan = openIdConfig.CookieExpiryTime;
-            options.Cookie.SameSite = SameSiteMode.Strict;
+            options.Cookie.SameSite = SameSiteMode.Lax;
         })
         .AddOpenIdConnect(options =>
         {
@@ -108,7 +108,7 @@ try
             options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
             options.CallbackPath = "/auth/login/callback/";
             options.AuthenticationMethod = OpenIdConnectRedirectBehavior.RedirectGet;
-            options.ResponseMode = OpenIdConnectResponseMode.Query;
+            options.ResponseMode = OpenIdConnectResponseMode.FormPost;
             
             //Signout Request
             options.SignedOutCallbackPath = "/auth/logout/callback/";
@@ -117,11 +117,12 @@ try
             options.ClientId = openIdConfig.ClientId;
             options.ClientSecret = openIdConfig.ClientSecret;
             options.Authority = openIdConfig.Authority;
-            options.ResponseType = "code";
+            options.ResponseType = "code id_token";
             
             options.UsePkce = true;
             options.GetClaimsFromUserInfoEndpoint = true;
             options.MapInboundClaims = false;
+            options.SaveTokens = true;
 
             foreach (string scope in openIdConfig.Scopes)
             {
