@@ -481,6 +481,11 @@ argparse@^2.0.1:
   resolved "https://registry.yarnpkg.com/argparse/-/argparse-2.0.1.tgz#246f50f3ca78a3240f6c997e8a9bd1eac49e4b38"
   integrity sha512-8+9WqebbFzpX9OR+Wa6O29asIogeRMzcGtAINdpMHHyAg10f05aSFVBbcEqGf/PXw1EjAZ+q2/bEBg3DvurK3Q==
 
+aspnet-client-validation@^0.11.0:
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/aspnet-client-validation/-/aspnet-client-validation-0.11.0.tgz#0daf7aa5b3c874b96cfec337acf14f476feda916"
+  integrity sha512-/pbBn5UxgLN3S1eIHvhJOkHK+gcTmG5d1+nM8m2jHEmsjGk1COBL4sWhlegLOTVYXm5yrEBo6wlOztG4nHcg5A==
+
 balanced-match@^1.0.0:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/balanced-match/-/balanced-match-1.0.2.tgz#e83e3a7e3f300b34cb9d87f615fa0cbf357690ee"

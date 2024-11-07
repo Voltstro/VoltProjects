@@ -28,6 +28,8 @@ export function setTheme(theme: 'light' | 'dark'): void {
     setStoredTheme(theme);
 
     const themeBtnIcon = document.getElementById('theme-btn-icon');
+    if(!themeBtnIcon) return;
+
     let themeBtnClasses = 'bi bi-brightness-high-fill';
     if(theme === 'dark') {
         themeBtnClasses = 'bi bi-moon-fill';

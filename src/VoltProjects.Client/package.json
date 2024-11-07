@@ -25,6 +25,7 @@
   "dependencies": {
     "@fontsource/roboto": "^5.0.3",
     "@popperjs/core": "^2.11.8",
+    "aspnet-client-validation": "^0.11.0",
     "bootstrap": "^5.3.0",
     "bootstrap-icons": "^1.10.3",
     "firacode": "^6.2.0",
