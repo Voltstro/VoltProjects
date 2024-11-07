@@ -1,0 +1,95 @@
+@using System.IO
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@model VoltProjects.Server.Models.View.Admin.ProjectPageModel?
+@{
+    string title = "New Project";
+    if (Model != null)
+        title = $"Editing {Model.Name} Project";
+        
+    ViewBag.Title = title;
+}
+
+<div class="container pt-4">
+    @if (Model is { Success: true })
+    {
+        <div class="alert alert-success alert-dismissible show" role="alert">
+            Project was successful saved.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+    }
+    
+    <div class="card">
+        <div class="card-header">
+            Basic Details
+        </div>
+
+        <form asp-controller="Admin" asp-action="Project" asp-route-id="" method="post">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-1 mb-3">
+                        <label asp-for="Id" class="form-label">ID</label>
+                        <input asp-for="Id" type="text" class="form-control" readonly>
+                    </div>
+
+                    <div class="col-3 mb-4">
+                        <label asp-for="Name" class="form-label">Name</label>
+                        <input asp-for="Name" type="text" class="form-control">
+                        <span asp-validation-for="Name" class="invalid-feedback"></span>
+                    </div>
+
+                    <div class="col-4 mb-4">
+                        <label asp-for="DisplayName" class="form-label">Display Name</label>
+                        <input asp-for="DisplayName" type="text" class="form-control">
+                        <span asp-validation-for="DisplayName" class="invalid-feedback"></span>
+                    </div>
+
+                    <div class="col-4 mb-4">
+                        <label asp-for="ShortName" class="form-label">Short Name</label>
+                        <input asp-for="ShortName" type="text" class="form-control">
+                        <span asp-validation-for="ShortName" class="invalid-feedback"></span>
+                    </div>
+
+                    <div class="col-8 mb-8">
+                        <label asp-for="GitUrl" class="form-label">Git URL</label>
+                        <input asp-for="GitUrl" type="text" class="form-control">
+                        <span asp-validation-for="GitUrl" class="invalid-feedback"></span>
+                    </div>
+
+                    <div class="col-4 mb-4">
+                        <label asp-for="UploadFile" class="form-label">Project Icon</label>
+                        <div>
+                            <img class="rounded" height="128" alt="Project Icon" src="@Model?.IconPath"/>
+                        </div>
+                        <div>
+                            <input asp-for="UploadFile" class="form-control" type="file">
+                        </div>
+                    </div>
+
+                    <div class="col-12 mb-4">
+                        <label asp-for="Description" class="form-label">Description</label>
+                        <textarea asp-for="Description" class="form-control"></textarea>
+                        <span asp-validation-for="Description" class="invalid-feedback"></span>
+                    </div>
+
+                    <div class="col-3 mb-4">
+                        <label asp-for="CreationTime" class="form-label">Created At</label>
+                        <input asp-for="CreationTime" type="datetime-local" class="form-control" disabled></input>
+                    </div>
+
+                    <div class="col-3 mb-4">
+                        <label asp-for="LastUpdateTime" class="form-label">Last Updated At</label>
+                        <input asp-for="LastUpdateTime" type="datetime-local" class="form-control" disabled></input>
+                    </div>
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </div>
+
+
+        </form>
+
+    </div>
+</div>
