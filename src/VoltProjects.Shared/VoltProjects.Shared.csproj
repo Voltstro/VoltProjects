@@ -11,6 +11,8 @@
     </ItemGroup>
     
     <ItemGroup>
+        <PackageReference Include="Azure.Storage.Blobs" Version="12.21.2" />
+        <PackageReference Include="Google.Cloud.Storage.V1" Version="4.10.0" />
         <PackageReference Include="DistributedLock.Postgres" Version="1.2.0" />
         <PackageReference Include="EFCore.NamingConventions" Version="8.0.3" />
         <PackageReference Include="Figgle" Version="0.5.1" />

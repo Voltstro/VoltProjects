@@ -1,4 +1,4 @@
-using VoltProjects.Builder.Services.Storage;
+using VoltProjects.Shared.Services.Storage;
 
 namespace VoltProjects.Builder.Core;
 

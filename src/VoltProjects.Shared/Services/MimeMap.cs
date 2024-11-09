@@ -1,4 +1,4 @@
-namespace VoltProjects.Builder.Services;
+namespace VoltProjects.Shared.Services;
 
 //From:
 //https://github.com/samuelneff/MimeTypeMap/blob/master/MimeTypeMap.cs

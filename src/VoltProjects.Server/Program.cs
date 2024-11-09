@@ -18,6 +18,7 @@ using VoltProjects.Server.Services;
 using VoltProjects.Server.Shared;
 using VoltProjects.Shared;
 using VoltProjects.Shared.Logging;
+using VoltProjects.Shared.Services.Storage;
 using VoltProjects.Shared.Telemetry;
 using SameSiteMode = Microsoft.AspNetCore.Http.SameSiteMode;
 
@@ -58,6 +59,7 @@ try
     builder.Services.AddSingleton<SitemapService>();
     builder.Services.AddHostedService<SitemapBackgroundService>();
     builder.Services.AddSingleton<SearchService>();
+    builder.Services.InstallStorageServiceProvider(config.ObjectStorageProvider);
 
     //Support razor pages runtime compilation for hot reloading
     IMvcBuilder mvcBuilder = builder.Services.AddControllersWithViews(

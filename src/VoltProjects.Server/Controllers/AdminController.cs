@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
@@ -5,11 +6,14 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VoltProjects.Server.Models.View.Admin;
 using VoltProjects.Server.Shared;
 using VoltProjects.Shared;
 using VoltProjects.Shared.Models;
+using VoltProjects.Shared.Services;
+using VoltProjects.Shared.Services.Storage;
 
 namespace VoltProjects.Server.Controllers;
 
@@ -20,11 +24,15 @@ public class AdminController : Controller
 {
     private readonly VoltProjectDbContext dbContext;
     private readonly VoltProjectsConfig config;
+    private readonly IStorageService storageService;
+    private readonly ILogger<AdminController> logger;
     
-    public AdminController(VoltProjectDbContext dbContext, IOptions<VoltProjectsConfig> config)
+    public AdminController(VoltProjectDbContext dbContext, IOptions<VoltProjectsConfig> config, IStorageService storageService, ILogger<AdminController> logger)
     {
         this.dbContext = dbContext;
         this.config = config.Value;
+        this.storageService = storageService;
+        this.logger = logger;
     }
     
     [HttpGet]
@@ -56,13 +64,12 @@ public class AdminController : Controller
     }
 
     [HttpGet]
-    [Route("projects/new")]
+    [Route("projects/new", Name = "new")]
     [Route("projects/edit/{id:int}")]
-    public IActionResult Project(int? id, bool success)
+    public IActionResult Project(int? id, bool? success)
     {
-        ProjectPageModel? project = null;
-        
         //Fetch project (if an ID was passed in)
+        ProjectPageModel? model = null;
         if (id != null)
         {
             Project? foundProject = dbContext.Projects.FirstOrDefault(x => x.Id == id);
@@ -71,42 +78,77 @@ public class AdminController : Controller
             if(foundProject == null)
                 return RedirectToAction("Project");
 
-            foundProject.IconPath = Path.Combine(config.PublicUrl, foundProject.Name, foundProject.IconPath);
-            project = new ProjectPageModel(foundProject);
+            if(foundProject.IconPath != null)
+                foundProject.IconPath = Path.Combine(config.PublicUrl, foundProject.Name, foundProject.IconPath);
+            model = new ProjectPageModel(foundProject)
+            {
+                Success = success
+            };
         }
-
-        if (success && project != null)
-            project.Success = true;
         
-        return View(project);
+        return View(model);
     }
 
     [HttpPost]
     [Route("projects/edit/")]
-    public IActionResult Project(ProjectPageModel model)
+    public async Task<IActionResult> Project(ProjectPageModel model)
     {
         if (!ModelState.IsValid)
             return View(model);
-        
-        //New Project
-        if (model.Id == null)
-        {
-            return RedirectToAction("Project", model.Id);
-        }
-        
-        //Edit project
-        Project? editProject = dbContext.Projects.FirstOrDefault(x => x.Id == model.Id);
-        if (editProject == null)
-            return NotFound();
 
-        editProject.Name = model.Name;
-        editProject.DisplayName = model.DisplayName;
-        editProject.ShortName = model.ShortName;
-        editProject.Description = model.Description;
-        editProject.GitUrl = model.GitUrl;
-        dbContext.SaveChanges();
-        
-        return RedirectToAction("Project", new { id = editProject.Id, success = true });
+        try
+        {
+            Project? editProject;
+            if (model.Id == null)
+                editProject = new Project
+                {
+                    IconPath = null
+                };
+            else
+            {
+                editProject = dbContext.Projects.FirstOrDefault(x => x.Id == model.Id);
+                if (editProject == null)
+                    return NotFound();
+            }
+            
+            editProject.Name = model.Name;
+            editProject.DisplayName = model.DisplayName;
+            editProject.ShortName = model.ShortName;
+            editProject.Description = model.Description;
+            editProject.GitUrl = model.GitUrl;
+
+            if (model.UploadFile != null)
+            {
+                string fileName = Path.GetFileName(model.UploadFile.FileName);
+                Stream fileStream = model.UploadFile.OpenReadStream();
+                string contentType = MimeMap.GetMimeType(fileName);
+                string uploadPath = Path.Combine(editProject.Name, fileName);
+
+                GenericUploadFile uploadFile = new(fileStream, contentType, uploadPath);
+                await storageService.UploadFileAsync(uploadFile);
+
+                editProject.IconPath = fileName;
+
+                await fileStream.DisposeAsync();
+            }
+
+            //New Project
+            if (model.Id == null)
+            {
+                await dbContext.Projects.AddAsync(editProject);
+            }
+            
+            await dbContext.SaveChangesAsync();
+            model.Id = editProject.Id;
+            model.Success = true;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to save project.");
+            model.Success = false;
+        }
+
+        return RedirectToAction("Project", new { id = model.Id, success = model.Success });
     }
 
     [HttpGet]

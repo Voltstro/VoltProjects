@@ -1,5 +1,6 @@
 using System;
 using VoltProjects.Server.Models;
+using VoltProjects.Shared.Services.Storage;
 
 namespace VoltProjects.Server.Shared;
 
@@ -54,4 +55,6 @@ public sealed class VoltProjectsConfig
     public int CacheTime { get; set; } = 2678400; //Default: 30 days
     
     public OpenIdConfig OpenIdConfig { get; init; }
+    
+    public StorageConfig? ObjectStorageProvider { get; set; }
 }

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Http;
 using VoltProjects.Shared.Models;
 
 namespace VoltProjects.Server.Models.View.Admin;
@@ -27,7 +28,7 @@ public class ProjectPageModel : Project
     
     public new int? Id { get; set; }
 
-    public InputFile? UploadFile { get; set; }
+    public IFormFile? UploadFile { get; set; }
     
-    public bool Success { get; set; }
+    public bool? Success { get; set; }
 }

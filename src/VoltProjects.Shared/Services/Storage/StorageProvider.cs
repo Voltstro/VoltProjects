@@ -1,4 +1,4 @@
-namespace VoltProjects.Builder.Services.Storage;
+namespace VoltProjects.Shared.Services.Storage;
 
 public enum StorageProvider
 {

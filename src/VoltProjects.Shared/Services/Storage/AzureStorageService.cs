@@ -2,9 +2,8 @@ using Azure;
 using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
-using VoltProjects.Builder.Core.Building.ExternalObjects;
 
-namespace VoltProjects.Builder.Services.Storage;
+namespace VoltProjects.Shared.Services.Storage;
 
 /// <summary>
 ///     <see cref="IStorageService"/> that uses Azure Storage
@@ -31,10 +30,10 @@ internal sealed class AzureStorageService : IStorageService
         storageClient = blobServiceClient.GetBlobContainerClient(this.config.ContainerName);
     }
 
-    public async Task UploadBulkFileAsync(IExternalObjectHandler[] filesToUpload, CancellationToken cancellationToken = default)
+    public async Task UploadBulkFileAsync<TUploadFile>(TUploadFile[] filesToUpload, CancellationToken cancellationToken = default) where TUploadFile : IUploadFile
     {
-        IEnumerable<GroupedStorageItem> groupedStorageItems = filesToUpload.GroupBy(x => x.ContentType, item => item,
-            (s, items) => new GroupedStorageItem(s, items.ToArray()));
+        IEnumerable<GroupedStorageItem<TUploadFile>> groupedStorageItems = filesToUpload.GroupBy(x => x.ContentType, item => item,
+            (s, items) => new GroupedStorageItem<TUploadFile>(s, items.ToArray()));
         BlobHttpHeaders blobHttpHeader = new()
         {
             CacheControl = $"public,max-age={config.CacheTime}"
@@ -53,12 +52,12 @@ internal sealed class AzureStorageService : IStorageService
             }
         };
 
-        foreach (GroupedStorageItem groupedStorageItem in groupedStorageItems)
+        foreach (GroupedStorageItem<TUploadFile> groupedStorageItem in groupedStorageItems)
         {
             Queue<Task<Response<BlobContentInfo>>> tasks = new();
 
             blobHttpHeader.ContentType = groupedStorageItem.ContentType;
-            foreach (IExternalObjectHandler storageItem in groupedStorageItem.Items)
+            foreach (TUploadFile storageItem in groupedStorageItem.Items)
             {
                 string uploadPath = Path.Combine(config.SubPath!, storageItem.UploadPath);
                 BlobClient newBlob = storageClient.GetBlobClient(uploadPath);
@@ -70,12 +69,35 @@ internal sealed class AzureStorageService : IStorageService
         }
     }
 
-    public string GetFullUploadUrl(IExternalObjectHandler externalObject)
+    public async Task UploadFileAsync<TUploadFile>(TUploadFile fileUpload, CancellationToken cancellationToken = default) where TUploadFile : IUploadFile
+    {
+        BlobHttpHeaders blobHttpHeader = new()
+        {
+            CacheControl = $"public,max-age={config.CacheTime}",
+            ContentType = fileUpload.ContentType
+        };
+        BlobUploadOptions options = new()
+        {
+            HttpHeaders = blobHttpHeader,
+            TransferOptions = new StorageTransferOptions
+            {
+                // Set the maximum length of a transfer to 50MB.
+                MaximumTransferSize = 50 * 1024 * 1024
+            }
+        };
+        
+        string uploadPath = Path.Combine(config.SubPath!, fileUpload.UploadPath);
+        BlobClient newBlob = storageClient.GetBlobClient(uploadPath);
+        Stream fileStream = await fileUpload.GetUploadFileStream();
+        await newBlob.UploadAsync(fileStream, options, cancellationToken);
+    }
+
+    public string GetFullUploadUrl<TUploadFile>(TUploadFile externalObject) where TUploadFile : IUploadFile
     {
         Uri baseUri = new(config.BasePath!);
         Uri fullUri = new(baseUri, Path.Combine(config.ContainerName!, config.SubPath ?? string.Empty, externalObject.UploadPath));
         return fullUri.ToString();
     }
 
-    private record GroupedStorageItem(string ContentType, IExternalObjectHandler[] Items);
+    private record GroupedStorageItem<TUploadFile>(string ContentType, TUploadFile[] Items) where TUploadFile : IUploadFile;
 }

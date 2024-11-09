@@ -13,9 +13,7 @@
     </ItemGroup>
     
     <ItemGroup>
-        <PackageReference Include="Azure.Storage.Blobs" Version="12.21.2" />
         <PackageReference Include="Cronos" Version="0.8.4" />
-        <PackageReference Include="Google.Cloud.Storage.V1" Version="4.10.0" />
         <PackageReference Include="HtmlAgilityPack" Version="1.11.67" />
         <PackageReference Include="Jint" Version="3.1.5" />
         <PackageReference Include="LibGit2Sharp" Version="0.30.0" />
@@ -46,6 +44,10 @@
       <None Update="appsettings.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+    </ItemGroup>
+    
+    <ItemGroup>
+      <Folder Include="Services\Storage\" />
     </ItemGroup>
 
 </Project>

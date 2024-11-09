@@ -1,11 +1,12 @@
 using VoltProjects.Shared.Models;
+using VoltProjects.Shared.Services.Storage;
 
 namespace VoltProjects.Builder.Core.Building.ExternalObjects;
 
 /// <summary>
 ///     Base interface for an object that needs be uploaded
 /// </summary>
-public interface IExternalObjectHandler : IDisposable
+public interface IExternalObjectHandler : IUploadFile, IDisposable
 {
     /// <summary>
     ///     Path of the object that is being uploaded
@@ -15,25 +16,9 @@ public interface IExternalObjectHandler : IDisposable
     public string PathInBuiltDocs { get; }
     
     /// <summary>
-    ///     Path for the uploaded object
-    /// </summary>
-    public string UploadPath { get;  }
-    
-    /// <summary>
-    ///     Content type of the file to upload
-    /// </summary>
-    public string ContentType { get; }
-    
-    /// <summary>
     ///     Hash of the file
     /// </summary>
     public string Hash { get; }
-
-    /// <summary>
-    ///     Returns a <see cref="Stream"/> that can be used to be uploaded
-    /// </summary>
-    /// <returns></returns>
-    public Task<Stream> GetUploadFileStream();
     
     /// <summary>
     ///     <see cref="ProjectPage"/> that this object belongs to
