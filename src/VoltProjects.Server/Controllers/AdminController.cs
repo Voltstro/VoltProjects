@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VoltProjects.Server.Models.View.Admin;
@@ -62,6 +63,13 @@ public class AdminController : Controller
             Projects = projects
         });
     }
+    
+    [HttpGet]
+    [Route("projects/edit/")]
+    public IActionResult Project()
+    {
+        return RedirectToRoute("new");
+    }
 
     [HttpGet]
     [Route("projects/new", Name = "new")]
@@ -72,7 +80,10 @@ public class AdminController : Controller
         ProjectPageModel? model = null;
         if (id != null)
         {
-            Project? foundProject = dbContext.Projects.FirstOrDefault(x => x.Id == id);
+            Project? foundProject = dbContext.Projects
+                .Include(x => x.ProjectVersions)
+                .ThenInclude(x => x.DocBuilder)
+                .FirstOrDefault(x => x.Id == id);
             
             //if no project was found, goto new
             if(foundProject == null)
@@ -134,9 +145,7 @@ public class AdminController : Controller
 
             //New Project
             if (model.Id == null)
-            {
                 await dbContext.Projects.AddAsync(editProject);
-            }
             
             await dbContext.SaveChangesAsync();
             model.Id = editProject.Id;
@@ -149,6 +158,108 @@ public class AdminController : Controller
         }
 
         return RedirectToAction("Project", new { id = model.Id, success = model.Success });
+    }
+
+    [HttpGet]
+    [Route("projects/edit/{projectId:int}/versions/new/")]
+    [Route("projects/edit/{projectId:int}/versions/edit/{projectVersionId:int}", Name = "AdminProjectVersionEdit")]
+    public async Task<IActionResult> ProjectVersion(int projectId, int? projectVersionId, bool? success)
+    {
+        ProjectVersionPageModel? model;
+
+        DocBuilder[] docBuilders = await dbContext.DocBuilders.ToArrayAsync();
+        Language[] languages = await dbContext.Languages.ToArrayAsync();
+        
+        if (projectVersionId != null)
+        {
+            ProjectVersion? foundProjectVersion = await dbContext.ProjectVersions
+                .Include(x => x.Project)
+                .FirstOrDefaultAsync(x => x.ProjectId == projectId && x.Id == projectVersionId);
+
+            if (foundProjectVersion == null)
+                return NotFound();
+
+            //Use our already fetched details for filling the virtuals so the view can have the details
+            foundProjectVersion.DocBuilder = docBuilders.First(x => x.Id == foundProjectVersion.DocBuilderId);
+            foundProjectVersion.Language = languages.First(x => x.Id == foundProjectVersion.LanguageId);
+
+            model = new ProjectVersionPageModel(foundProjectVersion);
+        }
+        else
+        {
+            model = new ProjectVersionPageModel
+            {
+                ProjectId = projectId
+            };
+        }
+
+        model.DocBuilders = docBuilders;
+        model.Languages = languages;
+        model.Success = success;
+        
+        return View(model);
+    }
+
+    [HttpPost]
+    [Route("projects/edit/{projectId:int}/versions/", Name = "ProjectVersionsPost")]
+    public async Task<IActionResult> ProjectVersion(int projectId, ProjectVersionPageModel model)
+    {
+        ModelState.Remove($"{nameof(ProjectVersionPageModel.Project)}");
+        ModelState.Remove($"{nameof(ProjectVersionPageModel.DocBuilder)}");
+        ModelState.Remove($"{nameof(ProjectVersionPageModel.Language)}");
+        
+        ModelState.Remove($"{nameof(ProjectVersionPageModel.DocBuilders)}");
+        ModelState.Remove($"{nameof(ProjectVersionPageModel.Languages)}");
+        
+        if (!ModelState.IsValid)
+        {
+            DocBuilder[] docBuilders = await dbContext.DocBuilders.ToArrayAsync();
+            Language[] languages = await dbContext.Languages.ToArrayAsync();
+            model.DocBuilders = docBuilders;
+            model.Languages = languages;
+            return View(model);
+        }
+
+        try
+        {
+            ProjectVersion? editProject;
+            if (model.Id == null)
+                editProject = new ProjectVersion
+                {
+                    ProjectId = projectId
+                };
+            else
+            {
+                editProject = dbContext.ProjectVersions.FirstOrDefault(x => x.Id == model.Id);
+                if (editProject == null)
+                    return NotFound();
+            }
+
+            editProject.VersionTag = model.VersionTag;
+            editProject.GitBranch = model.GitBranch;
+            editProject.DocsPath = model.DocsPath;
+            editProject.DocsBuiltPath = model.DocsBuiltPath;
+            editProject.DocBuilderId = model.DocBuilderId;
+            editProject.LanguageId = model.LanguageId;
+            editProject.IsDefault = model.IsDefault;
+            
+            //New Project
+            if (model.Id == null)
+                await dbContext.ProjectVersions.AddAsync(editProject);
+
+            await dbContext.SaveChangesAsync();
+            //model.Id = editProject.Id;
+            model.Success = true;
+        }
+        catch(Exception ex)
+        {
+            logger.LogError(ex, "Failed to save project version.");
+            model.Success = false;
+        }
+
+        return RedirectToAction("ProjectVersion", "Admin",
+            new { projectId = model.ProjectId, projectVersionId = model.Id, success = model.Success });
+        //return RedirectToRoute("AdminProjectVersionEdit",  new { projectId = model.ProjectId, projectVersionId = model.Id, success = model.Success });
     }
 
     [HttpGet]

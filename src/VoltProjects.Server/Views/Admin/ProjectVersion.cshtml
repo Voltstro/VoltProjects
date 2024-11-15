@@ -1,0 +1,106 @@
+@using VoltProjects.Shared.Models
+@model VoltProjects.Server.Models.View.Admin.ProjectVersionPageModel
+@{
+string title = "New Project Version";
+
+if (Model.VersionTag != null!)
+    title = $"Editing {Model.VersionTag} Project Version";
+
+ViewBag.Title = title;
+}
+
+<div class="container pt-4">
+    @if (Model is { Success: true })
+    {
+        <div class="alert alert-success alert-dismissible show" role="alert">
+            Project was successfully saved.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    else if (Model is {Success: false})
+    {
+        <div class="alert alert-danger alert-dismissible show" role="alert">
+            Failed to save project.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    
+    <div class="card">
+        <div class="card-header">
+            Basic Details
+        </div>
+        <form asp-route="ProjectVersionsPost" method="post">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-1 mb-3">
+                        <label asp-for="Id" class="form-label">ID</label>
+                        <input asp-for="Id" type="text" class="form-control" readonly>
+                    </div>
+
+                    <div class="col-5 mb-4">
+                        <label asp-for="VersionTag" class="form-label">Version Tag</label>
+                        <input asp-for="VersionTag" type="text" class="form-control">
+                        <span asp-validation-for="VersionTag" class="invalid-feedback"></span>
+                    </div>
+
+                    <div class="col-6 mb-4">
+                        <label asp-for="GitBranch" class="form-label">Git Branch</label>
+                        <input asp-for="GitBranch" type="text" class="form-control">
+                        <span asp-validation-for="GitBranch" class="invalid-feedback"></span>
+                    </div>
+
+                    <div class="col-4 mb-4">
+                        <label asp-for="DocsPath" class="form-label">Docs Path</label>
+                        <input asp-for="DocsPath" type="text" class="form-control">
+                        <span asp-validation-for="DocsPath" class="invalid-feedback"></span>
+                    </div>
+
+                    <div class="col-4 mb-4">
+                        <label asp-for="DocsBuiltPath" class="form-label">Docs Built Path</label>
+                        <input asp-for="DocsBuiltPath" type="text" class="form-control">
+                        <span asp-validation-for="DocsBuiltPath" class="invalid-feedback"></span>
+                    </div>
+
+                    <div class="col-4 mb-4">
+                        <label asp-for="DocBuilderId" class="form-label">Doc Builder</label>
+                        <select class="form-select" asp-for="DocBuilderId" asp-items="@(new SelectList(Model.DocBuilders, nameof(DocBuilder.Id), nameof(DocBuilder.Name)))">
+                            <option>Please Select an Option</option>
+                        </select>
+                        <span asp-validation-for="DocBuilderId" class="invalid-feedback"></span>
+                    </div>
+
+                    <div class="col-4 mb-4">
+                        <label asp-for="LanguageId" class="form-label">Language</label>
+                        <select class="form-select" asp-for="LanguageId" asp-items="@(new SelectList(Model.Languages, nameof(Language.Id), nameof(Language.Name)))">
+                            <option>Please Select an Option</option>
+                        </select>
+                        <span asp-validation-for="LanguageId" class="invalid-feedback"></span>
+                    </div>
+
+                    <div class="col-2 mb-4">
+                        <label asp-for="IsDefault" class="form-check-label">Is Default</label>
+                        <div class="form-check form-switch">
+                            <input asp-for="IsDefault" class="form-check-input" type="checkbox" role="switch">
+                        </div>
+                    </div>
+
+                    <div class="col-3 mb-4">
+                        <label asp-for="CreationTime" class="form-label">Created At</label>
+                        <input asp-for="CreationTime" type="text" class="form-control" disabled></input>
+                    </div>
+
+                    <div class="col-3 mb-4">
+                        <label asp-for="LastUpdateTime" class="form-label">Last Updated At</label>
+                        <input asp-for="LastUpdateTime" type="text" class="form-control" disabled></input>
+                    </div>
+                </div>
+
+                <input type="hidden" asp-for="ProjectId"/>
+
+                <div class="pt-4">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

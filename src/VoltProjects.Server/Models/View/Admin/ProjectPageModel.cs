@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Http;
 using VoltProjects.Shared.Models;
@@ -24,9 +25,12 @@ public class ProjectPageModel : Project
         IconPath = project.IconPath;
         LastUpdateTime = project.LastUpdateTime;
         CreationTime = project.CreationTime;
+        ProjectVersions = project.ProjectVersions;
     }
     
     public new int? Id { get; set; }
+    
+    public new ICollection<ProjectVersion> ProjectVersions { get; }
 
     public IFormFile? UploadFile { get; set; }
     
