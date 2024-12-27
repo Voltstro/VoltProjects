@@ -4,4 +4,5 @@ public enum StorageProvider
 {
     Azure,
     Google,
+    S3
 }
