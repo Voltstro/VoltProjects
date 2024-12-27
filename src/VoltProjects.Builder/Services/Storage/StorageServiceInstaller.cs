@@ -25,6 +25,9 @@ internal static class StorageServiceInstaller
             case StorageProvider.Google:
                 serviceCollection.AddSingleton<IStorageService>(new GoogleStorageService(storageConfig));
                 break;
+            case StorageProvider.S3:
+                serviceCollection.AddSingleton<IStorageService>(new S3StorageService(storageConfig));
+                break;
             default:
                 throw new ArgumentOutOfRangeException();
         }
