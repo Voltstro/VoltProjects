@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
@@ -6,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -105,7 +107,22 @@ public class AdminController : Controller
     public async Task<IActionResult> Project(ProjectPageModel model)
     {
         if (!ModelState.IsValid)
+        {
+            if (model.Id != null)
+            {
+                //Get project versions again
+                Project? foundProject = dbContext.Projects
+                    .Include(x => x.ProjectVersions)
+                    .ThenInclude(x => x.DocBuilder)
+                    .FirstOrDefault(x => x.Id == model.Id);
+
+                model.ProjectVersions = foundProject?.ProjectVersions;
+                model.LastUpdateTime = foundProject?.LastUpdateTime ?? DateTime.UtcNow;
+                model.CreationTime = foundProject?.CreationTime ?? DateTime.UtcNow;
+            }
+            
             return View(model);
+        }
 
         try
         {

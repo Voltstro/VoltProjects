@@ -152,6 +152,7 @@ public static class DbProcedures
 		                                            		aside = page_items_value.aside,
 		                                            		metabar = page_items_value.metabar,
 		                                            		description = page_items_value.description,
+		                                            		content = page_items_value.content,
 		                                            		page_hash = page_items_value.page_hash,
 		                                            		language_configuration = page_items_value.language_configuration
 		                                         RETURNING pp.*;

@@ -30,7 +30,7 @@ public class ProjectPageModel : Project
     
     public new int? Id { get; set; }
     
-    public new ICollection<ProjectVersion> ProjectVersions { get; }
+    public new ICollection<ProjectVersion>? ProjectVersions { get; set; }
 
     public IFormFile? UploadFile { get; set; }
     

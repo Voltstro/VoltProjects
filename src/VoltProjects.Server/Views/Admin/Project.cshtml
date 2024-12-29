@@ -122,25 +122,28 @@
                     </tr>
                     </thead>
                     <tbody>
-                    @foreach (ProjectVersion projectVersion in Model.ProjectVersions)
+                    @if (Model.ProjectVersions != null)
                     {
-                        <tr>
-                            <th scope="row">@projectVersion.Id</th>
-                            <td>@projectVersion.VersionTag</td>
-                            <td>@projectVersion.GitBranch</td>
-                            <td>@projectVersion.DocBuilder.Name</td>
-                            <td>
-                                @if (projectVersion.IsDefault)
-                                {
-                                    <i class="bi bi-check-circle text-success fs-3"></i>
-                                }
-                                else
-                                {
-                                    <i class="bi bi-x-circle text-danger fs-3"></i>
-                                }
-                            </td>
-                            <td><a asp-controller="Admin" asp-action="ProjectVersion" asp-route-projectId="@Model.Id" asp-route-projectVersionId="@projectVersion.Id" class="btn btn-primary">Edit</a></td>
-                        </tr>
+                        @foreach (ProjectVersion projectVersion in Model.ProjectVersions)
+                        {
+                            <tr>
+                                <th scope="row">@projectVersion.Id</th>
+                                <td>@projectVersion.VersionTag</td>
+                                <td>@projectVersion.GitBranch</td>
+                                <td>@projectVersion.DocBuilder.Name</td>
+                                <td>
+                                    @if (projectVersion.IsDefault)
+                                    {
+                                        <i class="bi bi-check-circle text-success fs-3"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-x-circle text-danger fs-3"></i>
+                                    }
+                                </td>
+                                <td><a asp-controller="Admin" asp-action="ProjectVersion" asp-route-projectId="@Model.Id" asp-route-projectVersionId="@projectVersion.Id" class="btn btn-primary">Edit</a></td>
+                            </tr>
+                        }
                     }
                     </tbody>
                 </table>
