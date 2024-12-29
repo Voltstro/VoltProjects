@@ -11,13 +11,13 @@
     <ItemGroup>
       <PackageReference Include="HtmlSanitizer" Version="8.1.870" />
       <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="8.0.10" />
-      <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.8" />
-      <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="8.0.8" />
-      <PackageReference Include="Nerdbank.GitVersioning" Version="3.6.143">
+      <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.11" />
+      <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="8.0.11" />
+      <PackageReference Include="Nerdbank.GitVersioning" Version="3.7.112">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
-      <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.9.0" />
+      <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.10.1" />
     </ItemGroup>
 
     <ItemGroup>
