@@ -1,0 +1,105 @@
+@using VoltProjects.Shared.Models
+@model VoltProjects.Server.Models.View.Admin.BuildScheduleModel
+@{
+string title = "New Build Schedule";
+if (Model.ProjectVersion != null)
+    title = $"Editing {Model.ProjectVersion.Project.Name} - {Model.ProjectVersion.VersionTag} Build Schedule";
+
+ViewBag.Title = title;
+}
+
+@section BottomInclude {
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const cronExplain = document.getElementById('cronExplain');
+            const cronInput = document.getElementById('Cron');
+
+            window.vAdmin.addCronExplainer(cronInput, cronExplain);
+        });
+    </script>
+}
+
+<div class="container pt-4">
+    @if (Model is { Success: true })
+    {
+    <div class="alert alert-success alert-dismissible show" role="alert">
+        Build schedule was successfully saved.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    }
+    else if (Model is {Success: false})
+    {
+    <div class="alert alert-danger alert-dismissible show" role="alert">
+        Failed to save build schedule.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    }
+
+    <div class="card">
+        <div class="card-header">
+            Build Schedule
+        </div>
+
+        <form asp-route="BuildSchedulePost" method="post">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-1 mb-3">
+                        <label asp-for="Id" class="form-label">ID</label>
+                        <input asp-for="Id" type="text" class="form-control" readonly>
+                    </div>
+
+                    <div class="col-7 mb-4">
+                        <label asp-for="ProjectVersionId" class="form-label">Project</label>
+                        <select class="form-select" asp-for="ProjectVersionId" asp-items="@(new SelectList(Model.ProjectVersions.Select(x => new { Id = x.Id, Name = $"{x.Project.Name} - {x.VersionTag}" }), "Id", "Name"))">
+                            <option>Please Select an Option</option>
+                        </select>
+                        <span asp-validation-for="ProjectVersionId" class="invalid-feedback"></span>
+                    </div>
+                    
+                    <div class="col-1 mb-4">
+                        <label asp-for="IsActive">Active</label>
+                        <div class="form-check form-switch">
+                            <input asp-for="IsActive" class="form-check-input" type="checkbox" role="switch">
+                        </div>
+                    </div>
+                    
+                    <div class="col-2 mb-4">
+                        <label asp-for="IgnoreBuildEvents">Ignore Build Events</label>
+                        <div class="form-check form-switch">
+                            <input asp-for="IgnoreBuildEvents" class="form-check-input" type="checkbox" role="switch">
+                        </div>
+                    </div>
+                    
+                    <div class="col-12 mb-4">
+                        <label asp-for="Cron" class="form-label">Cron</label>
+                        <input asp-for="Cron" type="text" class="form-control" onblur=""></input>
+                        <span asp-validation-for="Cron" class="invalid-feedback mb-1"></span>
+                        <span class="small text-secondary" id="cronExplain"></span>
+                    </div>
+
+                    <div class="col-3 mb-4">
+                        <label asp-for="LastExecuteTime" class="form-label">Last Executed At</label>
+                        <input asp-for="LastExecuteTime" type="text" class="form-control" disabled></input>
+                    </div>
+                    
+                    <div class="col-3 mb-4">
+                        <label asp-for="CreationTime" class="form-label">Created At</label>
+                        <input asp-for="CreationTime" type="text" class="form-control" disabled></input>
+                    </div>
+
+                    <div class="col-3 mb-4">
+                        <label asp-for="LastUpdateTime" class="form-label">Last Updated At</label>
+                        <input asp-for="LastUpdateTime" type="text" class="form-control" disabled></input>
+                    </div>
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </div>
+
+
+        </form>
+
+    </div>
+</div>

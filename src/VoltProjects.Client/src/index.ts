@@ -5,7 +5,7 @@
 import { getPreferredTheme, setTheme, toggleTheme } from './theme';
 
 declare global {
-    interface Window { vGlobal: any; }
+    interface Window { vGlobal: any; vAdmin: any }
 }
 
 

@@ -1,0 +1,65 @@
+@model VoltProjects.Server.Models.View.Admin.BuildSchedulesModel
+@{
+ViewBag.Title = "Build Schedules";
+}
+
+@using VoltProjects.Shared.Models
+
+<div class="container pt-4">
+    <div class="card">
+        <div class="card-header">
+            Build Schedules
+        </div>
+        <div class="card-body">
+            <table class="table table-striped table-hover">
+                <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Project</th>
+                    <th scope="col">Version Tag</th>
+                    <th scope="col">Cron</th>
+                    <th scope="col">Active</th>
+                    <th scope="col">Ignore Build Event</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (ProjectBuildSchedule buildSchedule in Model.BuildSchedules)
+                {
+                <tr>
+                    <th>@buildSchedule.Id</th>
+                    <td>@buildSchedule.ProjectVersion.Project.Name</td>
+                    <td>@buildSchedule.ProjectVersion.VersionTag</td>
+                    <td>@buildSchedule.Cron</td>
+                    <td>
+                        @if (buildSchedule.IsActive)
+                        {
+                            <i class="bi bi-check-circle text-success fs-3"></i>
+                        }
+                        else
+                        {
+                            <i class="bi bi-x-circle text-danger fs-3"></i>
+                        }
+                    </td>
+                    <td>
+                        @if (buildSchedule.IgnoreBuildEvents)
+                        {
+                        <i class="bi bi-check-circle text-success fs-3"></i>
+                        }
+                        else
+                        {
+                        <i class="bi bi-x-circle text-danger fs-3"></i>
+                        }
+                    </td>
+                    <td><a asp-controller="Admin" asp-action="BuildSchedule" asp-route-buildScheduleId="@buildSchedule.Id" class="btn btn-primary">Edit</a></td>
+                </tr>
+                }
+                </tbody>
+            </table>
+
+            <a asp-controller="Admin" asp-action="BuildSchedule" class="btn btn-primary">New</a>
+        </div>
+    </div>
+</div>
+
+

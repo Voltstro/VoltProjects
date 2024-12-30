@@ -288,4 +288,119 @@ public class AdminController : Controller
             RedirectUri = "/"
         });
     }
+
+    #region Build Schedules
+
+    [HttpGet]
+    [Route("build/schedules/")]
+    public IActionResult BuildSchedules()
+    {
+        ProjectBuildSchedule[] buildSchedules = dbContext
+            .ProjectBuildSchedules
+            .Include(x => x.ProjectVersion)
+            .ThenInclude(x => x.Project)
+            .ToArray();
+        
+        return View(new BuildSchedulesModel
+        {
+            BuildSchedules = buildSchedules
+        });
+    }
+
+    [HttpGet]
+    [Route("build/schedules/new/")]
+    [Route("build/schedules/edit/{buildScheduleId:int}/")]
+    public IActionResult BuildSchedule(int? buildScheduleId, bool? success)
+    {
+        //Get all project versions
+        ProjectVersion[] projectVersions = dbContext.ProjectVersions
+            .Include(x => x.Project)
+            .ToArray();
+        
+        BuildScheduleModel viewModel;
+        if (buildScheduleId != null)
+        {
+            ProjectBuildSchedule? buildSchedule =
+                dbContext.ProjectBuildSchedules.FirstOrDefault(x => x.Id == buildScheduleId);
+
+            if (buildSchedule == null)
+                return NotFound();
+
+            viewModel = new BuildScheduleModel(buildSchedule);
+            viewModel.ProjectVersion = projectVersions.First(x => x.Id == viewModel.ProjectVersionId);
+        }
+        else
+        {
+            viewModel = new BuildScheduleModel();
+        }
+        
+        viewModel.ProjectVersions = projectVersions;
+        viewModel.Success = success;
+        
+        return View(viewModel);
+    }
+
+    [HttpPost]
+    [Route("build/schedules/", Name = "BuildSchedulePost")]
+    public IActionResult BuildSchedule(BuildScheduleModel model)
+    {
+        ModelState.Remove(nameof(BuildScheduleModel.ProjectVersion));
+        ModelState.Remove(nameof(BuildScheduleModel.ProjectVersions));
+        
+        if (!ModelState.IsValid)
+        {
+            var errors = ModelState.ToArray();
+            
+            //Get project versions again
+            ProjectVersion[] projectVersions = dbContext.ProjectVersions
+                .Include(x => x.Project)
+                .ToArray();
+            
+            //Get build schedules again
+            ProjectBuildSchedule buildSchedule =
+                dbContext.ProjectBuildSchedules.First(x => x.Id == model.Id);
+            
+            model.ProjectVersion = projectVersions.First(x => x.Id == buildSchedule.ProjectVersionId);
+            model.ProjectVersions = projectVersions;
+            model.LastExecuteTime = buildSchedule.LastExecuteTime;
+            model.LastUpdateTime = buildSchedule.LastUpdateTime;
+            model.CreationTime = buildSchedule.CreationTime;
+            return View(model);
+        }
+
+        try
+        {
+            ProjectBuildSchedule? buildSchedule;
+            if (model.Id == null)
+                buildSchedule = new ProjectBuildSchedule();
+            else
+            {
+                buildSchedule = dbContext.ProjectBuildSchedules.FirstOrDefault(x => x.Id == model.Id);
+                if (buildSchedule == null)
+                    return NotFound();
+            }
+
+            buildSchedule.ProjectVersionId = model.ProjectVersionId;
+            buildSchedule.Cron = model.Cron;
+            buildSchedule.IsActive = model.IsActive;
+            buildSchedule.IgnoreBuildEvents = model.IgnoreBuildEvents;
+
+            if (model.Id == null)
+                dbContext.ProjectBuildSchedules.Add(buildSchedule);
+
+            dbContext.SaveChanges();
+            model.Success = true;
+            model.Id = buildSchedule.Id;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to save project build schedule.");
+            model.Success = false;
+        }
+        
+        return RedirectToAction("BuildSchedule", "Admin",
+            new { buildScheduleId = model.Id, success = model.Success });
+    }
+
+    #endregion
 }
