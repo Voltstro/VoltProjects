@@ -13,7 +13,7 @@ public class ProjectBuildSchedule
     
     [ForeignKey("ProjectVersion")]
     public int ProjectVersionId { get; set; }
-    
+
     /// <summary>
     ///     Cron time for this build schedule
     /// </summary>

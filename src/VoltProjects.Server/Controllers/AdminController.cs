@@ -265,7 +265,8 @@ public class AdminController : Controller
                 await dbContext.ProjectVersions.AddAsync(editProject);
 
             await dbContext.SaveChangesAsync();
-            //model.Id = editProject.Id;
+            
+            model.Id = editProject.Id;
             model.Success = true;
         }
         catch(Exception ex)
@@ -276,7 +277,6 @@ public class AdminController : Controller
 
         return RedirectToAction("ProjectVersion", "Admin",
             new { projectId = model.ProjectId, projectVersionId = model.Id, success = model.Success });
-        //return RedirectToRoute("AdminProjectVersionEdit",  new { projectId = model.ProjectId, projectVersionId = model.Id, success = model.Success });
     }
 
     [HttpGet]

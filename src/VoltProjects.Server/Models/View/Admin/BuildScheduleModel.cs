@@ -25,9 +25,9 @@ public class BuildScheduleModel : ProjectBuildSchedule
     }
     
     public new int? Id { get; set; }
-    
+
     [Cron]
-    public new string Cron { get; set; }
+    public new string Cron { get; set; } = "0 0 0 */2 * *";
     
     public ProjectVersion[] ProjectVersions { get; set; }
     
