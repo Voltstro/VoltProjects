@@ -2,10 +2,16 @@
 @using Microsoft.AspNetCore.Mvc.TagHelpers
 @using VoltProjects.Server.Shared.Helpers
 
+@{
+string pageTitle = $"{ViewBag.Title} | Volt Projects Admin";
+}
+
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="@MvcHelper.GetUserTheme(Context.Request)">
 <head>
-    @await Component.InvokeAsync("MetaTags")
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>@pageTitle</title>
     <link rel="icon" type="image/x-icon" href="~/favicon.ico"/>
     <link rel="preload" as="style" href="~/assets/index.css" asp-append-version="true"/>
     <link rel="stylesheet" href="~/assets/index.css" asp-append-version="true"/>
@@ -17,7 +23,7 @@
     <div id="sidebar" class="sidebar collapse collapse-horizontal show text-bg-dark border-end shadow">
         <div class="d-flex flex-column flex-shrink-0 h-100">
             <div class="border-bottom admin-header">
-                <div>
+                <div class="admin-header-title-container">
                     <h2 class="fs-5">
                         Volt Projects
                         <br/>
@@ -65,7 +71,14 @@
     <div class="content w-100">
         <div class="border-bottom admin-header">
             <div>
-                <h2>@ViewBag.TItle</h2>
+                <h2>@ViewBag.Title</h2>
+                @if (ViewBag.PreviousTitle != null && ViewBag.PreviousAction != null)
+                {
+                    <a id="previousPageBtn" asp-controller="Admin" asp-action="@ViewBag.PreviousAction" asp-all-route-data="@ViewBag.PreviousActionData" class="icon-link icon-link-hover text-secondary text-decoration-none" style="--bs-icon-link-transform: translate3d(-0.25em, 0, 0);">
+                        <span class="bi bi-arrow-left"></span>
+                        @ViewBag.PreviousTitle
+                    </a>
+                }
             </div>
         </div>
         @RenderBody()

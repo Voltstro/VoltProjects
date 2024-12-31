@@ -7,6 +7,10 @@ if (Model.Id != null)
     title = $"Editing {Model.VersionTag} Project Version";
 
 ViewBag.Title = title;
+
+ViewBag.PreviousTitle = $"Back to Editing {Model.Project.Name} Project";
+ViewBag.PreviousAction = "Project";
+ViewBag.PreviousActionData = new Dictionary<string, string> { { "id", Model.ProjectId.ToString() } };
 }
 
 <div class="container pt-4">

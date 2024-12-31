@@ -88,8 +88,8 @@ public class AdminController : Controller
                 .FirstOrDefault(x => x.Id == id);
             
             //if no project was found, goto new
-            if(foundProject == null)
-                return RedirectToAction("Project");
+            if (foundProject == null)
+                return NotFound();
 
             if(foundProject.IconPath != null)
                 foundProject.IconPath = Path.Combine(config.PublicUrl, foundProject.Name, foundProject.IconPath);
@@ -204,9 +204,12 @@ public class AdminController : Controller
         }
         else
         {
+            Project project = dbContext.Projects
+                .First(x => x.Id == projectId);
             model = new ProjectVersionPageModel
             {
-                ProjectId = projectId
+                ProjectId = projectId,
+                Project = project
             };
         }
 
@@ -232,6 +235,11 @@ public class AdminController : Controller
         {
             DocBuilder[] docBuilders = await dbContext.DocBuilders.ToArrayAsync();
             Language[] languages = await dbContext.Languages.ToArrayAsync();
+            
+            Project project = dbContext.Projects
+                .First(x => x.Id == projectId);
+
+            model.Project = project;
             model.DocBuilders = docBuilders;
             model.Languages = languages;
             return View(model);

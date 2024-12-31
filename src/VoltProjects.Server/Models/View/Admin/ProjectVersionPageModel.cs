@@ -11,7 +11,7 @@ public class ProjectVersionPageModel : ProjectVersion
     public ProjectVersionPageModel(ProjectVersion projectVersion)
     {
         Id = projectVersion.Id;
-        ProjectId = projectVersion.Id;
+        ProjectId = projectVersion.ProjectId;
         Project = projectVersion.Project;
         GitBranch = projectVersion.GitBranch;
         GitTag = projectVersion.GitTag;

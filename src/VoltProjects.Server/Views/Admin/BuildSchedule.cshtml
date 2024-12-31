@@ -6,6 +6,9 @@ if (Model.ProjectVersion != null)
     title = $"Editing {Model.ProjectVersion.Project.Name} - {Model.ProjectVersion.VersionTag} Build Schedule";
 
 ViewBag.Title = title;
+
+ViewBag.PreviousTitle = "Back to Build Schedules";
+ViewBag.PreviousAction = "BuildSchedules";
 }
 
 @section BottomInclude {

@@ -12,13 +12,18 @@
 }
 
 .admin-header {
-    height: 4.8em;
+    height: 5.6em;
 
     > div {
         padding: 1.05em;
         
         h2 {
             font-weight: 600;
+            margin: 0;
         }
+    }
+
+    > .admin-header-title-container {
+        margin-top: 0.15em;
     }
 }
