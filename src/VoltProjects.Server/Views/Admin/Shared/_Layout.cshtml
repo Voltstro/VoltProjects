@@ -47,6 +47,11 @@ string pageTitle = $"{ViewBag.Title} | Volt Projects Admin";
                         Build Schedules
                     </a>
                 </li>
+                <li>
+                    <a class="nav-link bi bi-calendar-event text-white @Html.ActiveClass("Admin", "BuildEvents,BuildEvent")" asp-controller="Admin" asp-action="BuildEvents">
+                        Build Events
+                    </a>
+                </li>
             </ul>
             <hr>
             <div class="dropdown p-3 pt-0">

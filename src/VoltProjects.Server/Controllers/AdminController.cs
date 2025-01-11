@@ -411,4 +411,43 @@ public class AdminController : Controller
     }
 
     #endregion
+
+    #region Build Events
+
+    [HttpGet]
+    [Route("build/events/")]
+    public IActionResult BuildEvents()
+    {
+        ProjectBuildEvent[] buildEvents = dbContext.ProjectBuildEvents
+            .Include(x => x.Project)
+            .ThenInclude(x => x.Project)
+            .ToArray();
+        
+        return View(new BuildEventsModel
+        {
+            ProjectBuildEvents = buildEvents
+        });
+    }
+
+    [HttpGet]
+    [Route("build/events/{eventId:int}")]
+    public IActionResult BuildEvent(int eventId)
+    {
+        ProjectBuildEvent? buildEvent = dbContext.ProjectBuildEvents
+            .Include(x => x.Project)
+            .ThenInclude(x => x.Project)
+            .Include(x =>
+                x.BuildEventLogs
+                .OrderBy(p => p.Date)
+                .ThenBy(p => p.Id))
+            .ThenInclude(x => x.LogLevel)
+            .FirstOrDefault(x => x.Id == eventId);
+
+        if (buildEvent == null)
+            return NotFound();
+        
+        return View(new BuildEventModel(buildEvent));
+    }
+
+    #endregion
 }

@@ -300,7 +300,7 @@ public sealed class VoltProjectDbContext : DbContext
             //ProjectBuildEventLog
             modelBuilder.Entity<ProjectBuildEventLog>()
                 .HasOne(p => p.BuildEvent)
-                .WithMany()
+                .WithMany(p => p.BuildEventLogs)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<ProjectBuildEventLog>()
