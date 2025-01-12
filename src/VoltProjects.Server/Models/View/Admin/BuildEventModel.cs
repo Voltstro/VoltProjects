@@ -1,10 +1,11 @@
+using VoltProjects.Server.Shared.Paging;
 using VoltProjects.Shared.Models;
 
 namespace VoltProjects.Server.Models.View.Admin;
 
 public class BuildEventModel : ProjectBuildEvent
 {
-    public BuildEventModel(ProjectBuildEvent buildEvent)
+    public BuildEventModel(ProjectBuildEvent buildEvent, PagedResult<ProjectBuildEventLog> buildEventLogs)
     {
         Id = buildEvent.Id;
         ProjectVersionId = buildEvent.ProjectVersionId;
@@ -15,6 +16,8 @@ public class BuildEventModel : ProjectBuildEvent
         GitHash = buildEvent.GitHash;
         LastUpdateTime = buildEvent.LastUpdateTime;
         CreationTime = buildEvent.CreationTime;
-        BuildEventLogs = buildEvent.BuildEventLogs;
+        BuildEventLogs = buildEventLogs;
     }
+    
+    public new PagedResult<ProjectBuildEventLog> BuildEventLogs { get; }
 }

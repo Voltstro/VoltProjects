@@ -1,18 +1,16 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VoltProjects.Server.Models.View.Admin;
 using VoltProjects.Server.Shared;
+using VoltProjects.Server.Shared.Paging;
 using VoltProjects.Shared;
 using VoltProjects.Shared.Models;
 using VoltProjects.Shared.Services;
@@ -39,30 +37,33 @@ public class AdminController : Controller
     }
     
     [HttpGet]
+    [Route("signout")]
+    public IActionResult Signout()
+    {
+        return SignOut(new AuthenticationProperties
+        {
+            RedirectUri = "/"
+        });
+    }
+    
+    [HttpGet]
     public IActionResult Index()
     {
         return View();
     }
 
+    #region Projects
+
     [HttpGet]
-    [Route("projects")]
-    public IActionResult Projects(int page, int size)
+    [Route("projects/")]
+    public async Task<IActionResult> Projects(int page, int size)
     {
-        //Size should either be 10, 25 or 50
-        if (size != 5 && size != 10 && size != 25 && size != 50)
-            size = 10;
-        
-        //Page should always be 1 or more
-        page = page <= 0 ? 1 : page;
-        
-        Project[] projects = dbContext.Projects
-            .Skip((page - 1) * size)
-            .Take(size)
-            .ToArray();
+        IQueryable<Project> projectsQuery = dbContext.Projects.OrderBy(x => x.Id);
+        PagedResult<Project> projectsPaged = await PagedResult<Project>.Create(projectsQuery, page, size);
         
         return View(new ProjectsPageModel
         {
-            Projects = projects
+            Projects = projectsPaged
         });
     }
     
@@ -74,7 +75,7 @@ public class AdminController : Controller
     }
 
     [HttpGet]
-    [Route("projects/new", Name = "new")]
+    [Route("projects/new/", Name = "new")]
     [Route("projects/edit/{id:int}")]
     public IActionResult Project(int? id, bool? success)
     {
@@ -286,28 +287,21 @@ public class AdminController : Controller
         return RedirectToAction("ProjectVersion", "Admin",
             new { projectId = model.ProjectId, projectVersionId = model.Id, success = model.Success });
     }
-
-    [HttpGet]
-    [Route("signout")]
-    public IActionResult Signout()
-    {
-        return SignOut(new AuthenticationProperties
-        {
-            RedirectUri = "/"
-        });
-    }
+    
+    #endregion
 
     #region Build Schedules
 
     [HttpGet]
     [Route("build/schedules/")]
-    public IActionResult BuildSchedules()
+    public async Task<IActionResult> BuildSchedules(int page, int size)
     {
-        ProjectBuildSchedule[] buildSchedules = dbContext
+        IQueryable<ProjectBuildSchedule> buildSchedulesQuery = dbContext
             .ProjectBuildSchedules
             .Include(x => x.ProjectVersion)
-            .ThenInclude(x => x.Project)
-            .ToArray();
+            .ThenInclude(x => x.Project);
+        PagedResult<ProjectBuildSchedule> buildSchedules =
+            await PagedResult<ProjectBuildSchedule>.Create(buildSchedulesQuery, page, size);
         
         return View(new BuildSchedulesModel
         {
@@ -416,12 +410,14 @@ public class AdminController : Controller
 
     [HttpGet]
     [Route("build/events/")]
-    public IActionResult BuildEvents()
+    public async Task<IActionResult> BuildEvents(int page, int size)
     {
-        ProjectBuildEvent[] buildEvents = dbContext.ProjectBuildEvents
+        IQueryable<ProjectBuildEvent> buildEventsQuery = dbContext.ProjectBuildEvents
             .Include(x => x.Project)
             .ThenInclude(x => x.Project)
-            .ToArray();
+            .OrderByDescending(x => x.Id);
+        PagedResult<ProjectBuildEvent>
+            buildEvents = await PagedResult<ProjectBuildEvent>.Create(buildEventsQuery, page, size);
         
         return View(new BuildEventsModel
         {
@@ -431,22 +427,24 @@ public class AdminController : Controller
 
     [HttpGet]
     [Route("build/events/{eventId:int}")]
-    public IActionResult BuildEvent(int eventId)
+    public async Task<IActionResult> BuildEvent(int eventId, int page, int size)
     {
-        ProjectBuildEvent? buildEvent = dbContext.ProjectBuildEvents
+        ProjectBuildEvent? buildEvent = await dbContext.ProjectBuildEvents
             .Include(x => x.Project)
             .ThenInclude(x => x.Project)
-            .Include(x =>
-                x.BuildEventLogs
-                .OrderBy(p => p.Date)
-                .ThenBy(p => p.Id))
-            .ThenInclude(x => x.LogLevel)
-            .FirstOrDefault(x => x.Id == eventId);
-
+            .FirstOrDefaultAsync(x => x.Id == eventId);
+        
         if (buildEvent == null)
             return NotFound();
+
+        IQueryable<ProjectBuildEventLog> buildEventLogsQuery = dbContext.ProjectBuildEventLogs
+            .Where(x => x.BuildEventId == eventId)
+            .Include(x => x.LogLevel)
+            .OrderBy(x => x.Id);
+        PagedResult<ProjectBuildEventLog> buildEventLogs = await PagedResult<ProjectBuildEventLog>.Create(
+            buildEventLogsQuery, page, size, [45, 100, 150]);
         
-        return View(new BuildEventModel(buildEvent));
+        return View(new BuildEventModel(buildEvent, buildEventLogs));
     }
 
     #endregion

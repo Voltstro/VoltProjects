@@ -15,7 +15,7 @@
     <!-- Main Content --> 
     <div class="card">
         <div class="card-header">
-            Build Schedule
+            <h3 class="m-0">Build Schedule</h3>
         </div>
 
         <div class="card-body">
@@ -57,7 +57,7 @@
     <!-- Logs -->
     <div class="card mt-4">
         <div class="card-header">
-            Logs
+            <h3 class="m-0">Logs</h3>
         </div>
         
         <div class="card-body">
@@ -71,21 +71,22 @@
                 </tr>
                 </thead>
                 <tbody>
-                @if (Model.BuildEventLogs != null)
+                @foreach (ProjectBuildEventLog eventLog in Model.BuildEventLogs.Items)
                 {
-                    @foreach (ProjectBuildEventLog eventLog in Model.BuildEventLogs)
-                    {
-                        string messageColor = eventLog.LogLevel.Id == 2 ? "table-danger" : string.Empty;
-                        @:<tr class="@messageColor">
-                            <th>@eventLog.Id</th>
-                            <td class="text-center">@eventLog.Date</td>
-                            <td>@eventLog.LogLevel.Name</td>
-                            <td class="text-break">@eventLog.Message</td>
+                    string messageColor = eventLog.LogLevel.Id == 2 ? "table-danger" : string.Empty;
+                    @:<tr class="@messageColor">
+                        <th>@eventLog.Id</th>
+                        <td class="text-center">@eventLog.Date</td>
+                        <td>@eventLog.LogLevel.Name</td>
+                        <td class="text-break">@eventLog.Message</td>
                         @:</tr>
-                    }
                 }
                 </tbody>
             </table>
+
+            @* Pagination Controls *@
+            <div class="mt-4 d-flex" paged-count="@Model.BuildEventLogs" base-url="/admin/build/events/@Model.Id/">
+            </div>
         </div>
     </div>
 </div>

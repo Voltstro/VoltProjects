@@ -1,3 +1,4 @@
+using VoltProjects.Server.Shared.Paging;
 using VoltProjects.Shared.Models;
 
 namespace VoltProjects.Server.Models.View.Admin;
@@ -7,5 +8,5 @@ namespace VoltProjects.Server.Models.View.Admin;
 /// </summary>
 public class BuildSchedulesModel
 {
-    public ProjectBuildSchedule[] BuildSchedules { get; init; }
+    public PagedResult<ProjectBuildSchedule> BuildSchedules { get; init; }
 }

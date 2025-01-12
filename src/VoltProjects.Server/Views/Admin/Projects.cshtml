@@ -7,7 +7,10 @@
 <div class="container pt-4">
     <div class="card">
         <div class="card-header">
-            Project List
+            <div class="d-flex">
+                <h3 class="m-0">Project List</h3>
+                <a asp-route="new" class="btn btn-primary ms-auto">New</a>
+            </div>
         </div>
         <div class="card-body">
             <table class="table table-striped table-hover">
@@ -21,20 +24,22 @@
                 </tr>
                 </thead>
                 <tbody>
-                @foreach (Project project in Model.Projects)
+                @foreach (Project project in Model.Projects.Items)
                 {
                     <tr>
                         <th scope="row">@project.Id</th>
                         <td>@project.Name</td>
                         <td>@project.DisplayName</td>
                         <td><a href="@project.GitUrl" target="_blank">@project.GitUrl <i class="bi bi-box-arrow-up-right"></i></a></td>
-                        <td><a asp-controller="Admin" asp-action="Project" asp-route-id="@project.Id" class="btn btn-primary">Edit</a></td>
+                        <td><a asp-controller="Admin" asp-action="Project" asp-route-id="@project.Id" class="btn btn-primary float-end">Edit</a></td>
                     </tr>
                 }
                 </tbody>
             </table>
             
-            <a asp-route="new" class="btn btn-primary">New</a>
+            @* Pagination Controls *@
+            <div class="mt-4 d-flex" paged-count="@Model.Projects" base-url="/admin/projects/">
+            </div>
         </div>
     </div>
 </div>
