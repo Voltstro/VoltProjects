@@ -25,5 +25,8 @@
     > .bi {
       height: 100% !important;
     }
-  }
+}
   
+.bi-large::before {
+    font-size: 15em;
+}

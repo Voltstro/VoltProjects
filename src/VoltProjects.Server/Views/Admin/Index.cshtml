@@ -8,50 +8,35 @@ ViewBag.Title = "Home";
     <h3>Welcome, @User.FindFirstValue("name")!</h3>
     <p>Manage projects, builds and settings through this admin menu.</p>
     
-    <p>Hello</p>
-    <p>Hello</p>
-    <p>Hello</p>
-    <p>Hello</p>
-    <p>Hello</p>
-    <p>Hello</p>
-    <p>Hello</p>
-    <p>Hello</p>
-    <p>Hello</p>
-    <p>Hello</p>
-    <p>Hello</p>
-    <p>Hello</p>
-    <p>Hello</p>
-    <p>Hello</p>
-    <p>Hello</p>
-    <p>Hello</p>
-    <p>Hello</p>
-    <p>Hello</p>
-    <p>Hello</p>
-    <p>Hello</p>
-    <p>Hello</p>
-    v
-    <p>Hello</p>
-    <p>Hello</p>
-    v
-    <p>Hello</p>
-    <p>Hello</p>
-    <p>Hello</p>
-    <p>Hello</p>
-    v
-    <p>Hello</p>
-    v
-    v
-    v
-    <p>Hello</p>
-    <p>Hello</p>
-    vv
-    v
-    v
-    v
-    v
-    vv
-    v
-    <p>Hello</p>
-    <p>Hello</p>
-    <p>Hello</p>
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-4">
+        <!-- Projects Card -->
+        <div class="col py-3">
+            <a class="card shadow h-100 text-center" asp-controller="Admin" asp-action="Projects">
+                <span class="pt-4 bi bi-large bi-kanban"></span>
+                <div class="card-body">
+                    <h5 class="card-title">Projects</h5>
+                </div>
+            </a>
+        </div>
+
+        <!-- Build Schedules -->
+        <div class="col py-3">
+            <a class="card shadow h-100 text-center" asp-controller="Admin" asp-action="BuildSchedules">
+                <span class="pt-4 bi bi-large bi-building"></span>
+                <div class="card-body">
+                    <h5 class="card-title">Build Schedules</h5>
+                </div>
+            </a>
+        </div>
+
+        <!-- Build Events -->
+        <div class="col py-3">
+            <a class="card shadow h-100 text-center" asp-controller="Admin" asp-action="BuildEvents">
+                <span class="pt-4 bi bi-large bi-calendar-event"></span>
+                <div class="card-body">
+                    <h5 class="card-title">Build Events</h5>
+                </div>
+            </a>
+        </div>
+    </div>
 </div>
