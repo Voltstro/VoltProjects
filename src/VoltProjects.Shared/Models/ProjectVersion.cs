@@ -72,4 +72,6 @@ public class ProjectVersion
     ///     All <see cref="ProjectMenuItem"/>s this project has
     /// </summary>
     public ICollection<ProjectMenuItem>? MenuItems { get; } = new List<ProjectMenuItem>();
+    
+    public ICollection<ProjectPage> Pages { get; } = new List<ProjectPage>();
 }

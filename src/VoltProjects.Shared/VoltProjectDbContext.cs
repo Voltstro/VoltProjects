@@ -340,7 +340,7 @@ public sealed class VoltProjectDbContext : DbContext
             //ProjectPage
             modelBuilder.Entity<ProjectPage>()
                 .HasOne(p => p.ProjectVersion)
-                .WithMany()
+                .WithMany(p => p.Pages)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<ProjectPage>()

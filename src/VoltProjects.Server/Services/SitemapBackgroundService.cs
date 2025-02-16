@@ -65,39 +65,28 @@ public sealed class SitemapBackgroundService : BackgroundService
                 //Add VoltProject's main pages
                 VoltProjectDbContext context = await contextFactory.CreateDbContextAsync(stoppingToken);
                 
-                //Get all projects, and go through their project versions
-                Dictionary<string, XDocument> projectSitemaps = new();
-                Project[] projects = await context.Projects
-                    .AsNoTracking()
+                ProjectVersion[] projectVersions = await context.ProjectVersions
+                    .Include(x => x.Project)
+                    .Include(x => x.Pages.Where(y => y.Published))
                     .ToArrayAsync(stoppingToken);
-                foreach (Project project in projects)
+
+                Dictionary<string, XDocument> projectSitemaps = new();
+                foreach (ProjectVersion projectVersion in projectVersions)
                 {
-                    ProjectVersion[] versions = await context.ProjectVersions
-                        .AsNoTracking()
-                        .Where(x => x.ProjectId == project.Id)
-                        .ToArrayAsync(stoppingToken);
+                    //Add Project's sitemap URL to root one
+                    indexSitemapRoot.Add(CreatePageLoc(xmlns, Path.Combine(projectVersion.Project.Name, projectVersion.VersionTag, "sitemap.xml.gz"), null, "sitemap"));
 
-                    foreach (ProjectVersion version in versions)
+                    //And add all pages
+                    XElement projectRoot = new(xmlns + "urlset");
+                    foreach (ProjectPage page in projectVersion.Pages)
                     {
-                        //Add Project's sitemap URL to root one
-                        indexSitemapRoot.Add(CreatePageLoc(xmlns, Path.Combine(project.Name, version.VersionTag, "sitemap.xml.gz"), null, "sitemap"));
-                        
-                        //And generate project's sitemap
-                        XElement projectRoot = new(xmlns + "urlset");
-                        ProjectPage[] pages = await context.ProjectPages
-                            .AsNoTracking()
-                            .Where(x => x.ProjectVersionId == version.Id)
-                            .ToArrayAsync(stoppingToken);
-                        foreach (ProjectPage page in pages)
-                        {
-                            string pagePath = page.Path == "." ? string.Empty : $"{page.Path}";
-                            string fullPath = $"{project.Name}/{version.VersionTag}/{pagePath}";
-                            projectRoot.Add(CreatePageLoc(xmlns, fullPath, page.PublishedDate));
-                        }
-
-                        string projectKey = $"{project.Name}/{version.VersionTag}";
-                        projectSitemaps.Add(projectKey, new XDocument(projectRoot));
+                        string pagePath = page.Path == "." ? string.Empty : $"{page.Path}";
+                        string fullPath = $"{projectVersion.Project.Name}/{projectVersion.VersionTag}/{pagePath}";
+                        projectRoot.Add(CreatePageLoc(xmlns, fullPath, page.PublishedDate));
                     }
+                    
+                    string projectKey = $"{projectVersion.Project.Name}/{projectVersion.VersionTag}";
+                    projectSitemaps.Add(projectKey, new XDocument(projectRoot));
                 }
 
                 XDocument indexSitemap = new(indexSitemapRoot);
