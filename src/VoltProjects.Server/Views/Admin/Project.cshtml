@@ -31,7 +31,7 @@
     
     <div class="card">
         <div class="card-header">
-            <h3 class="m-0">Basic Details</h3>
+            <h5 class="m-0 fw-bold">Basic Details</h5>
         </div>
 
         <form asp-controller="Admin" asp-action="Project" asp-route-id="" method="post" enctype="multipart/form-data">
@@ -110,7 +110,7 @@
     {
         <div class="card mt-4">
             <div class="card-header d-flex">
-                <h3 class="m-0">Versions</h3>
+                <h5 class="m-0 fw-bold align-content-center">Versions</h5>
                 <a asp-controller="Admin" asp-action="ProjectVersion" asp-route-projectId="@Model.Id" asp-route-projectVersionId="" class="btn btn-primary ms-auto">New</a>
             </div>
             <div class="card-body">

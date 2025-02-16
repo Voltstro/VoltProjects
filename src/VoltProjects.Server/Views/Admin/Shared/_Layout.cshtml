@@ -75,8 +75,8 @@ string pageTitle = $"{ViewBag.Title} | Volt Projects Admin";
     </div>
     <div class="content w-100">
         <div class="border-bottom admin-header">
-            <div>
-                <h2>@ViewBag.Title</h2>
+            <div class="h-100 align-content-center">
+                <h2 class="">@ViewBag.Title</h2>
                 @if (ViewBag.PreviousTitle != null && ViewBag.PreviousAction != null)
                 {
                     <a id="previousPageBtn" asp-controller="Admin" asp-action="@ViewBag.PreviousAction" asp-all-route-data="@ViewBag.PreviousActionData" class="icon-link icon-link-hover text-secondary text-decoration-none" style="--bs-icon-link-transform: translate3d(-0.25em, 0, 0);">
