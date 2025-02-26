@@ -1,5 +1,5 @@
 import Popover from 'bootstrap/js/dist/popover';
-import { debounce } from './utility';
+import { debounce } from '../shared/utility';
 
 /**
  * Provides preview functionality to project search nav

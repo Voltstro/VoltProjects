@@ -16,9 +16,10 @@ export default defineConfig(({ mode }) => {
             sourcemap: 'inline',
             rollupOptions: {
                 input: {
-                    main: resolve(__dirname, 'src/main.ts'),
-                    search: resolve(__dirname, 'src/search.ts'),
-                    admin: resolve(__dirname, 'src/admin.ts'),
+                    public: resolve(__dirname, 'src/public/index.ts'),
+                    search: resolve(__dirname, 'src/public/search.ts'),
+                    admin: resolve(__dirname, 'src/admin/index.ts'),
+                    index: resolve(__dirname, 'src/scss/main.scss')
                 },
                 output: {
                     dir: outDir,

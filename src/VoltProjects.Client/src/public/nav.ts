@@ -1,4 +1,4 @@
-import { isVisible } from './utility';
+import { isVisible } from '../shared/utility';
 
 export interface NavItem {
   name: string
