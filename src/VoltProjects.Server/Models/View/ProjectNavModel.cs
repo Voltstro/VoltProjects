@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace VoltProjects.Server.Models.View;
 
 /// <summary>
@@ -28,7 +30,7 @@ public sealed class ProjectNavModel
     /// <summary>
     ///     All the menu items to display
     /// </summary>
-    public MenuItem[] MenuItems { get; init; }
+    public List<MenuItem> MenuItems { get; init; }
     
     /// <summary>
     ///     The project's git URL

@@ -127,7 +127,7 @@ public class ErrorController : Controller
                             ProjectName = project.DisplayName,
                             BasePath = baseProjectPath,
                             GitUrl = $"{project.GitUrl}/tree/{projectVersion.GitTag ?? projectVersion.GitBranch}",
-                            MenuItems = builtMenuItems
+                            //MenuItems = builtMenuItems
                         };
                     }
                 }

@@ -66,6 +66,7 @@ public class ProjectController : Controller
         if (string.IsNullOrWhiteSpace(version))
             return await GetProjectLatestRedirect(projectName, version, fullPath, cancellationToken);
 
+        /*
         ProjectPage? projectPage = await dbContext.ProjectPages
             .AsNoTracking()
             .Include(x => x.ProjectVersion)
@@ -79,27 +80,26 @@ public class ProjectController : Controller
                 x.ProjectVersion.Project.Name == projectName &&
                 x.Published,
                 cancellationToken);
+                */
 
-        //No page was found, all good then
+        ProjectPage? projectPage = await ProjectPageQuery(dbContext, projectName, version, fullPath);
+
+        //No page was found, try to get an external item
         if (projectPage == null)
         {
-            //Try to get project version
+            //Try to get the project version first
             ProjectVersion? foundProjectVersion = await dbContext.ProjectVersions
                 .AsNoTracking()
                 .Include(x => x.Project)
                 .FirstOrDefaultAsync(x => x.VersionTag == version && x.Project.Name == projectName,
                     cancellationToken: cancellationToken);
 
-            //Invalid project version
+            //Invalid project version, redirect to latest
             if (foundProjectVersion == null)
                 return await GetProjectLatestRedirect(projectName, version, fullPath, cancellationToken);
-
-            ProjectExternalItemStorageItem? externalItemStorageItem = dbContext.ProjectExternalItemStorageItems
-                .AsNoTracking()
-                .Include(x => x.StorageItem)
-                .Include(x => x.ProjectExternalItem)
-                .ThenInclude(x => x.ProjectVersion)
-                .FirstOrDefault(x => x.StorageItem.Path == fullPath && x.ProjectExternalItem.ProjectVersionId == foundProjectVersion.Id);
+            
+            ProjectExternalItemStorageItem? externalItemStorageItem =
+                await ProjectExternalItemQuery(dbContext, foundProjectVersion.Id, fullPath);
 
             if (externalItemStorageItem == null)
                 return NotFound();
@@ -109,6 +109,7 @@ public class ProjectController : Controller
             return RedirectPermanent(storageItemUrl);
         }
 
+        //We have page, build out everything else
         ProjectVersion projectVersion = projectPage.ProjectVersion;
         Project project = projectVersion.Project;
         
@@ -119,7 +120,20 @@ public class ProjectController : Controller
         ProjectNavModel navModel;
         using (Tracking.StartActivity(ActivityArea.Project, "nav"))
         {
-            ProjectMenuItem[] menuItems = projectVersion.MenuItems!.ToArray();
+            List<MenuItem> builtMenuItems = new();
+            await foreach (ProjectMenuItem menuItem in ProjectMenuItemsQuery(dbContext, projectVersion.Id))
+            {
+                string menuPagePath = menuItem.Href;
+                builtMenuItems.Add(new MenuItem
+                {
+                    Title = menuItem.Title,
+                    Href = Path.Combine(baseProjectPath, menuPagePath),
+                    IsActive = requestPath.Contains(menuPagePath)
+                });
+            }
+            
+            /*
+            ProjectMenuItem[] menuItems = await ProjectMenuItemsQuery(dbContext, projectVersion.Id).ToArrayAsync(cancellationToken: cancellationToken);
             MenuItem[] builtMenuItems = new MenuItem[menuItems.Length];
             for (int i = 0; i < builtMenuItems.Length; i++)
             {
@@ -131,6 +145,7 @@ public class ProjectController : Controller
                     IsActive = requestPath.Contains(menuPagePath)
                 };
             }
+            */
 
             navModel = new ProjectNavModel
             {
@@ -147,10 +162,7 @@ public class ProjectController : Controller
         if (projectPage.ProjectTocId != null)
         {
             tocItems = [];
-            ProjectToc toc = dbContext.ProjectTocs
-                .AsNoTracking()
-                .Include(x => x.TocItems.OrderBy(y => y.ItemOrder))
-                .First(x => x.Id == projectPage.ProjectTocId);
+            ProjectToc toc = await ProjectTocQuery(dbContext, projectPage.ProjectTocId.Value);
 
             foreach (ProjectTocItem projectTocItem in toc.TocItems)
             {
@@ -182,7 +194,6 @@ public class ProjectController : Controller
                 {
                     tocItems.Add(builtTocItem);
                 }
-
             }
         }
 
@@ -244,4 +255,56 @@ public class ProjectController : Controller
 
         return null;
     }
+
+    #region Queries
+    
+    //Main page query
+    private static readonly Func<VoltProjectDbContext, string, string, string, Task<ProjectPage?>> ProjectPageQuery =
+        EF.CompileAsyncQuery(
+            (VoltProjectDbContext context, string projectName, string version, string path) => 
+                context.ProjectPages
+                    .AsNoTracking()
+                    .Include(x => x.ProjectVersion)
+                    .ThenInclude(x => x.Project)
+                    .Include(x => x.Breadcrumbs.OrderBy(m => m.BreadcrumbOrder))
+                    .FirstOrDefault(x =>
+                        x.Path == path &&
+                        x.ProjectVersion.VersionTag == version &&
+                        x.ProjectVersion.Project.Name == projectName &&
+                        x.Published));
+    
+    //External items query
+    private static readonly Func<VoltProjectDbContext, int, string, Task<ProjectExternalItemStorageItem?>>
+        ProjectExternalItemQuery =
+            EF.CompileAsyncQuery(
+                (VoltProjectDbContext context, int projectVersionId, string path) =>
+                    context.ProjectExternalItemStorageItems
+                        .AsNoTracking()
+                        .Include(x => x.StorageItem)
+                        .Include(x => x.ProjectExternalItem)
+                        .ThenInclude(x => x.ProjectVersion)
+                        .FirstOrDefault(x =>
+                            x.StorageItem.Path == path &&
+                            x.ProjectExternalItem.ProjectVersionId == projectVersionId));
+    
+    //Menu items query
+    private static readonly Func<VoltProjectDbContext, int, IAsyncEnumerable<ProjectMenuItem>> ProjectMenuItemsQuery =
+        EF.CompileAsyncQuery(
+            (VoltProjectDbContext context, int projectVersionId) =>
+                context.ProjectMenuItems
+                    .AsNoTracking()
+                    .OrderBy(x => x.ItemOrder)
+                    .Where(x => x.ProjectVersionId == projectVersionId));
+
+    //TOC query
+    private static readonly Func<VoltProjectDbContext, int, Task<ProjectToc>> ProjectTocQuery =
+        EF.CompileAsyncQuery(
+            (VoltProjectDbContext context, int tocId) =>
+                context.ProjectTocs
+                    .AsNoTracking()
+                    .Include(x => x.TocItems.OrderBy(y => y.ItemOrder))
+                    .First(x => x.Id == tocId)
+        );
+
+    #endregion
 }
