@@ -249,16 +249,16 @@ public static class DbProcedures
 
 		return await dbContext.ProjectPageBreadcrumbs.FromSqlRaw($"""
 		                                                   MERGE INTO public.project_page_breadcrumb AS tgt
-		                                                   	USING (SELECT * FROM (VALUES{paramsPlaceholder}) AS s(project_page_id, title, href, breadcrumb_order)) AS src
-		                                                   	ON tgt.href = src.href
-		                                                   	AND tgt.project_page_id = src.project_page_id
-		                                                   	AND tgt.title = src.title
-		                                                   WHEN MATCHED THEN UPDATE SET
-		                                                   	title = src.title,
-		                                                   	breadcrumb_order = src.breadcrumb_order
+		                                                    USING (SELECT * FROM (VALUES{paramsPlaceholder}) AS s(project_page_id, title, href, breadcrumb_order)) AS src
+		                                                    ON tgt.href IS NOT DISTINCT FROM src.href
+		                                                    AND tgt.project_page_id = src.project_page_id
+		                                                    AND tgt.title = src.title
+		                                                   WHEN MATCHED THEN
+		                                                    UPDATE SET
+		                                                     breadcrumb_order = src.breadcrumb_order
 		                                                   WHEN NOT MATCHED THEN
-		                                                   	INSERT (project_page_id, title, href, breadcrumb_order)
-		                                                   	VALUES (src.project_page_id, src.title, src.href, src.breadcrumb_order)
+		                                                    INSERT (project_page_id, title, href, breadcrumb_order)
+		                                                    VALUES (src.project_page_id, src.title, src.href, src.breadcrumb_order)
 		                                                   RETURNING tgt.*;
 		                                                   """, objectValues).ToArrayAsync();
 	}
