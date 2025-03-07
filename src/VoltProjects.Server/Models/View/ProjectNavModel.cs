@@ -30,7 +30,7 @@ public sealed class ProjectNavModel
     /// <summary>
     ///     All the menu items to display
     /// </summary>
-    public List<MenuItem> MenuItems { get; init; }
+    public IReadOnlyList<MenuItem> MenuItems { get; init; }
     
     /// <summary>
     ///     The project's git URL

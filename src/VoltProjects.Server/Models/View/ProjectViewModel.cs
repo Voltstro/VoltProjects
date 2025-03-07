@@ -28,5 +28,5 @@ public sealed class ProjectViewModel
     /// <summary>
     ///     Project's TOC items
     /// </summary>
-    public List<TocItem>? TocItems { get; init; }
+    public IReadOnlyList<TocItem>? TocItems { get; init; }
 }
