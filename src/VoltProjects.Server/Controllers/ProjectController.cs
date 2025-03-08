@@ -11,6 +11,7 @@ using VoltProjects.Server.Models;
 using VoltProjects.Server.Models.View;
 using VoltProjects.Server.Services;
 using VoltProjects.Server.Shared;
+using VoltProjects.Server.Shared.Helpers;
 using VoltProjects.Shared.Models;
 using VoltProjects.Shared.Telemetry;
 
@@ -97,8 +98,7 @@ public class ProjectController : Controller
         Uri baseUri = new(config.SiteUrl);
         Uri fullUrl = new(baseUri, requestPath);
 
-        Response.Headers[HeaderNames.CacheControl] = $"public,max-age={config.CacheTime}";
-
+        HttpContext.SetCacheControl(config.CacheTime);
         return View("ProjectView", new ProjectViewModel
         {
             BasePath = baseProjectPath,

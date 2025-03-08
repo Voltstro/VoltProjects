@@ -12,6 +12,7 @@ using Microsoft.Net.Http.Headers;
 using VoltProjects.Server.Models;
 using VoltProjects.Server.Models.View;
 using VoltProjects.Server.Shared;
+using VoltProjects.Server.Shared.Helpers;
 using VoltProjects.Shared;
 using VoltProjects.Shared.Models;
 
@@ -74,7 +75,7 @@ public class MainController : Controller
             return projectInfos.ToArray();
         }))!;
         
-        Response.Headers[HeaderNames.CacheControl] = $"public,max-age={config.CacheTime}";
+        HttpContext.SetCacheControl(config.CacheTime);
         return View(projectInfos);
     }
 
