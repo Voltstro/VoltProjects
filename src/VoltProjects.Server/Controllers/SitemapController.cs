@@ -1,7 +1,10 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.AspNetCore.Mvc;
 using VoltProjects.Server.Services;
+using VoltProjects.Shared.Services;
 
 namespace VoltProjects.Server.Controllers;
 
@@ -19,29 +22,44 @@ public class SitemapController : Controller
     }
     
     [HttpGet]
-    [Route("/sitemap_index.xml.gz")]
+    [Route("/sitemap_index.xml")]
     public async Task<IActionResult> GetIndexSitemap(CancellationToken cancellationToken)
     {
-        byte[] sitemap = await sitemapService.GetIndexSitemap(cancellationToken);
-        return File(sitemap, "application/x-gzip");
+        string siteIndexSitemap = await sitemapService.GetSiteIndexSitemap();
+        return new ContentResult
+        {
+            Content = siteIndexSitemap,
+            ContentType = "application/xml",
+            StatusCode = 200
+        };
     }
     
     [HttpGet]
-    [Route("/sitemap.xml.gz")]
+    [Route("/sitemap.xml")]
     public async Task<IActionResult> GetBaseSitemap(CancellationToken cancellationToken)
     {
-        byte[] sitemap = await sitemapService.GetBaseSitemap(cancellationToken);
-        return File(sitemap, "application/x-gzip");
+        string siteSitemap = await sitemapService.GetSiteSitemap();
+        return new ContentResult
+        {
+            Content = siteSitemap,
+            ContentType = "application/xml",
+            StatusCode = 200
+        };
     }
 
     [HttpGet]
-    [Route("/{name}/{version}/sitemap.xml.gz")]
+    [Route("/{name}/{version}/sitemap.xml")]
     public async Task<IActionResult> GetProjectSitemap(string name, string version, CancellationToken cancellationToken)
     {
-        byte[]? sitemap = await sitemapService.GetProjectSitemap(name, version, cancellationToken);
-        if (sitemap == null)
+        string? sitemapDocument = await sitemapService.GetProjectSitemap(name, version);
+        if(sitemapDocument == null)
             return NotFound();
         
-        return File(sitemap, "application/x-gzip");
+        return new ContentResult
+        {
+            Content = sitemapDocument,
+            ContentType = "application/xml",
+            StatusCode = 200
+        };
     }
 }

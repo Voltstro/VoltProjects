@@ -46,7 +46,7 @@ public sealed class VoltProjectsConfig
     
     public string PublicUrl { get; init; }
 
-    public TimeSpan SitemapGenerationDelayTime = new TimeSpan(6, 0, 0);
+    public TimeSpan SitemapCacheExpiration = new TimeSpan(1, 0, 0, 0);
     
     public string[] CorsSites { get; init; }
     

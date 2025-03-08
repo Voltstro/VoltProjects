@@ -1,114 +1,182 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
-using System.Threading;
+using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
+using VoltProjects.Server.Shared;
+using VoltProjects.Shared;
+using VoltProjects.Shared.Models;
 
 namespace VoltProjects.Server.Services;
 
 /// <summary>
-///     Service for storing global sitemap
+///     Backing service for sitemaps
 /// </summary>
 public sealed class SitemapService
 {
-    private readonly object sitemapLock;
+    private static readonly XNamespace SitemapNamespace = "http://www.sitemaps.org/schemas/sitemap/0.9";
+    private static readonly string[] BaseSitePaths = ["/", "/about/"];
+    
+    private readonly VoltProjectDbContext dbContext;
+    private readonly IMemoryCache memoryCache;
+    private readonly VoltProjectsConfig config;
 
-    private byte[] compressedIndexSitemap;
-    private byte[] compressedBaseSitemap;
-    private readonly Dictionary<string, byte[]> compressedProjectSitemaps;
-
-    private bool hasGenerated;
-
-    public SitemapService()
+    private readonly Uri siteBaseUrl;
+    
+    public SitemapService(VoltProjectDbContext dbContext, IMemoryCache memoryCache, IOptions<VoltProjectsConfig> config)
     {
-        compressedProjectSitemaps = new Dictionary<string, byte[]>();
-        sitemapLock = new object();
+        this.dbContext = dbContext;
+        this.memoryCache = memoryCache;
+        this.config = config.Value;
+
+        siteBaseUrl = new Uri(this.config.SiteUrl);
     }
 
-    public async Task<byte[]> GetIndexSitemap(CancellationToken cancellationToken)
+    /// <summary>
+    ///     Gets the site's sitemap
+    /// </summary>
+    public async Task<string> GetSiteSitemap()
     {
-        //TODO: Something better then doing this?
-        while (!hasGenerated)
-        {
-            await Task.Delay(25, cancellationToken);
-        }
-        
-        lock (sitemapLock)
-        {
-            return compressedIndexSitemap;
-        }
+       const string cacheKey = "SiteSitemap";
+       string? sitemapDocument = await memoryCache.GetOrCreateAsync<string>(cacheKey, async entry =>
+       {
+           XElement baseSitemapRoot = new(SitemapNamespace + "urlset");
+
+           //Add VoltProject's pages
+           foreach (string baseSitePath in BaseSitePaths)
+           {
+               baseSitemapRoot.Add(CreatePageLoc(baseSitePath));
+           }
+
+           entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(31);
+           
+           XDocument document = new(baseSitemapRoot);
+           return XDocumentToString(document);
+       });
+
+       return sitemapDocument!;
     }
-
-    public async Task<byte[]> GetBaseSitemap(CancellationToken cancellationToken)
+    
+    /// <summary>
+    ///     Gets the site's index sitemap
+    /// </summary>
+    /// <returns></returns>
+    public async Task<string> GetSiteIndexSitemap()
     {
-        //TODO: Something better then doing this?
-        while (!hasGenerated)
+        const string cacheKey = "SiteIndexSitemap";
+        string? indexSitemapDocument = await memoryCache.GetOrCreateAsync<string>(cacheKey, async entry =>
         {
-            await Task.Delay(25, cancellationToken);
-        }
-        
-        lock (sitemapLock)
-        {
-            return compressedBaseSitemap;
-        }
-    }
-
-    public async Task<byte[]?> GetProjectSitemap(string name, string version, CancellationToken cancellationToken)
-    {
-        //TODO: Something better then doing this?
-        while (!hasGenerated)
-        {
-            await Task.Delay(25, cancellationToken);
-        }
-
-        lock (sitemapLock)
-        {
-            string key = $"{name}/{version}";
-            KeyValuePair<string, byte[]>? sitemap = compressedProjectSitemaps.FirstOrDefault(x => x.Key == key);
-            return sitemap?.Value;
-        }
-    }
-
-    public void SetSitemaps(XDocument indexSitemapDocument, XDocument baseSitemapDocument, Dictionary<string, XDocument> projectSitemaps)
-    {
-        lock (sitemapLock)
-        {
-            compressedIndexSitemap = CompressDocument(indexSitemapDocument);
-            compressedBaseSitemap = CompressDocument(baseSitemapDocument);
-
-            foreach (KeyValuePair<string,XDocument> projectSitemap in projectSitemaps)
+            //Create root element, and add main site's sitemap
+            XElement indexSitemapRoot = new(SitemapNamespace + "sitemapindex");
+            indexSitemapRoot.Add(CreatePageLoc("sitemap.xml", null, "sitemap"));
+            
+            //Get all projects and add to index sitemap
+            await foreach (ProjectVersion projectVersion in GetProjectVersionsQuery(dbContext))
             {
-                compressedProjectSitemaps.Remove(projectSitemap.Key);
-                compressedProjectSitemaps.Add(projectSitemap.Key, CompressDocument(projectSitemap.Value));
+                string fullPath = Path.Combine(projectVersion.Project.Name, projectVersion.VersionTag, "sitemap.xml");
+                indexSitemapRoot.Add(CreatePageLoc(fullPath, null, "sitemap"));
             }
-        }
+            
+            entry.AbsoluteExpirationRelativeToNow = config.SitemapCacheExpiration;
+            
+            XDocument document = new(indexSitemapRoot);
+            return XDocumentToString(document);
+        });
 
-        hasGenerated = true;
+        return indexSitemapDocument!;
     }
 
-    private static byte[] CompressDocument(XDocument document)
+    /// <summary>
+    ///     Gets a project's site map
+    /// </summary>
+    /// <param name="projectName"></param>
+    /// <param name="version"></param>
+    /// <returns></returns>
+    public async Task<string?> GetProjectSitemap(string projectName, string version)
     {
-        MemoryStream documentStream = new();
-        document.Save(documentStream);
+        string cacheKey = $"ProjectSitemap-{projectName}-{version}";
+        string? sitemapDocument = await memoryCache.GetOrCreateAsync<string?>(cacheKey, async entry =>
+        {
+            ProjectVersion? projectVersion = await GetProjectVersionQuery(dbContext, projectName, version);
 
-        MemoryStream documentCompressedStream = new();
-        GZipStream gzStream = new(documentCompressedStream, CompressionLevel.SmallestSize);
+            if (projectVersion == null)
+                return null;
 
-        byte[] buffer = new byte[documentStream.Position];
-        documentStream.Position = 0;
-        int _ = documentStream.Read(buffer, 0, buffer.Length);
-        
-        gzStream.Write(buffer);
-        gzStream.Close();
+            XElement urlSet = new(SitemapNamespace + "urlset");
 
-        byte[] compressedData = documentCompressedStream.ToArray();
-        
-        gzStream.Dispose();
-        documentCompressedStream.Dispose();
-        documentStream.Dispose();
-        
-        return compressedData;
+            await foreach (ProjectPage projectPage in GetProjectPagesQuery(dbContext, projectVersion.Id))
+            {
+                string path = projectPage.Path == "." ? string.Empty : projectPage.Path;
+                string fullPath = Path.Combine(projectVersion.Project.Name, projectVersion.VersionTag, path);
+                if (path == string.Empty)
+                    fullPath += "/";
+                
+                urlSet.Add(CreatePageLoc(fullPath, projectPage.PublishedDate));
+            }
+
+            entry.AbsoluteExpirationRelativeToNow = config.SitemapCacheExpiration;
+
+            //Create document and use utf-8 encoding
+            XDocument document = new(urlSet);
+            return XDocumentToString(document);
+        });
+
+        return sitemapDocument;
     }
+    
+    private XElement CreatePageLoc(string pagePath, DateTime? lastModTime = null, string element = "url")
+    {
+        Uri fullUrl =  new(siteBaseUrl, pagePath);
+        string loc = fullUrl.ToString();
+        
+        XElement urlElement = new(SitemapNamespace + element);
+        urlElement.Add(new XElement(SitemapNamespace + "loc", loc));
+        
+        if(lastModTime.HasValue)
+            urlElement.Add(new XElement(SitemapNamespace + "lastmod", lastModTime.Value.ToString("yyyy-MM-dd")));
+        
+        return urlElement;
+    }
+
+    private static string XDocumentToString(XDocument document)
+    {
+        document.Declaration = new XDeclaration("1.0", "utf-8", null);
+        StringWriter stringWriter = new Utf8StringWriter();
+        document.Save(stringWriter, SaveOptions.DisableFormatting);
+        return stringWriter.ToString();
+    }
+    
+    private class Utf8StringWriter : StringWriter
+    {
+        public override Encoding Encoding => Encoding.UTF8;
+    }
+
+    //Get project versions query
+    private static readonly Func<VoltProjectDbContext, IAsyncEnumerable<ProjectVersion>> GetProjectVersionsQuery =
+        EF.CompileAsyncQuery(
+            (VoltProjectDbContext dbContext) =>
+                dbContext.ProjectVersions
+                    .AsNoTracking()
+                    .Include(x => x.Project));
+    
+    //Get project version query
+    private static readonly Func<VoltProjectDbContext, string, string, Task<ProjectVersion?>> GetProjectVersionQuery =
+        EF.CompileAsyncQuery(
+            (VoltProjectDbContext dbContext, string projectName, string versionTag) =>
+                dbContext.ProjectVersions
+                    .AsNoTracking()
+                    .Include(x => x.Project)
+                    .FirstOrDefault(x => x.VersionTag == versionTag && x.Project.Name == projectName));
+
+    private static readonly Func<VoltProjectDbContext, int, IAsyncEnumerable<ProjectPage>> GetProjectPagesQuery =
+        EF.CompileAsyncQuery(
+            (VoltProjectDbContext dbContext, int projectVersionId) => 
+                dbContext.ProjectPages
+                    .AsNoTracking()
+                    .Where(x => x.Published && x.ProjectVersionId == projectVersionId));
 }

@@ -57,10 +57,9 @@ try
     builder.Services.Configure<VoltProjectsConfig>(configSection);
     
     builder.Services.AddScoped<ProjectService>();
+    builder.Services.AddScoped<SitemapService>();
     
     builder.Services.AddSingleton<StructuredDataService>();
-    builder.Services.AddSingleton<SitemapService>();
-    builder.Services.AddHostedService<SitemapBackgroundService>();
     builder.Services.AddSingleton<SearchService>();
     builder.Services.InstallStorageServiceProvider(config.ObjectStorageProvider);
 
