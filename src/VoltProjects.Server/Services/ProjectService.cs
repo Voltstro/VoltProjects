@@ -11,7 +11,7 @@ using VoltProjects.Shared.Models;
 namespace VoltProjects.Server.Services;
 
 /// <summary>
-///     Services for getting details about projects
+///     Backing service for anything related to <see cref="Project"/>, <see cref="ProjectVersion"/> or <see cref="ProjectPage"/>
 /// </summary>
 public sealed class ProjectService
 {
@@ -41,7 +41,7 @@ public sealed class ProjectService
     /// <param name="projectVersion"></param>
     /// <param name="requestPath"></param>
     /// <returns></returns>
-    public async Task<IReadOnlyList<MenuItem>> GetProjectMenuItems(ProjectVersion projectVersion, string requestPath)
+    public async Task<IReadOnlyList<MenuItem>> GetProjectMenuItems(ProjectVersion projectVersion, string? requestPath)
     {
         string baseProjectPath = $"/{Path.Combine(projectVersion.Project.Name, projectVersion.VersionTag)}";
         List<MenuItem> builtMenuItems = [];
@@ -52,7 +52,7 @@ public sealed class ProjectService
             {
                 Title = menuItem.Title,
                 Href = Path.Combine(baseProjectPath, menuPagePath),
-                IsActive = requestPath.Contains(menuPagePath)
+                IsActive = requestPath?.Contains(menuPagePath) ?? false
             });
         }
 

@@ -88,14 +88,7 @@ public class ProjectController : Controller
         using (Tracking.StartActivity(ActivityArea.Project, "nav"))
         {
             IReadOnlyList<MenuItem> menuItems = await projectService.GetProjectMenuItems(projectVersion, requestPath);
-            navModel = new ProjectNavModel
-            {
-                ProjectId = project.Id,
-                ProjectName = project.DisplayName,
-                BasePath = baseProjectPath,
-                GitUrl = $"{project.GitUrl}/tree/{projectVersion.GitTag ?? projectVersion.GitBranch}",
-                MenuItems = menuItems
-            };
+            navModel = new ProjectNavModel(projectVersion, menuItems);
         }
         
         //TOC Items
