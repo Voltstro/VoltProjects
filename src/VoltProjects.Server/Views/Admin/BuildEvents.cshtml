@@ -29,14 +29,7 @@
                         <td>@buildEvent.Project.Project.Name</td>
                         <td>@buildEvent.Project.VersionTag</td>
                         <td>
-                            @if (buildEvent.Successful)
-                            {
-                                <i class="bi bi-check-circle text-success fs-3"></i>
-                            }
-                            else
-                            {
-                                <i class="bi bi-x-circle text-danger fs-3"></i>
-                            }
+                            <partial name="Shared/BoolIcon" model="@buildEvent.Successful"/>
                         </td>
                         <td>@buildEvent.Message</td>
                         <td><a asp-controller="Admin" asp-action="BuildEvent" asp-route-eventId="@buildEvent.Id" class="btn btn-primary float-end">View Logs</a></td>

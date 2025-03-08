@@ -17,14 +17,14 @@ ViewBag.PreviousActionData = new Dictionary<string, string> { { "id", Model.Proj
     @if (Model is { Success: true })
     {
         <div class="alert alert-success alert-dismissible show" role="alert">
-            Project was successfully saved.
+            Project version was successfully saved.
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
     else if (Model is {Success: false})
     {
         <div class="alert alert-danger alert-dismissible show" role="alert">
-            Failed to save project.
+            Failed to save project version.
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
@@ -33,12 +33,12 @@ ViewBag.PreviousActionData = new Dictionary<string, string> { { "id", Model.Proj
         <div class="card-header">
             <h5 class="m-0 fw-bold">Basic Details</h5>
         </div>
-        <form asp-route="ProjectVersionsPost" method="post">
+        <form asp-controller="Admin" asp-action="ProjectVersion" asp-route-projectId="@Model.ProjectId" asp-route-projectVersionId="@Model.Id" method="post">
             <div class="card-body">
                 <div class="row">
                     <div class="col-1 mb-3">
                         <label asp-for="Id" class="form-label">ID</label>
-                        <input asp-for="Id" type="text" class="form-control" readonly>
+                        <input asp-for="Id" type="text" class="form-control" disabled>
                     </div>
 
                     <div class="col-5 mb-4">

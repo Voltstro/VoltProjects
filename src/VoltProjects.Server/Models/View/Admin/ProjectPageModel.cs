@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Http;
 using VoltProjects.Shared.Models;
 
@@ -31,8 +30,8 @@ public class ProjectPageModel : Project
     public new int? Id { get; set; }
     
     public new ICollection<ProjectVersion>? ProjectVersions { get; set; }
-
-    public IFormFile? UploadFile { get; set; }
     
+    public IFormFile? ProjectIcon { get; set; }
+
     public bool? Success { get; set; }
 }

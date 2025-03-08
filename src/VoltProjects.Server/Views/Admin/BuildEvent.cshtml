@@ -22,23 +22,22 @@
             <div class="row">
                 <div class="col-1 mb-3">
                     <label asp-for="Id" class="form-label">ID</label>
-                    <input asp-for="Id" type="text" class="form-control" readonly>
+                    <input asp-for="Id" type="text" class="form-control" disabled>
                 </div>
 
-                <div class="col-1 mb-3 form-check">
-
-                    <input asp-for="Successful" type="checkbox" class="form-check-input" readonly></input>
-                    <label asp-for="Successful" class="form-check-label">Successful</label>
+                <div class="col-1 mb-3">
+                    <label asp-for="Successful" class="form-label d-block">Successful</label>
+                    <partial name="Shared/BoolIcon" model="@Model.Successful"/>
                 </div>
 
                 <div class="col-10 mb-3">
                     <label asp-for="Message" class="form-label">Message</label>
-                    <input asp-for="Message" type="text" class="form-control" readonly>
+                    <input asp-for="Message" type="text" class="form-control" disabled>
                 </div>
 
                 <div class="col-6 mb-3">
                     <label asp-for="GitHash" class="form-label">Git Hash</label>
-                    <input asp-for="GitHash" type="text" class="form-control" readonly>
+                    <input asp-for="GitHash" type="text" class="form-control" disabled>
                 </div>
 
                 <div class="col-3 mb-4">

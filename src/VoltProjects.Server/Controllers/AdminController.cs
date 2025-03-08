@@ -75,7 +75,7 @@ public class AdminController : Controller
     }
 
     [HttpGet]
-    [Route("projects/new/", Name = "new")]
+    [Route("projects/new/", Name = "AdminProjectNew")]
     [Route("projects/edit/{id:int}")]
     public IActionResult Project(int? id, bool? success)
     {
@@ -105,17 +105,18 @@ public class AdminController : Controller
 
     [HttpPost]
     [Route("projects/edit/")]
-    public async Task<IActionResult> Project(ProjectPageModel model)
+    [Route("projects/edit/{id:int}")]
+    public async Task<IActionResult> Project(int? id, ProjectPageModel model)
     {
         if (!ModelState.IsValid)
         {
-            if (model.Id != null)
+            if (id != null)
             {
                 //Get project versions again
                 Project? foundProject = dbContext.Projects
                     .Include(x => x.ProjectVersions)
                     .ThenInclude(x => x.DocBuilder)
-                    .FirstOrDefault(x => x.Id == model.Id);
+                    .FirstOrDefault(x => x.Id == id);
 
                 model.ProjectVersions = foundProject?.ProjectVersions;
                 model.LastUpdateTime = foundProject?.LastUpdateTime ?? DateTime.UtcNow;
@@ -128,14 +129,14 @@ public class AdminController : Controller
         try
         {
             Project? editProject;
-            if (model.Id == null)
+            if (id == null)
                 editProject = new Project
                 {
                     IconPath = null
                 };
             else
             {
-                editProject = dbContext.Projects.FirstOrDefault(x => x.Id == model.Id);
+                editProject = dbContext.Projects.FirstOrDefault(x => x.Id == id);
                 if (editProject == null)
                     return NotFound();
             }
@@ -146,10 +147,10 @@ public class AdminController : Controller
             editProject.Description = model.Description;
             editProject.GitUrl = model.GitUrl;
 
-            if (model.UploadFile != null)
+            if (model.ProjectIcon != null)
             {
-                string fileName = Path.GetFileName(model.UploadFile.FileName);
-                Stream fileStream = model.UploadFile.OpenReadStream();
+                string fileName = Path.GetFileName(model.ProjectIcon.FileName);
+                Stream fileStream = model.ProjectIcon.OpenReadStream();
                 string contentType = MimeMap.GetMimeType(fileName);
                 string uploadPath = Path.Combine(editProject.Name, fileName);
 
@@ -162,11 +163,11 @@ public class AdminController : Controller
             }
 
             //New Project
-            if (model.Id == null)
+            if (id == null)
                 await dbContext.Projects.AddAsync(editProject);
             
             await dbContext.SaveChangesAsync();
-            model.Id = editProject.Id;
+            id = editProject.Id;
             model.Success = true;
         }
         catch (Exception ex)
@@ -175,12 +176,12 @@ public class AdminController : Controller
             model.Success = false;
         }
 
-        return RedirectToAction("Project", new { id = model.Id, success = model.Success });
+        return RedirectToAction("Project", new { id = id, success = model.Success });
     }
 
     [HttpGet]
-    [Route("projects/edit/{projectId:int}/versions/new/")]
-    [Route("projects/edit/{projectId:int}/versions/edit/{projectVersionId:int}", Name = "AdminProjectVersionEdit")]
+    [Route("projects/edit/{projectId:int}/versions/new/", Name = "AdminProjectVersionNew")]
+    [Route("projects/edit/{projectId:int}/versions/edit/{projectVersionId:int}")]
     public async Task<IActionResult> ProjectVersion(int projectId, int? projectVersionId, bool? success)
     {
         ProjectVersionPageModel? model;
@@ -222,8 +223,9 @@ public class AdminController : Controller
     }
 
     [HttpPost]
-    [Route("projects/edit/{projectId:int}/versions/", Name = "ProjectVersionsPost")]
-    public async Task<IActionResult> ProjectVersion(int projectId, ProjectVersionPageModel model)
+    [Route("projects/edit/{projectId:int}/versions/edit/")]
+    [Route("projects/edit/{projectId:int}/versions/edit/{projectVersionId:int}")]
+    public async Task<IActionResult> ProjectVersion(int projectId, int? projectVersionId, ProjectVersionPageModel model)
     {
         ModelState.Remove($"{nameof(ProjectVersionPageModel.Project)}");
         ModelState.Remove($"{nameof(ProjectVersionPageModel.DocBuilder)}");
@@ -249,14 +251,14 @@ public class AdminController : Controller
         try
         {
             ProjectVersion? editProject;
-            if (model.Id == null)
+            if (projectVersionId == null)
                 editProject = new ProjectVersion
                 {
                     ProjectId = projectId
                 };
             else
             {
-                editProject = dbContext.ProjectVersions.FirstOrDefault(x => x.Id == model.Id);
+                editProject = dbContext.ProjectVersions.FirstOrDefault(x => x.Id == projectVersionId);
                 if (editProject == null)
                     return NotFound();
             }
@@ -270,12 +272,12 @@ public class AdminController : Controller
             editProject.IsDefault = model.IsDefault;
             
             //New Project
-            if (model.Id == null)
+            if (projectVersionId == null)
                 await dbContext.ProjectVersions.AddAsync(editProject);
 
             await dbContext.SaveChangesAsync();
             
-            model.Id = editProject.Id;
+            projectVersionId = editProject.Id;
             model.Success = true;
         }
         catch(Exception ex)
@@ -285,7 +287,7 @@ public class AdminController : Controller
         }
 
         return RedirectToAction("ProjectVersion", "Admin",
-            new { projectId = model.ProjectId, projectVersionId = model.Id, success = model.Success });
+            new { projectId = model.ProjectId, projectVersionId = projectVersionId, success = model.Success });
     }
     
     #endregion
@@ -310,7 +312,7 @@ public class AdminController : Controller
     }
 
     [HttpGet]
-    [Route("build/schedules/new/")]
+    [Route("build/schedules/new/", Name = "AdminBuildScheduleNew")]
     [Route("build/schedules/edit/{buildScheduleId:int}/")]
     public IActionResult BuildSchedule(int? buildScheduleId, bool? success)
     {
@@ -343,16 +345,15 @@ public class AdminController : Controller
     }
 
     [HttpPost]
-    [Route("build/schedules/", Name = "BuildSchedulePost")]
-    public IActionResult BuildSchedule(BuildScheduleModel model)
+    [Route("build/schedules/edit/")]
+    [Route("build/schedules/edit/{buildScheduleId:int}/")]
+    public IActionResult BuildSchedule(int? buildScheduleId, BuildScheduleModel model)
     {
         ModelState.Remove(nameof(BuildScheduleModel.ProjectVersion));
         ModelState.Remove(nameof(BuildScheduleModel.ProjectVersions));
         
         if (!ModelState.IsValid)
         {
-            var errors = ModelState.ToArray();
-            
             //Get project versions again
             ProjectVersion[] projectVersions = dbContext.ProjectVersions
                 .Include(x => x.Project)
@@ -360,7 +361,7 @@ public class AdminController : Controller
             
             //Get build schedules again
             ProjectBuildSchedule buildSchedule =
-                dbContext.ProjectBuildSchedules.First(x => x.Id == model.Id);
+                dbContext.ProjectBuildSchedules.First(x => x.Id == buildScheduleId);
             
             model.ProjectVersion = projectVersions.First(x => x.Id == buildSchedule.ProjectVersionId);
             model.ProjectVersions = projectVersions;
@@ -373,11 +374,11 @@ public class AdminController : Controller
         try
         {
             ProjectBuildSchedule? buildSchedule;
-            if (model.Id == null)
+            if (buildScheduleId == null)
                 buildSchedule = new ProjectBuildSchedule();
             else
             {
-                buildSchedule = dbContext.ProjectBuildSchedules.FirstOrDefault(x => x.Id == model.Id);
+                buildSchedule = dbContext.ProjectBuildSchedules.FirstOrDefault(x => x.Id == buildScheduleId);
                 if (buildSchedule == null)
                     return NotFound();
             }
@@ -387,12 +388,12 @@ public class AdminController : Controller
             buildSchedule.IsActive = model.IsActive;
             buildSchedule.IgnoreBuildEvents = model.IgnoreBuildEvents;
 
-            if (model.Id == null)
+            if (buildScheduleId == null)
                 dbContext.ProjectBuildSchedules.Add(buildSchedule);
 
             dbContext.SaveChanges();
             model.Success = true;
-            model.Id = buildSchedule.Id;
+            buildScheduleId = buildSchedule.Id;
         }
         catch (Exception ex)
         {
@@ -401,7 +402,7 @@ public class AdminController : Controller
         }
         
         return RedirectToAction("BuildSchedule", "Admin",
-            new { buildScheduleId = model.Id, success = model.Success });
+            new { buildScheduleId = buildScheduleId, success = model.Success });
     }
 
     #endregion

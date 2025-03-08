@@ -43,12 +43,12 @@ ViewBag.PreviousAction = "BuildSchedules";
             <h5 class="m-0 fw-bold">Build Schedule</h5>
         </div>
 
-        <form asp-route="BuildSchedulePost" method="post">
+        <form asp-controller="Admin" asp-action="BuildSchedule" asp-route-buildScheduleId="@Model.Id" method="post">
             <div class="card-body">
                 <div class="row">
                     <div class="col-1 mb-3">
                         <label asp-for="Id" class="form-label">ID</label>
-                        <input asp-for="Id" type="text" class="form-control" readonly>
+                        <input asp-for="Id" type="text" class="form-control" disabled>
                     </div>
 
                     <div class="col-7 mb-4">
