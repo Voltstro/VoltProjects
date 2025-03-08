@@ -49,7 +49,6 @@ namespace VoltProjects.Shared.Migrations
                     id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     project_toc_id = table.Column<int>(type: "integer", nullable: false),
-                    project_version_id = table.Column<int>(type: "integer", nullable: false),
                     title = table.Column<string>(type: "text", nullable: false),
                     href = table.Column<string>(type: "text", nullable: true),
                     item_order = table.Column<int>(type: "integer", nullable: false),
@@ -70,12 +69,6 @@ namespace VoltProjects.Shared.Migrations
                         principalTable: "project_toc",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "fk_project_toc_item_project_version_project_version_id",
-                        column: x => x.project_version_id,
-                        principalTable: "project_version",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
@@ -90,16 +83,11 @@ namespace VoltProjects.Shared.Migrations
                 column: "parent_toc_item_id");
 
             migrationBuilder.CreateIndex(
-                name: "ix_project_toc_item_project_toc_id_project_version_id_title_pa",
+                name: "ix_project_toc_item_project_toc_id_title_parent_toc_item_id_hr",
                 table: "project_toc_item",
-                columns: new[] { "project_toc_id", "project_version_id", "title", "parent_toc_item_id", "href" },
+                columns: new[] { "project_toc_id", "title", "parent_toc_item_id", "href" },
                 unique: true)
                 .Annotation("Npgsql:NullsDistinct", false);
-
-            migrationBuilder.CreateIndex(
-                name: "ix_project_toc_item_project_version_id",
-                table: "project_toc_item",
-                column: "project_version_id");
         }
 
         /// <inheritdoc />

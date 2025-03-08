@@ -299,7 +299,6 @@ public class DocFxBuilder : IBuilder
         
         ProjectTocItem newTocItem = new()
         {
-            ProjectVersionId = projectVersionId,
             ProjectToc = holderToc,
             Href = tocItemHref,
             Title = tocModel.Name!,

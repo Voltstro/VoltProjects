@@ -248,7 +248,7 @@ public sealed class VoltProjectDbContext : DbContext
             
             //ProjectTocItem
             modelBuilder.Entity<ProjectTocItem>()
-                .HasIndex(p => new { p.ProjectTocId, p.ProjectVersionId, p.Title, p.ParentTocItemId, p.Href })
+                .HasIndex(p => new { p.ProjectTocId, p.Title, p.ParentTocItemId, p.Href })
                 .IsUnique()
                 .AreNullsDistinct(false);
             
@@ -393,11 +393,6 @@ public sealed class VoltProjectDbContext : DbContext
             modelBuilder.Entity<ProjectTocItem>()
                 .HasOne(p => p.ProjectToc)
                 .WithMany(x => x.TocItems)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<ProjectTocItem>()
-                .HasOne(p => p.ProjectVersion)
-                .WithMany()
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<ProjectTocItem>()

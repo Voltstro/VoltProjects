@@ -165,8 +165,8 @@ public sealed class BuildManager
         }
 
         // Delete any not upsertted
-        await dbContext.ProjectTocItems
-            .Where(p => !rootTocItems.Contains(p) && p.ProjectVersionId == projectVersion.Id)
+        await dbContext.ProjectTocItems.Where(p =>
+            !rootTocItems.Contains(p) && p.ProjectToc.ProjectVersionId == projectVersion.Id)
             .ExecuteDeleteAsync(cancellationToken);
 
         //Pre-Process pages

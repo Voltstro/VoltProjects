@@ -48,21 +48,20 @@ public static class DbProcedures
 	public static async Task<ProjectTocItem[]> UpsertProjectTocItems(this VoltProjectDbContext dbContext,
 		ProjectTocItem[] projectTocItems)
 	{
-		(object?[] objectValues, string[] objectPlaceholders) = DbContextExtensions.GenerateParams(projectTocItems, x => new { x.ProjectTocId, x.ProjectVersionId, x.Title, x.ItemOrder, x.ParentTocItemId, x.Href }, false);
+		(object?[] objectValues, string[] objectPlaceholders) = DbContextExtensions.GenerateParams(projectTocItems, x => new { x.ProjectTocId, x.Title, x.ItemOrder, x.ParentTocItemId, x.Href }, false);
 
 		string paramsPlaceholder = string.Join(",", objectPlaceholders);
 		
 		IQueryable<ProjectTocItem> results = dbContext.ProjectTocItems.FromSqlRaw($"""
 		                                                                           MERGE INTO public.project_toc_item AS pti
-		                                                                           USING (SELECT * FROM (VALUES{paramsPlaceholder}) AS s(project_toc_id, project_version_id, title, item_order, parent_toc_item_id, href)) AS toc_items_values
+		                                                                           USING (SELECT * FROM (VALUES{paramsPlaceholder}) AS s(project_toc_id, title, item_order, parent_toc_item_id, href)) AS toc_items_values
 		                                                                           	ON toc_items_values.project_toc_id = pti.project_toc_id
-		                                                                           	AND toc_items_values.project_version_id = pti.project_version_id
 		                                                                            AND toc_items_values.title = pti.title
 		                                                                            AND pti.parent_toc_item_id IS NOT DISTINCT FROM toc_items_values.parent_toc_item_id::int
 		                                                                            AND pti.href IS NOT DISTINCT FROM toc_items_values.href
 		                                                                           WHEN NOT MATCHED THEN
-		                                                                           	INSERT (project_toc_id, project_version_id, title, item_order, parent_toc_item_id, href)
-		                                                                           	VALUES (toc_items_values.project_toc_id, toc_items_values.project_version_id, toc_items_values.title, toc_items_values.item_order, toc_items_values.parent_toc_item_id::int, toc_items_values.href)
+		                                                                           	INSERT (project_toc_id, title, item_order, parent_toc_item_id, href)
+		                                                                           	VALUES (toc_items_values.project_toc_id, toc_items_values.title, toc_items_values.item_order, toc_items_values.parent_toc_item_id::int, toc_items_values.href)
 		                                                                           WHEN MATCHED THEN
 		                                                                           	UPDATE SET 
 		                                                                           		title = toc_items_values.title,

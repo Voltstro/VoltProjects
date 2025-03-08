@@ -807,10 +807,6 @@ namespace VoltProjects.Shared.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("project_toc_id");
 
-                    b.Property<int>("ProjectVersionId")
-                        .HasColumnType("integer")
-                        .HasColumnName("project_version_id");
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("text")
@@ -822,14 +818,11 @@ namespace VoltProjects.Shared.Migrations
                     b.HasIndex("ParentTocItemId")
                         .HasDatabaseName("ix_project_toc_item_parent_toc_item_id");
 
-                    b.HasIndex("ProjectVersionId")
-                        .HasDatabaseName("ix_project_toc_item_project_version_id");
-
-                    b.HasIndex("ProjectTocId", "ProjectVersionId", "Title", "ParentTocItemId", "Href")
+                    b.HasIndex("ProjectTocId", "Title", "ParentTocItemId", "Href")
                         .IsUnique()
-                        .HasDatabaseName("ix_project_toc_item_project_toc_id_project_version_id_title_pa");
+                        .HasDatabaseName("ix_project_toc_item_project_toc_id_title_parent_toc_item_id_hr");
 
-                    NpgsqlIndexBuilderExtensions.AreNullsDistinct(b.HasIndex("ProjectTocId", "ProjectVersionId", "Title", "ParentTocItemId", "Href"), false);
+                    NpgsqlIndexBuilderExtensions.AreNullsDistinct(b.HasIndex("ProjectTocId", "Title", "ParentTocItemId", "Href"), false);
 
                     b.ToTable("project_toc_item", (string)null);
                 });
@@ -1123,13 +1116,6 @@ namespace VoltProjects.Shared.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_project_toc_item_project_toc_project_toc_id");
-
-                    b.HasOne("VoltProjects.Shared.Models.ProjectVersion", "ProjectVersion")
-                        .WithMany()
-                        .HasForeignKey("ProjectVersionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_project_toc_item_project_version_project_version_id");
 
                     b.Navigation("ParentTocItem");
 

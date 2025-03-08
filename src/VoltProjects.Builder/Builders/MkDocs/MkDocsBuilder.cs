@@ -117,7 +117,7 @@ public class MkDocsBuilder : IBuilder
             projectTocs[i] = projectToc;
 
             int order = 0;
-            projectTocItems.AddRange(tocModel.LinkItems.Select(linkItem => new ProjectTocItem { Title = linkItem.Title!, ProjectVersionId = projectVersion.Id, Href = linkItem.Href, ItemOrder = order++, ProjectToc = projectToc }));
+            projectTocItems.AddRange(tocModel.LinkItems.Select(linkItem => new ProjectTocItem { Title = linkItem.Title!, Href = linkItem.Href, ItemOrder = order++, ProjectToc = projectToc }));
         }
         
         //Create pages

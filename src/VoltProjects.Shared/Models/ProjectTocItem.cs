@@ -27,17 +27,6 @@ public class ProjectTocItem
     public int ProjectTocId { get; set; }
     
     /// <summary>
-    ///     The <see cref="ProjectVersion.Id"/> this item is for
-    /// </summary>
-    public virtual ProjectVersion ProjectVersion { get; set; }
-    
-    /// <summary>
-    ///     The <see cref="ProjectVersion.Id"/> this item is for
-    /// </summary>
-    [ForeignKey("ProjectVersion")]
-    public int ProjectVersionId { get; set; }
-    
-    /// <summary>
     ///     Title to display for the toc item
     /// </summary>
     public string Title { get; set; }
