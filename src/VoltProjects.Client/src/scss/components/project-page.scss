@@ -1,6 +1,6 @@
-//
-// Main Project Layout
-//
+/*
+ * Styling for project pages 
+ */
 .layout {
     display: grid;
     margin-top: 1em;
@@ -12,7 +12,7 @@
     grid-template-columns: minmax(20em, auto) minmax(0, 1fr) minmax(12em, 15%);
     grid-template-rows: auto auto;
     grid-template-areas:
-    'toc article aside';
+        'toc article aside';
 
     @media only screen and (max-width: $aside-break) {
         grid-template-areas: 'toc article article';
@@ -21,14 +21,14 @@
     @media only screen and (max-width: 1100px) {
         grid-template-columns: 100%;
         grid-template-areas:
-        'toc'
-        'article'
+            'toc'
+            'article'
     }
 
     @media print {
         grid-template-columns: 100%;
         grid-template-areas:
-        'article'
+            'article'
     }
 
     article {
@@ -91,21 +91,21 @@
     padding: 0;
     align-items: center;
 }
-  
-.metabar > li {
+
+.metabar>li {
     margin: 0 6px;
 }
-  
+
 .contributors {
     list-style: none;
     display: flex;
     flex-wrap: wrap;
     padding: 0;
-  
-    & > li {
+
+    &>li {
         margin: 0 4px;
     }
-  
+
     img {
         border-radius: 50%;
     }
@@ -117,23 +117,23 @@
 .in-this-article {
     padding-top: .5em;
     font-size: 14px;
-  
+
     h6 {
         font-size: 1.4em !important;
     }
-  
+
     h6::before {
         content: "\f479";
         font-size: 1.1em;
         padding-right: 0.2em;
     }
-  
+
     .nav {
         display: block;
         padding-left: 16px;
         margin-left: 4px;
         border-left: 2px solid var(--bs-body-color);
-  
+
         a {
             padding: 5px 5px 0px 5px;
         }
@@ -147,7 +147,7 @@
         }
     }
 }
-  
+
 //
 // Search
 //
@@ -159,8 +159,116 @@
     --bs-popover-max-width: 35em;
 }
 
-@include color-mode(light, true) {
-    .project-search-btn {
-        --bs-btn-bg: white;
-    }    
+.layout-toc {
+    background-color: var(--bs-body-bg);
+
+    .navbar-toggler {
+        --#{$prefix}navbar-toggler-border-radius: #{$navbar-toggler-border-radius};
+        --#{$prefix}navbar-toggler-border-color: #{$navbar-dark-toggler-border-color};
+        --#{$prefix}navbar-toggler-icon-bg: #{escape-svg($navbar-light-toggler-icon-bg)};
+
+        font-size: inherit;
+        cursor: pointer;
+        border: var(--bs-border-width) solid var(--bs-navbar-toggler-border-color);
+        border-radius: var(--bs-navbar-toggler-border-radius);
+        padding-top: .25em;
+        padding-bottom: .25em;
+        padding-left: .5em;
+        padding-right: .5em;
+
+        &:before {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            content: var(--#{$prefix}navbar-toggler-icon-bg);
+        }
+    }
+
+    input {
+        font-size: 14px;
+    }
+}
+
+@if $enable-dark-mode {
+    @include color-mode(dark) {
+        .layout-toc .navbar-toggler {
+            --#{$prefix}navbar-toggler-icon-bg: #{escape-svg($navbar-dark-toggler-icon-bg)};
+        }
+    }
+}
+
+// TOC Styling
+.toc {
+    padding: .5em 0;
+    font-size: 14px;
+
+    a {
+        text-decoration: none;
+    }
+
+    a:not(.active):not(.filtered) {
+        color: inherit
+    }
+
+    a:not([href]) {
+
+        &,
+        &:hover {
+            cursor: pointer;
+            text-decoration: none;
+        }
+    }
+
+    ul {
+        padding-left: 16px;
+        list-style-type: none;
+    }
+
+    li {
+        padding: .25em 0;
+    }
+
+    li>ul {
+        display: none;
+    }
+
+    li.filtered>ul,
+    li.active>ul {
+        display: block
+    }
+
+    .toggle::before {
+        display: inline-block;
+        margin: 0 0 0 -1.25em;
+        cursor: pointer;
+        width: 1.25em;
+        transition: transform 0.35s ease;
+        transform-origin: .5em 50%;
+    }
+
+    .toggle>svg {
+        stroke: var(--bs-body-color);
+    }
+
+    .filtered>a>.toggle>svg,
+    .active>a>.toggle>svg {
+        transform: rotate(90deg);
+    }
+
+    .hide {
+        display: none;
+    }
+}
+
+// Filter Input Control
+.filter {
+    .filter-icon {
+        font-size: 1rem;
+        top: .40rem;
+        left: .65rem;
+    }
+
+    .filter-control {
+        padding-left: 1.9rem;
+    }
 }

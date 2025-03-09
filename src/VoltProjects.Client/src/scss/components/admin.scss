@@ -1,0 +1,36 @@
+/*
+ * Styling for admin pages
+ */
+
+.admin-header {
+    height: 5.6em;
+
+    > div {
+        padding: 1.05em;
+        
+        h2 {
+            font-weight: $large-font-weight;
+            margin: 0;
+        }
+    }
+
+    > .admin-header-title-container {
+        margin-top: 0.15em;
+        color: #fff;
+    }
+}
+
+.admin-sidebar {
+    width: 230px;
+    height: 100%;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    left: 0;
+
+    background-color: $primary;
+}
+
+.admin-sidebar.show + .content {
+    margin-left: 230px;
+}

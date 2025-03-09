@@ -1,0 +1,22 @@
+.prj-icon {
+    @include media-breakpoint-up(md) {
+        height: 128px;
+    }
+
+    background-size: cover;
+    background-position: center center;
+}
+
+.prj-about {
+    height: 64px !important;
+}
+
+.prj-title {
+    text-decoration: none;
+    font-weight: $large-font-weight;
+    color: var(--bs-body-color);
+}
+
+.prj-title:hover {
+    text-decoration: none;
+}

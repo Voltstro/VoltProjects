@@ -19,16 +19,27 @@ export default defineConfig(({ mode }) => {
                     public: resolve(__dirname, 'src/public/index.ts'),
                     search: resolve(__dirname, 'src/public/search.ts'),
                     admin: resolve(__dirname, 'src/admin/index.ts'),
-                    index: resolve(__dirname, 'src/scss/main.scss')
+                    index: resolve(__dirname, 'src/scss/index.scss')
                 },
                 output: {
                     dir: outDir,
                     entryFileNames: () => 'js/[name].js',
                     chunkFileNames: () => 'js/[name].[hash].js',
                     assetFileNames: () => 'assets/[name][extname]'
-                }
+                },
             }
         },
+        css: {
+            preprocessorOptions: {
+                scss: {
+                    quietDeps: true,
+                    silenceDeprecations: [
+                        'import',
+                        'mixed-decls'
+                    ]
+                }
+            }
+        }
     };
     
     //In non-dev builds, we will use terser to minify everything

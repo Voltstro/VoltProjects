@@ -1,9 +1,13 @@
-/*
- * Bootstrap Icons. Only includes what we are using.
- * Icon map is overridden in setup.scss
- */
+// Override font import so build imports font file correctly
+//$bootstrap-icons-font-src: url("bootstrap-icons/font/fonts/bootstrap-icons.woff2") format("woff2"),
+//                           url("bootstrap-icons/font/fonts/bootstrap-icons.woff") format("woff") !default;
+
+$bootstrap-icons-font-file: "bootstrap-icons/font/fonts/bootstrap-icons" !default;
+
+//Main Bootstrap icon import
 @import "bootstrap-icons/font/bootstrap-icons";
 
+/*
 .bi-discord::before { content: map-get($bootstrap-icons-map, "discord"); }
 .bi-github::before { content: map-get($bootstrap-icons-map, "github"); }
 .bi-envelope-fill::before { content: map-get($bootstrap-icons-map, "envelope-fill"); }
@@ -19,6 +23,7 @@
 .bi-twitter-x::before { content: map-get($bootstrap-icons-map, "twitter-x"); }
 .bi-search::before { content: map-get($bootstrap-icons-map, "search"); }
 .bi-house-door-fill::before { content: map-get($bootstrap-icons-map, "house-door-fill"); }
+*/
 
 //Fix icon-link
 .icon-link {

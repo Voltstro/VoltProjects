@@ -1,0 +1,69 @@
+/*
+ * Variables overrides of Bootstrap
+ */
+
+// Color system
+
+$gray-900: #121212 !default;
+
+$primary:  #13398a !default;
+
+
+// Typography
+//
+// Font, line-height, and color for body text, headings, and more.
+
+$font-family-sans-serif: 'Roboto', sans-serif !default;
+$font-family-monospace:  'Fira Code', monospace !default;
+
+
+// Grid breakpoints
+//
+// Define the minimum dimensions at which your layout will change,
+// adapting to different screen sizes, for use in media queries.
+
+$grid-breakpoints: (
+    xs: 0,
+    sm: 580px,
+    md: 760px,
+    lg: 1100px,
+    xl: 1400px,
+    xxl: 1900px
+) !default;
+
+
+// Grid containers
+//
+// Define the maximum width of `.container` for different screen sizes.
+
+$container-max-widths: (
+    sm: 580px,
+    md: 760px,
+    lg: 1150px,
+    xl: 1400px,
+    xxl: 1800px
+) !default;
+
+
+// Navs
+
+$nav-pills-link-active-color: #000 !default;
+$nav-pills-link-active-bg:    #fff !default;
+
+
+// NavBar
+
+$navbar-light-color:                rgba(#fff, .65) !default;
+$navbar-light-hover-color:          rgba(#fff, .8) !default;
+$navbar-light-active-color:         rgba(#fff, 1) !default;
+$navbar-light-disabled-color:       rgba(#fff, .3) !default;
+
+
+// Dark color mode variables
+
+$body-color-dark: #fff !default;
+
+
+// Import Bootstrap variables
+@import "bootstrap/scss/variables";
+@import "bootstrap/scss/variables-dark";
