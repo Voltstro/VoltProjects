@@ -10,7 +10,7 @@ public class OpenIdConfig
     
     public string Authority { get; init; }
 
-    public string[] Scopes { get; init; } = new[] { "openid", "profile", "offline_access" };
+    public string[] Scopes { get; init; } = new[] { "openid", "profile" };
     
     public TimeSpan CookieExpiryTime { get; init; } = TimeSpan.FromDays(1);
 }

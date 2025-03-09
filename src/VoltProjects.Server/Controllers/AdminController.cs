@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -34,16 +33,6 @@ public class AdminController : Controller
         this.config = config.Value;
         this.storageService = storageService;
         this.logger = logger;
-    }
-    
-    [HttpGet]
-    [Route("signout")]
-    public IActionResult Signout()
-    {
-        return SignOut(new AuthenticationProperties
-        {
-            RedirectUri = "/"
-        });
     }
     
     [HttpGet]

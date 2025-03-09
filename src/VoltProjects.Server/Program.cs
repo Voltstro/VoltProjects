@@ -116,18 +116,18 @@ try
         {
             //Signin Request
             options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-            options.CallbackPath = "/auth/login/callback/";
+            options.CallbackPath = "/admin/auth/login/callback/";
             options.AuthenticationMethod = OpenIdConnectRedirectBehavior.RedirectGet;
             options.ResponseMode = OpenIdConnectResponseMode.FormPost;
             
             //Signout Request
-            options.SignedOutCallbackPath = "/auth/logout/callback/";
+            options.SignedOutCallbackPath = "/admin/auth/signout/callback/";
             
             //OpenId details
             options.ClientId = openIdConfig.ClientId;
             options.ClientSecret = openIdConfig.ClientSecret;
             options.Authority = openIdConfig.Authority;
-            options.ResponseType = "code id_token";
+            options.ResponseType = "code";
             
             options.UsePkce = true;
             options.GetClaimsFromUserInfoEndpoint = true;

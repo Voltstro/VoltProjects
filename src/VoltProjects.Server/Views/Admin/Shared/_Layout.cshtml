@@ -57,7 +57,7 @@ string pageTitle = $"{ViewBag.Title} | Volt Projects Admin";
             <div class="d-flex p-3 pt-0">
                 <div class="dropdown">
                     <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                        <img src="https://github.com/Voltstro.png" alt="User Icon" class="rounded-circle me-2" width="38" height="38">
+                        <img src="/admin/auth/profile/" alt="User Icon" class="rounded-circle me-2" width="38" height="38">
                         <strong>@User.FindFirstValue("name")</strong>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
@@ -68,7 +68,7 @@ string pageTitle = $"{ViewBag.Title} | Volt Projects Admin";
                             <hr class="dropdown-divider"/>
                         </li>
                         <li>
-                            <a class="dropdown-item" asp-controller="Admin" asp-action="Signout">Sign out</a>
+                            <a class="dropdown-item" asp-controller="AdminAuth" asp-action="Signout">Sign out</a>
                         </li>
                     </ul>
                 </div>
