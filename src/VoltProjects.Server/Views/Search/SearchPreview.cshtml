@@ -5,15 +5,15 @@
     Layout = null;
 }
 
-@if (Model.PagedResult == null)
+@if (Model.SearchResult == null)
 {
     <span>Start typing to search...</span>
 }
 else
 {
-    @if (Model.PagedResult.Results.Length > 0)
+    @if (Model.SearchResult.TotalItemCount > 0)
     {
-        @foreach (SearchResult page in Model.PagedResult.Results)
+        @foreach (SearchResult page in Model.SearchResult.Items)
         {
             <div class="card mb-3">
                 <div class="card-body">
@@ -32,9 +32,9 @@ else
             </div>
         }
         
-        @if (Model.PagedResult.Results.Length < Model.PagedResult.TotalResults)
+        @if (Model.SearchResult.Items.Length < Model.SearchResult.TotalItemCount)
         {
-            <a href="/search/?query=@(Model.Query)&projectId=@(string.Join("&projectId=", Model.PagedResult.ProjectIds))&projectVersionId=@(string.Join("&projectVersionId=", Model.PagedResult.ProjectVersionIds))">More results...</a>
+            <a href="/search/?query=@(Model.Query)&project=@(Model.Project!.ProjectId)|@(Model.Project.Id)">More results...</a>
         }
     }
     else
@@ -42,4 +42,3 @@ else
         <span>No results were found using that query in this project...</span>
     }
 }
-

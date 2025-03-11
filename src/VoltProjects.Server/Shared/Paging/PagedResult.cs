@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,15 +20,25 @@ public class PagedResult<T> : PagedCount
     /// <param name="pageIndex"></param>
     /// <param name="pageSize"></param>
     /// <param name="pageSizes"></param>
+    /// <param name="preProcessItems"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static async Task<PagedResult<T>> Create(IQueryable<T> source, int pageIndex, int pageSize, int[]? pageSizes = null, CancellationToken cancellationToken = default)
+    public static async Task<PagedResult<T>> Create(
+        IQueryable<T> source,
+        int pageIndex,
+        int pageSize,
+        int[]? pageSizes = null,
+        int[]? displayPageSizes = null,
+        Action<T[]>? preProcessItems = null,
+        CancellationToken cancellationToken = default)
     {
         //Make sure page index is 1 or greater
         pageIndex = pageIndex <= 0 ? 1 : pageIndex;
         
         //Page size
         pageSizes ??= [15, 25, 100];
+
+        displayPageSizes ??= pageSizes;
 
         if (!pageSizes.Contains(pageSize))
             pageSize = pageSizes[0];
@@ -40,13 +51,16 @@ public class PagedResult<T> : PagedCount
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)
             .ToArrayAsync(cancellationToken);
+        
+        if(preProcessItems != null)
+            preProcessItems(items);
 
         return new PagedResult<T>
         {
             TotalItemCount = count,
             Items = items,
             PageSize = pageSize,
-            PageSizes = pageSizes,
+            PageSizes = displayPageSizes,
             CurrentPage = pageIndex
         };
     }

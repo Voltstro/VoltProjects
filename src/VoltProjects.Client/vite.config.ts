@@ -17,7 +17,6 @@ export default defineConfig(({ mode }) => {
             rollupOptions: {
                 input: {
                     public: resolve(__dirname, 'src/public/index.ts'),
-                    search: resolve(__dirname, 'src/public/search.ts'),
                     admin: resolve(__dirname, 'src/admin/index.ts'),
                     index: resolve(__dirname, 'src/scss/index.scss')
                 },

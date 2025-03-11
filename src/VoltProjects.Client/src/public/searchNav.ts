@@ -13,6 +13,8 @@ export function initSearchNav(): void {
     const projectId = document.querySelector<HTMLMetaElement>('meta[name="vpProjectId"]').content;
     const projectVersionId = document.querySelector<HTMLMetaElement>('meta[name="vpProjectVersionId"]').content;
 
+    const project = `${projectId}|${projectVersionId}`;
+
     //Create Bootstrap popover
     const popover = new Popover(searchNavElement, {
         template: '<div class="popover popover-search" role="tooltip">' +
@@ -32,8 +34,7 @@ export function initSearchNav(): void {
             { 
                 query: searchNavElement.value,
                 size: '5',
-                projectId: projectId,
-                projectVersionId: projectVersionId
+                project: project
             }
         );
 

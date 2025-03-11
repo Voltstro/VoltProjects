@@ -60,7 +60,7 @@ try
     builder.Services.AddScoped<SitemapService>();
     
     builder.Services.AddSingleton<StructuredDataService>();
-    builder.Services.AddSingleton<SearchService>();
+    builder.Services.AddScoped<SearchService>();
     builder.Services.InstallStorageServiceProvider(config.ObjectStorageProvider);
 
     //Support razor pages runtime compilation for hot reloading

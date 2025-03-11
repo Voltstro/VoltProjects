@@ -10,6 +10,8 @@ namespace VoltProjects.Server.Shared.Paging;
 [HtmlTargetElement("div", Attributes = "paged-count")]
 public class PaginationTagHelper : TagHelper
 {
+    private static readonly string[] ParametersToRemove = new[] { "page", "size" };
+    
     private IUrlHelperFactory urlHelperFactory;
     private IHtmlGenerator generator;
     
@@ -89,7 +91,9 @@ public class PaginationTagHelper : TagHelper
         sizesList.AddCssClass("dropdown-menu");
         sizesList.AddCssClass("ms-auto");
 
-        string baseSizeUrl = $"{BaseUrl}?page={PagedCount.CurrentPage}&size=";
+        string baseSizeUrl = $"{BaseUrl}?page=1";
+        if (currentParameters != string.Empty)
+            baseSizeUrl += $"&{currentParameters}";
         
         foreach (int pageSize in PagedCount.PageSizes)
         {
@@ -98,8 +102,8 @@ public class PaginationTagHelper : TagHelper
             sizeOptionLink.AddCssClass("dropdown-item");
             if(pageSize == PagedCount.PageSize)
                 sizeOptionLink.AddCssClass("active");
-
-            sizeOptionLink.Attributes["href"] = baseSizeUrl + pageSize;
+            
+            sizeOptionLink.Attributes["href"] = $"{baseSizeUrl}&size={pageSize}";
 
             sizeOptionLink.InnerHtml.AppendHtml(pageSize.ToString());
             sizeOptionItem.InnerHtml.AppendHtml(sizeOptionLink);
@@ -129,7 +133,7 @@ public class PaginationTagHelper : TagHelper
         TagBuilder tag = new("a");
         tag.AddCssClass(PageLinkClass);
 
-        string href = $"{BaseUrl}?page={page}";
+        string href = $"{BaseUrl}?page={page}&size={PagedCount.PageSize}";
         if (urlParameters != string.Empty)
             href += $"&{urlParameters}";
 
@@ -147,11 +151,14 @@ public class PaginationTagHelper : TagHelper
         List<string> queryParameters = ViewContext.HttpContext.Request.QueryString.Value!.TrimStart('?').Split('&').ToList();
         for (int i = 0; i < queryParameters.Count; i++)
         {
-            string queryParameter = queryParameters[i];
-            if (queryParameter.StartsWith("page="))
+            foreach (string parameterToRemove in ParametersToRemove)
             {
-                queryParameters.Remove(queryParameter);
-                break;
+                string queryParameter = queryParameters[i];
+                if (queryParameter.StartsWith($"{parameterToRemove}="))
+                {
+                    queryParameters.Remove(queryParameter);
+                    break;
+                }
             }
         }
 

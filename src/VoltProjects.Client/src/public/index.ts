@@ -8,7 +8,6 @@ import { initSearchNav } from './searchNav';
 /**
  * Main entry for public
  */
-
 renderAside();
 initToc();
 initSearchNav();
