@@ -4,7 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 using VoltProjects.Server.Models;
+using VoltProjects.Server.Shared;
 using VoltProjects.Shared;
 using VoltProjects.Shared.Models;
 
@@ -15,11 +18,17 @@ namespace VoltProjects.Server.Services;
 /// </summary>
 public sealed class ProjectService
 {
-    private readonly VoltProjectDbContext dbContext;
+    private const string ProjectVersionsCacheKey = "ProjectVersions";
     
-    public ProjectService(VoltProjectDbContext dbContext)
+    private readonly VoltProjectDbContext dbContext;
+    private readonly IMemoryCache memoryCache;
+    private readonly VoltProjectsConfig config;
+    
+    public ProjectService(VoltProjectDbContext dbContext, IMemoryCache memoryCache, IOptions<VoltProjectsConfig> config)
     {
         this.dbContext = dbContext;
+        this.memoryCache = memoryCache;
+        this.config = config.Value;
     }
     
     /// <summary>
@@ -140,6 +149,39 @@ public sealed class ProjectService
         ProjectExternalItemStorageItem? storageItem = await ProjectExternalItemQuery(dbContext, projectVersion.Id, path);
         return storageItem;
     }
+
+    /// <summary>
+    ///     Gets all <see cref="ProjectVersion"/>
+    /// </summary>
+    /// <returns></returns>
+    public async Task<ProjectVersion[]> GetProjectVersions()
+    {
+        ProjectVersion[]? projectVersions = await memoryCache.GetOrCreateAsync(ProjectVersionsCacheKey, async entry =>
+        {
+            ProjectVersion[] projectVersions = await ProjectVersionsQuery(dbContext);
+
+            entry.AbsoluteExpirationRelativeToNow = config.ProjectVersionsCacheTime;
+            return projectVersions;
+        });
+
+        return projectVersions!;
+    }
+
+    /// <summary>
+    ///     Gets all <see cref="Project"/> and their <see cref="ProjectVersion"/>
+    /// </summary>
+    /// <returns></returns>
+    public async Task<Project[]> GetProjects()
+    {
+        Project[]? projects = await memoryCache.GetOrCreateAsync("Projects", async entry =>
+        {
+            Project[] projects = await ProjectsQuery(dbContext).ToArrayAsync();
+
+            entry.AbsoluteExpirationRelativeToNow = config.ProjectVersionsCacheTime;
+            return projects;
+        });
+        return projects!;
+    }
     
     private static TocItem? FindParentTocItem(List<TocItem> tocItems, int childTocId)
     {
@@ -224,4 +266,25 @@ public sealed class ProjectService
                         .FirstOrDefault(x =>
                             x.StorageItem.Path == path &&
                             x.ProjectExternalItem.ProjectVersionId == projectVersionId));
+    
+    //Projects query
+    private static readonly Func<VoltProjectDbContext, IAsyncEnumerable<Project>> ProjectsQuery =
+        EF.CompileAsyncQuery(
+            (VoltProjectDbContext context) =>
+                context.Projects
+                    .AsNoTracking()
+                    .Include(x => x.ProjectVersions)
+                    .OrderBy(x => x.Name)
+                    .AsQueryable());
+    
+    //Project versions query
+    private static readonly Func<VoltProjectDbContext, Task<ProjectVersion[]>> ProjectVersionsQuery =
+        EF.CompileAsyncQuery(
+            (VoltProjectDbContext context) => context.ProjectVersions
+                .AsNoTracking()
+                .Include(x => x.Project)
+                .OrderBy(x => x.Project.Name)
+                .ThenBy(x => x.VersionTag)
+                .ToArray()
+        );
 }

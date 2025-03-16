@@ -57,4 +57,6 @@ public sealed class VoltProjectsConfig
     public OpenIdConfig OpenIdConfig { get; init; }
     
     public StorageConfig? ObjectStorageProvider { get; set; }
+
+    public TimeSpan ProjectVersionsCacheTime { get; init; } = new(0, 24, 0, 0);
 }

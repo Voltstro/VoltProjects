@@ -15,7 +15,7 @@ public sealed class SearchViewModel
     /// <param name="query"></param>
     /// <param name="projects"></param>
     /// <param name="selectedProject"></param>
-    public SearchViewModel(string? query, ProjectVersion[] projects, ProjectVersion? selectedProject, PagedResult<SearchResult>? searchResult)
+    public SearchViewModel(string? query, Project[] projects, ProjectVersion? selectedProject, PagedResult<SearchResult>? searchResult)
     {
         Query = query;
         Projects = projects;
@@ -26,7 +26,7 @@ public sealed class SearchViewModel
     /// <summary>
     ///     All projects available
     /// </summary>
-    public ProjectVersion[] Projects { get; }
+    public Project[] Projects { get; }
 
     /// <summary>
     ///     Selected project

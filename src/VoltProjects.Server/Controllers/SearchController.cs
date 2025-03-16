@@ -4,12 +4,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using VoltProjects.Server.Models.Searching;
 using VoltProjects.Server.Models.View;
 using VoltProjects.Server.Services;
 using VoltProjects.Server.Shared.Paging;
-using VoltProjects.Shared;
 using VoltProjects.Shared.Models;
 using VoltProjects.Shared.Telemetry;
 
@@ -23,12 +21,12 @@ namespace VoltProjects.Server.Controllers;
 public sealed class SearchController : Controller
 {
     private readonly SearchService searchService;
-    private readonly VoltProjectDbContext dbContext;
+    private readonly ProjectService projectService;
     
-    public SearchController(SearchService searchService, VoltProjectDbContext dbContext)
+    public SearchController(SearchService searchService, ProjectService projectService)
     {
         this.searchService = searchService;
-        this.dbContext = dbContext;
+        this.projectService = projectService;
     }
     
     [HttpGet]
@@ -47,12 +45,7 @@ public sealed class SearchController : Controller
         using Activity searchActivity = Tracking.StartActivity(ActivityArea.Search, "main", tags: tags);
         
         //Fetch projects and versions
-        ProjectVersion[] projects = dbContext.ProjectVersions
-            .AsNoTracking()
-            .Include(x => x.Project)
-            .OrderBy(x => x.Project.Name)
-            .ThenBy(x => x.VersionTag)
-            .ToArray();
+        Project[] projects = await projectService.GetProjects();
         
         //Figure out what project is active
         ProjectVersion? selectedProject = null;
@@ -61,12 +54,12 @@ public sealed class SearchController : Controller
         {
             string projectIdStr = projectValues[0];
             string projectVersionIdStr = projectValues[1];
-            
+
             //Both need to be ints
             if(!int.TryParse(projectIdStr, out int projectId) || !int.TryParse(projectVersionIdStr, out int projectVersionId))
                 return BadRequest();
-            
-            selectedProject = projects.FirstOrDefault(x => x.Id == projectVersionId && x.ProjectId == projectId);
+
+            selectedProject = projects.FirstOrDefault(x => x.Id == projectId)?.ProjectVersions.FirstOrDefault(x => x.Id == projectVersionId);
         }
 
         //Do search query (if we have project and query)

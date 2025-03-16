@@ -16,7 +16,7 @@
                 <h5>Filters</h5>
                 <div class="mt-2">
                     <label asp-for="Project" class="form-label">Project</label>
-                    <select id="Project" name="project" class="form-select" asp-for="Project" asp-items="@(new SelectList(Model.Projects.Select(x => new { Id = $"{x.ProjectId}|{x.Id}", Name = $"{x.Project.Name} - {x.VersionTag}" }), "Id", "Name"))">
+                    <select id="Project" name="project" class="form-select" asp-for="Project" asp-items="@(new SelectList(Model.Projects.SelectMany(x => x.ProjectVersions).Select(x => new { Id = $"{x.ProjectId}|{x.Id}", Name = $"{x.Project.Name} - {x.VersionTag}" }), "Id", "Name"))">
                         <option value="">Please Select an Option</option>
                     </select>
                 </div>
