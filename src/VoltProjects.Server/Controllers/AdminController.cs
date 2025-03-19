@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -182,6 +183,7 @@ public class AdminController : Controller
         {
             ProjectVersion? foundProjectVersion = await dbContext.ProjectVersions
                 .Include(x => x.Project)
+                .Include(x => x.PreBuilds.OrderBy(y => y.Order))
                 .FirstOrDefaultAsync(x => x.ProjectId == projectId && x.Id == projectVersionId);
 
             if (foundProjectVersion == null)
@@ -231,6 +233,7 @@ public class AdminController : Controller
             Project project = dbContext.Projects
                 .First(x => x.Id == projectId);
 
+            model.Id = projectVersionId;
             model.Project = project;
             model.DocBuilders = docBuilders;
             model.Languages = languages;
@@ -259,6 +262,30 @@ public class AdminController : Controller
             editProject.DocBuilderId = model.DocBuilderId;
             editProject.LanguageId = model.LanguageId;
             editProject.IsDefault = model.IsDefault;
+            
+            //Pre-Builds
+            List<ProjectPreBuildPageModel> preBuilds = new();
+            foreach (ProjectPreBuildPageModel preBuild in model.PreBuildCommands)
+            {
+                preBuild.ProjectVersion = editProject;
+
+                if (preBuild.Deleted)
+                    dbContext.PreBuildCommands.Remove(preBuild);
+                else
+                {
+                    preBuilds.Add(preBuild);
+                    
+                    //Ignore updating times
+                    if (!preBuild.New)
+                    {
+                        dbContext.Entry(preBuild).State = EntityState.Modified;
+                        dbContext.Entry(preBuild).Property(p => p.CreationTime).IsModified = false;
+                        dbContext.Entry(preBuild).Property(p => p.LastUpdateTime).IsModified = false;
+                    }
+                }
+            }
+
+            editProject.PreBuilds = preBuilds.ToArray();
             
             //New Project
             if (projectVersionId == null)

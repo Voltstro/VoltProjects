@@ -28,13 +28,12 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
-    
-    <div class="card">
-        <div class="card-header">
-            <h5 class="m-0 fw-bold">Basic Details</h5>
-        </div>
 
-        <form asp-controller="Admin" asp-action="Project" asp-route-id="@Model?.Id" method="post" enctype="multipart/form-data">
+    <form asp-controller="Admin" asp-action="Project" asp-route-id="@Model?.Id" method="post" enctype="multipart/form-data">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="m-0 fw-bold">Basic Details</h5>
+            </div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-1 mb-3">
@@ -95,56 +94,53 @@
                         <input asp-for="LastUpdateTime" type="text" class="form-control" disabled></input>
                     </div>
                 </div>
-
-                <div class="pt-4">
-                    <button type="submit" class="btn btn-primary">Save</button>
-                </div>
-            </div>
-
-
-        </form>
-
-    </div>
-    
-    @if (Model != null)
-    {
-        <div class="card mt-4">
-            <div class="card-header d-flex">
-                <h5 class="m-0 fw-bold align-content-center">Versions</h5>
-                <a asp-route="AdminProjectVersionNew" asp-route-projectId="@Model.Id" class="btn btn-primary ms-auto">New</a>
-            </div>
-            <div class="card-body">
-                <table class="table table-striped table-hover">
-                    <thead>
-                    <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">Version Tag</th>
-                        <th scope="col">Git Branch</th>
-                        <th scope="col">Doc Build</th>
-                        <th scope="col">Default</th>
-                        <th></th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    @if (Model.ProjectVersions != null)
-                    {
-                        @foreach (ProjectVersion projectVersion in Model.ProjectVersions)
-                        {
-                            <tr>
-                                <th scope="row">@projectVersion.Id</th>
-                                <td>@projectVersion.VersionTag</td>
-                                <td>@projectVersion.GitBranch</td>
-                                <td>@projectVersion.DocBuilder.Name</td>
-                                <td>
-                                    <partial name="Shared/BoolIcon" model="@projectVersion.IsDefault"/>
-                                </td>
-                                <td><a asp-controller="Admin" asp-action="ProjectVersion" asp-route-projectId="@Model.Id" asp-route-projectVersionId="@projectVersion.Id" class="btn btn-primary float-end">Edit</a></td>
-                            </tr>
-                        }
-                    }
-                    </tbody>
-                </table>
             </div>
         </div>
-    }
+
+        @if (Model != null)
+        {
+            <div class="card mt-4">
+                <div class="card-header d-flex">
+                    <h5 class="m-0 fw-bold align-content-center">Versions</h5>
+                    <a asp-route="AdminProjectVersionNew" asp-route-projectId="@Model.Id" class="btn btn-primary ms-auto">New</a>
+                </div>
+                <div class="card-body">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Version Tag</th>
+                            <th scope="col">Git Branch</th>
+                            <th scope="col">Doc Build</th>
+                            <th scope="col">Default</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @if (Model.ProjectVersions != null)
+                        {
+                            @foreach (ProjectVersion projectVersion in Model.ProjectVersions)
+                            {
+                                <tr>
+                                    <th scope="row">@projectVersion.Id</th>
+                                    <td>@projectVersion.VersionTag</td>
+                                    <td>@projectVersion.GitBranch</td>
+                                    <td>@projectVersion.DocBuilder.Name</td>
+                                    <td>
+                                        <partial name="Shared/BoolIcon" model="@projectVersion.IsDefault"/>
+                                    </td>
+                                    <td><a asp-controller="Admin" asp-action="ProjectVersion" asp-route-projectId="@Model.Id" asp-route-projectVersionId="@projectVersion.Id" class="btn btn-primary float-end">Edit</a></td>
+                                </tr>
+                            }
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+
+        <div class="pt-4">
+            <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+    </form>
 </div>

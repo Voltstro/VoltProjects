@@ -13,6 +13,14 @@ ViewBag.PreviousAction = "Project";
 ViewBag.PreviousActionData = new Dictionary<string, string> { { "id", Model.ProjectId.ToString() } };
 }
 
+@section BottomInclude {
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            window.vAdmin.initPreCommandHandler()
+        });
+    </script>
+}
+
 <div class="container pt-4">
     @if (Model is { Success: true })
     {
@@ -28,12 +36,13 @@ ViewBag.PreviousActionData = new Dictionary<string, string> { { "id", Model.Proj
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
-    
-    <div class="card">
-        <div class="card-header">
-            <h5 class="m-0 fw-bold">Basic Details</h5>
-        </div>
-        <form asp-controller="Admin" asp-action="ProjectVersion" asp-route-projectId="@Model.ProjectId" asp-route-projectVersionId="@Model.Id" method="post">
+
+    <form asp-controller="Admin" asp-action="ProjectVersion" asp-route-projectId="@Model.ProjectId" asp-route-projectVersionId="@Model.Id" method="post">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="m-0 fw-bold">Basic Details</h5>
+            </div>
+           
             <div class="card-body">
                 <div class="row">
                     <div class="col-1 mb-3">
@@ -98,13 +107,55 @@ ViewBag.PreviousActionData = new Dictionary<string, string> { { "id", Model.Proj
                         <input asp-for="LastUpdateTime" type="text" class="form-control" disabled></input>
                     </div>
                 </div>
+            </div>
+        </div>
+        
+        @if (Model.Id != null)
+        {
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="m-0 fw-bold">Pre-Build Commands</h5>
+                </div>
+            
+                <div class="card-body">
+                    <ul class="list-group pb-4" id="PreBuildCommands">
+                        @for (int i = 0; i < Model.PreBuildCommands.Length; i++)
+                        {
+                            <li class="list-group-item admin-dragable">
+                                <input type="hidden" asp-for="PreBuildCommands[i].Id" />
+                                <input type="hidden" asp-for="PreBuildCommands[i].Order" data-pbc-order/>
+                                <input type="hidden" asp-for="PreBuildCommands[i].Deleted"/>
+                                <input type="hidden" asp-for="PreBuildCommands[i].CreationTime"/>
+                                <div class="row">
+                                    <div class="col-auto align-content-center p-0 ps-1">
+                                        <i class="bi bi-grip-vertical"></i>
+                                    </div>
+                                
+                                    <div class="col-2">
+                                        <input asp-for="PreBuildCommands[i].Command" class="form-control"/>
+                                    </div>
 
-                <input type="hidden" asp-for="ProjectId"/>
+                                    <div class="col">
+                                        <input asp-for="PreBuildCommands[i].Arguments" class="form-control"/>
+                                    </div>
+                                    
+                                    <div class="col-auto">
+                                        <button type="button" class="btn btn-outline-secondary bi bi-trash" data-pbc-deletebtn></button>
+                                    </div>
+                                </div>
+                            </li>
+                        }
+                    </ul>
 
-                <div class="pt-4">
-                    <button type="submit" class="btn btn-primary">Save</button>
+                    <div>
+                        <button type="button" class="btn btn-primary" id="PreBuildCommandsBtn">New Pre-Build Command</button>
+                    </div>
                 </div>
             </div>
-        </form>
-    </div>
+        }
+
+        <div class="pt-4">
+            <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+    </form>
 </div>

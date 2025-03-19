@@ -38,12 +38,12 @@ ViewBag.PreviousAction = "BuildSchedules";
     </div>
     }
 
-    <div class="card">
-        <div class="card-header">
-            <h5 class="m-0 fw-bold">Build Schedule</h5>
-        </div>
+    <form asp-controller="Admin" asp-action="BuildSchedule" asp-route-buildScheduleId="@Model.Id" method="post">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="m-0 fw-bold">Build Schedule</h5>
+            </div>
 
-        <form asp-controller="Admin" asp-action="BuildSchedule" asp-route-buildScheduleId="@Model.Id" method="post">
             <div class="card-body">
                 <div class="row">
                     <div class="col-1 mb-3">
@@ -58,21 +58,21 @@ ViewBag.PreviousAction = "BuildSchedules";
                         </select>
                         <span asp-validation-for="ProjectVersionId" class="invalid-feedback"></span>
                     </div>
-                    
+
                     <div class="col-1 mb-4">
                         <label asp-for="IsActive" class="form-label">Active</label>
                         <div class="form-check form-switch form-switch-md">
                             <input asp-for="IsActive" class="form-check-input" type="checkbox" role="switch">
                         </div>
                     </div>
-                    
+
                     <div class="col-2 mb-4">
                         <label asp-for="IgnoreBuildEvents" class="form-label">Ignore Build Events</label>
                         <div class="form-check form-switch form-switch-md">
                             <input asp-for="IgnoreBuildEvents" class="form-check-input" type="checkbox" role="switch">
                         </div>
                     </div>
-                    
+
                     <div class="col-12 mb-4">
                         <label asp-for="Cron" class="form-label">Cron</label>
                         <input asp-for="Cron" type="text" class="form-control" onblur=""></input>
@@ -84,7 +84,7 @@ ViewBag.PreviousAction = "BuildSchedules";
                         <label asp-for="LastExecuteTime" class="form-label">Last Executed At</label>
                         <input asp-for="LastExecuteTime" type="text" class="form-control" disabled></input>
                     </div>
-                    
+
                     <div class="col-3 mb-4">
                         <label asp-for="CreationTime" class="form-label">Created At</label>
                         <input asp-for="CreationTime" type="text" class="form-control" disabled></input>
@@ -95,14 +95,11 @@ ViewBag.PreviousAction = "BuildSchedules";
                         <input asp-for="LastUpdateTime" type="text" class="form-control" disabled></input>
                     </div>
                 </div>
-
-                <div class="pt-4">
-                    <button type="submit" class="btn btn-primary">Save</button>
-                </div>
             </div>
+        </div>
 
-
-        </form>
-
-    </div>
+        <div class="pt-4">
+            <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+    </form>
 </div>

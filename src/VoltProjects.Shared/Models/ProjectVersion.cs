@@ -73,5 +73,13 @@ public class ProjectVersion
     /// </summary>
     public ICollection<ProjectMenuItem>? MenuItems { get; } = new List<ProjectMenuItem>();
     
+    /// <summary>
+    ///     All <see cref="ProjectPage"/> this project has
+    /// </summary>
     public ICollection<ProjectPage> Pages { get; } = new List<ProjectPage>();
+    
+    /// <summary>
+    ///     All <see cref="ProjectPreBuild"/> this project has
+    /// </summary>
+    public ICollection<ProjectPreBuild> PreBuilds { get; set; } = new List<ProjectPreBuild>();
 }

@@ -34,3 +34,7 @@
 .admin-sidebar.show + .content {
     margin-left: 230px;
 }
+
+.admin-dragable {
+    cursor: grab;
+}

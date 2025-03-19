@@ -374,7 +374,7 @@ public sealed class VoltProjectDbContext : DbContext
             //ProjectPreBuild
             modelBuilder.Entity<ProjectPreBuild>()
                 .HasOne(p => p.ProjectVersion)
-                .WithMany()
+                .WithMany(p => p.PreBuilds)
                 .OnDelete(DeleteBehavior.Restrict);
             
             //ProjectStorageItem
@@ -415,8 +415,6 @@ public sealed class VoltProjectDbContext : DbContext
                 .HasOne(p => p.Language)
                 .WithMany()
                 .OnDelete(DeleteBehavior.Restrict);
-
-            
         }
         
         //Collations
