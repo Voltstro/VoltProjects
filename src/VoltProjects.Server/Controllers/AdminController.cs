@@ -89,6 +89,10 @@ public class AdminController : Controller
                 Success = success
             };
         }
+        else
+        {
+            model = new ProjectPageModel();
+        }
         
         return View(model);
     }
@@ -136,6 +140,7 @@ public class AdminController : Controller
             editProject.ShortName = model.ShortName;
             editProject.Description = model.Description;
             editProject.GitUrl = model.GitUrl;
+            editProject.Published = model.Published;
 
             if (model.ProjectIcon != null)
             {
@@ -262,6 +267,7 @@ public class AdminController : Controller
             editProject.DocBuilderId = model.DocBuilderId;
             editProject.LanguageId = model.LanguageId;
             editProject.IsDefault = model.IsDefault;
+            editProject.Published = model.Published;
             
             //Pre-Builds
             List<ProjectPreBuildPageModel> preBuilds = new();

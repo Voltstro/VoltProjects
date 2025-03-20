@@ -32,6 +32,8 @@ public class ProjectVersionPageModel : ProjectVersion
         {
             PreBuildCommands[i] = new ProjectPreBuildPageModel(preBuilds[i]);
         }
+
+        Published = projectVersion.Published;
     }
     
     public new int? Id { get; set; }

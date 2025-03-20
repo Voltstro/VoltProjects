@@ -96,6 +96,17 @@ ViewBag.PreviousActionData = new Dictionary<string, string> { { "id", Model.Proj
                             <input asp-for="IsDefault" class="form-check-input" type="checkbox" role="switch">
                         </div>
                     </div>
+                    
+                    <div class="col-6">
+                        
+                    </div>
+
+                    <div class="col-1 mb-4">
+                        <label asp-for="Published" class="form-label">Published</label>
+                        <div class="form-check form-switch form-switch-md">
+                            <input asp-for="Published" class="form-check-input" type="checkbox" role="switch">
+                        </div>
+                    </div>
 
                     <div class="col-3 mb-4">
                         <label asp-for="CreationTime" class="form-label">Created At</label>

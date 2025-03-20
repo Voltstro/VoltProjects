@@ -57,17 +57,22 @@ public class ProjectVersion
     ///     Is this a default fallback doc version?
     /// </summary>
     public bool IsDefault { get; set; } = true;
-    
+
+    /// <summary>
+    ///     Is this project version published
+    /// </summary>
+    public bool Published { get; set; } = true;
+
     /// <summary>
     ///     When was the last time this project was updated
     /// </summary>
-    public DateTime LastUpdateTime { get; set; }
-    
+    public DateTime LastUpdateTime { get; set; } = DateTime.UtcNow;
+
     /// <summary>
     ///     When was this project created?
     /// </summary>
-    public DateTime CreationTime { get; set; }
-    
+    public DateTime CreationTime { get; set; } = DateTime.UtcNow;
+
     /// <summary>
     ///     All <see cref="ProjectMenuItem"/>s this project has
     /// </summary>

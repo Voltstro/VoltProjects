@@ -162,7 +162,8 @@ public sealed class SitemapService
             (VoltProjectDbContext dbContext) =>
                 dbContext.ProjectVersions
                     .AsNoTracking()
-                    .Include(x => x.Project));
+                    .Include(x => x.Project)
+                    .Where(x => x.Published));
     
     //Get project version query
     private static readonly Func<VoltProjectDbContext, string, string, Task<ProjectVersion?>> GetProjectVersionQuery =
@@ -171,7 +172,11 @@ public sealed class SitemapService
                 dbContext.ProjectVersions
                     .AsNoTracking()
                     .Include(x => x.Project)
-                    .FirstOrDefault(x => x.VersionTag == versionTag && x.Project.Name == projectName));
+                    .FirstOrDefault(x =>
+                        x.VersionTag == versionTag && 
+                        x.Project.Name == projectName && 
+                        x.Published && 
+                        x.Project.Published));
 
     private static readonly Func<VoltProjectDbContext, int, IAsyncEnumerable<ProjectPage>> GetProjectPagesQuery =
         EF.CompileAsyncQuery(

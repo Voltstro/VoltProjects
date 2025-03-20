@@ -208,7 +208,10 @@ public sealed class ProjectService
                 dbContext.ProjectVersions
                     .AsNoTracking()
                     .Include(x => x.Project)
-                    .FirstOrDefault(x => x.IsDefault && x.Project.Name == projectName));
+                    .FirstOrDefault(x => x.IsDefault && 
+                                         x.Project.Name == projectName && 
+                                         x.Project.Published && 
+                                         x.Published));
     
     //Project version query
     private static readonly Func<VoltProjectDbContext, string, string, Task<ProjectVersion?>> GetProjectVersionQuery =
@@ -217,7 +220,10 @@ public sealed class ProjectService
                 dbContext.ProjectVersions
                     .AsNoTracking()
                     .Include(x => x.Project)
-                    .FirstOrDefault(x => x.VersionTag == versionTag && x.Project.Name == projectName));
+                    .FirstOrDefault(x => x.VersionTag == versionTag &&
+                                         x.Project.Name == projectName &&
+                                         x.Project.Published && 
+                                         x.Published));
     
     //Page query
     private static readonly Func<VoltProjectDbContext, string, string, string, Task<ProjectPage?>> ProjectPageQuery =
@@ -232,6 +238,8 @@ public sealed class ProjectService
                         x.Path == path &&
                         x.ProjectVersion.VersionTag == version &&
                         x.ProjectVersion.Project.Name == projectName &&
+                        x.ProjectVersion.Project.Published &&
+                        x.ProjectVersion.Published &&
                         x.Published));
     
     //Menu items query
@@ -273,8 +281,9 @@ public sealed class ProjectService
             (VoltProjectDbContext context) =>
                 context.Projects
                     .AsNoTracking()
-                    .Include(x => x.ProjectVersions)
+                    .Include(x => x.ProjectVersions.Where(y => y.Published))
                     .OrderBy(x => x.Name)
+                    .Where(x => x.Published && x.ProjectVersions.Any(y => y.Published))
                     .AsQueryable());
     
     //Project versions query
@@ -285,6 +294,7 @@ public sealed class ProjectService
                 .Include(x => x.Project)
                 .OrderBy(x => x.Project.Name)
                 .ThenBy(x => x.VersionTag)
+                .Where(x => x.Published && x.Project.Published)
                 .ToArray()
         );
 }

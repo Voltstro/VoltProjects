@@ -84,7 +84,12 @@ public sealed class VoltProjectDbContext : DbContext
             modelBuilder.Entity<Project>()
                 .Property(p => p.CreationTime)
                 .HasDefaultValueSql("now()");
+            
+            modelBuilder.Entity<Project>()
+                .Property(p => p.Published)
+                .HasDefaultValue(true);
 
+            //ProjectBuildSchedule
             modelBuilder.Entity<ProjectBuildSchedule>()
                 .Property(p => p.CreationTime)
                 .HasDefaultValueSql("now()");
@@ -101,6 +106,10 @@ public sealed class VoltProjectDbContext : DbContext
             modelBuilder.Entity<ProjectVersion>()
                 .Property(p => p.CreationTime)
                 .HasDefaultValueSql("now()");
+            
+            modelBuilder.Entity<ProjectVersion>()
+                .Property(p => p.Published)
+                .HasDefaultValue(true);
             
             //ProjectPage
             modelBuilder.Entity<ProjectPage>()

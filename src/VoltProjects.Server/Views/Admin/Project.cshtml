@@ -1,10 +1,9 @@
-@using System.IO
 @using Microsoft.AspNetCore.Mvc.TagHelpers
 @using VoltProjects.Shared.Models
-@model VoltProjects.Server.Models.View.Admin.ProjectPageModel?
+@model VoltProjects.Server.Models.View.Admin.ProjectPageModel
 @{
     string title = "New Project";
-    if (Model != null)
+    if (Model.Id != null)
         title = $"Editing {Model.Name} Project";
         
     ViewBag.Title = title;
@@ -67,7 +66,7 @@
 
                     <div class="col-4 mb-4">
                         <label asp-for="ProjectIcon" class="form-label">Project Icon</label>
-                        @if (Model != null && !string.IsNullOrWhiteSpace(Model.IconPath))
+                        @if (!string.IsNullOrWhiteSpace(Model.IconPath))
                         {
                             <div class="pb-2">
                                 <img class="rounded" height="128" alt="Project Icon" src="@Model.IconPath"/>
@@ -83,6 +82,13 @@
                         <textarea asp-for="Description" class="form-control"></textarea>
                         <span asp-validation-for="Description" class="invalid-feedback"></span>
                     </div>
+                    
+                    <div class="col-1 mb-4">
+                        <label asp-for="Published" class="form-label">Published</label>
+                        <div class="form-check form-switch form-switch-md">
+                            <input asp-for="Published" class="form-check-input" type="checkbox" role="switch">
+                        </div>
+                    </div>
 
                     <div class="col-3 mb-4">
                         <label asp-for="CreationTime" class="form-label">Created At</label>
@@ -97,7 +103,7 @@
             </div>
         </div>
 
-        @if (Model != null)
+        @if (Model.Id != null)
         {
             <div class="card mt-4">
                 <div class="card-header d-flex">
@@ -113,6 +119,7 @@
                             <th scope="col">Git Branch</th>
                             <th scope="col">Doc Build</th>
                             <th scope="col">Default</th>
+                            <th scope="col">Published</th>
                             <th></th>
                         </tr>
                         </thead>
@@ -129,6 +136,7 @@
                                     <td>
                                         <partial name="Shared/BoolIcon" model="@projectVersion.IsDefault"/>
                                     </td>
+                                    <td><partial name="Shared/BoolIcon" model="@projectVersion.Published"/></td>
                                     <td><a asp-controller="Admin" asp-action="ProjectVersion" asp-route-projectId="@Model.Id" asp-route-projectVersionId="@projectVersion.Id" class="btn btn-primary float-end">Edit</a></td>
                                 </tr>
                             }

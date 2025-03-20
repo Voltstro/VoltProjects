@@ -25,6 +25,7 @@ public class ProjectPageModel : Project
         LastUpdateTime = project.LastUpdateTime;
         CreationTime = project.CreationTime;
         ProjectVersions = project.ProjectVersions;
+        Published = project.Published;
     }
     
     public new int? Id { get; set; }
