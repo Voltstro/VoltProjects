@@ -11,18 +11,18 @@ Client resources are served to the browser by `VoltProjects.Server`.
 ### Prerequisites
 
 ```
-NodeJs 18
-Yarn
+NodeJs 22
+Corepack
 ```
 
 ### Building
 
-1. Install packages using `yarn`
-2. Build using `yarn run build`
+1. Install packages using `pnpm install`
+2. Build using `pnpm run build`
    - Files will be outputted to `../VoltProjects.Server/wwwroot`.
 
 ### Development
 
 We recommend using VSCode when working on this project. There is a provided configuration for VSCode which sets up ESLint to automatically lint files as you save.
 
-For dev builds that include source maps, use `yarn run build:dev`.
+For dev builds that include source maps, use `pnpm run build:dev`.
