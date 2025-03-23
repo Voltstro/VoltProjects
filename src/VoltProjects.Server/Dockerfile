@@ -1,11 +1,12 @@
 ﻿# Build Client Stage
-FROM node:18-alpine AS build-client
+FROM node:22-alpine AS build-client
 WORKDIR /src
 
 # Install Packages
-COPY VoltProjects.Client/yarn.lock ./
-COPY VoltProjects.Client/package.json ./
-RUN yarn install
+COPY VoltProjects.Client/pnpm-lock.yaml VoltProjects.Client/package.json ./
+RUN corepack enable
+RUN corepack install
+RUN pnpm install
 
 # Copy everything else
 COPY VoltProjects.Client/src/ ./src/
@@ -14,10 +15,10 @@ COPY VoltProjects.Client/tsconfig.json ./
 COPY VoltProjects.Client/vite.config.ts ./
 
 # Build Client
-RUN yarn run build:dist
+RUN pnpm run build:dist
 
 # Build Server Stage
-FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build-app
+FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS build-app
 WORKDIR /src
 
 # Restore Projects
@@ -35,7 +36,7 @@ COPY --from=build-client /src/dist /src/VoltProjects.Server/wwwroot/
 RUN dotnet publish "VoltProjects.Server/VoltProjects.Server.csproj" -c Release -o /app/publish /p:UseAppHost=false --no-restore
 
 # Final Stage
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS final
+FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine AS final
 WORKDIR /app
 EXPOSE 80
 COPY --from=build-app /app/publish .
