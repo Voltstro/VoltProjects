@@ -16,7 +16,7 @@ Volt Projects main purpose is to host a project's documentation. It handles the 
 
 ### Database Setup
 
-For either hosting or development of Volt Projects, you will need a Postgres 15 database. You can really use whatever service you want to run Postgres, ([local install](https://www.postgresql.org/download/), [Docker](https://hub.docker.com/_/postgres/), etc), as long as VP can connect to it using a [connection string](https://www.npgsql.org/doc/connection-string-parameters.html).
+For either hosting or development of Volt Projects, you will need a Postgres 17 database. You can really use whatever service you want to run Postgres, ([local install](https://www.postgresql.org/download/), [Docker](https://hub.docker.com/_/postgres/), etc), as long as VP can connect to it using a [connection string](https://www.npgsql.org/doc/connection-string-parameters.html).
 
 You will obviously need the database for VP and a user to access the DB.
 
@@ -77,7 +77,7 @@ services:
 ```
 .NET 8 SDK
 Yarn
-Postgres 15
+Postgres 17
 ```
 
 ### Setup

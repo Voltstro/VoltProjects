@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using VoltProjects.Shared.Models;
 
@@ -41,7 +42,7 @@ public class ProjectVersionPageModel : ProjectVersion
     public DocBuilder[] DocBuilders { get; set; }
     public Language[] Languages { get; set; }
     
-    public ProjectPreBuildPageModel[] PreBuildCommands { get; set; }
+    public ProjectPreBuildPageModel[]? PreBuildCommands { get; set; }
     
     public bool? Success { get; set; }
 }

@@ -64,7 +64,7 @@ public sealed class BuildRunner : IDisposable
             if(nextExecuteTime > DateTime.UtcNow)
                 delayTime = nextExecuteTime - lastExecuteTime;
 
-            logger.LogDebug("Next build time for project {ProjectName} is at {NextExecuteTime}. Delaying for {DelayTime}", buildSchedule.ProjectVersion.Project.Name, nextExecuteTime, delayTime);
+            logger.LogInformation("Next build time for project {ProjectName} is at {NextExecuteTime}. Delaying for {DelayTime}", buildSchedule.ProjectVersion.Project.Name, nextExecuteTime, delayTime);
             try
             {
                 await Task.Delay(delayTime, cancellationToken);
@@ -87,6 +87,8 @@ public sealed class BuildRunner : IDisposable
                     .FirstAsync(x => x.Id == buildSchedule.ProjectVersionId, cancellationToken);
 
                 Project project = projectVersion.Project;
+                
+                string repoPath = repoService.GetProjectRepo(project);
 
                 bool skipBuild = false;
                 string projectCommitHash = repoService.GetProjectRepoGitHash(project);
@@ -125,8 +127,6 @@ public sealed class BuildRunner : IDisposable
 
                 if (!skipBuild)
                 {
-                    string repoPath = repoService.GetProjectRepo(project);
-                    
                     //Create new build event
                     ProjectBuildEvent buildEvent = new()
                     {

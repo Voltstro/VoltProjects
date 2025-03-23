@@ -242,6 +242,7 @@ public class AdminController : Controller
             model.Project = project;
             model.DocBuilders = docBuilders;
             model.Languages = languages;
+            model.Success = false;
             return View(model);
         }
 
@@ -270,28 +271,31 @@ public class AdminController : Controller
             editProject.Published = model.Published;
             
             //Pre-Builds
-            List<ProjectPreBuildPageModel> preBuilds = new();
-            foreach (ProjectPreBuildPageModel preBuild in model.PreBuildCommands)
+            if (model.PreBuildCommands != null)
             {
-                preBuild.ProjectVersion = editProject;
-
-                if (preBuild.Deleted)
-                    dbContext.PreBuildCommands.Remove(preBuild);
-                else
+                List<ProjectPreBuildPageModel> preBuilds = new();
+                foreach (ProjectPreBuildPageModel preBuild in model.PreBuildCommands)
                 {
-                    preBuilds.Add(preBuild);
-                    
-                    //Ignore updating times
-                    if (!preBuild.New)
+                    preBuild.ProjectVersion = editProject;
+
+                    if (preBuild.Deleted)
+                        dbContext.PreBuildCommands.Remove(preBuild);
+                    else
                     {
-                        dbContext.Entry(preBuild).State = EntityState.Modified;
-                        dbContext.Entry(preBuild).Property(p => p.CreationTime).IsModified = false;
-                        dbContext.Entry(preBuild).Property(p => p.LastUpdateTime).IsModified = false;
+                        preBuilds.Add(preBuild);
+                    
+                        //Ignore updating times
+                        if (!preBuild.New)
+                        {
+                            dbContext.Entry(preBuild).State = EntityState.Modified;
+                            dbContext.Entry(preBuild).Property(p => p.CreationTime).IsModified = false;
+                            dbContext.Entry(preBuild).Property(p => p.LastUpdateTime).IsModified = false;
+                        }
                     }
                 }
-            }
 
-            editProject.PreBuilds = preBuilds.ToArray();
+                editProject.PreBuilds = preBuilds.ToArray();
+            }
             
             //New Project
             if (projectVersionId == null)

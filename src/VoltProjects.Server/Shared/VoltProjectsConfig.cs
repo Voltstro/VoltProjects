@@ -6,7 +6,7 @@ namespace VoltProjects.Server.Shared;
 
 public sealed class VoltProjectsConfig
 {
-    public const string VoltProjects = "VoltProjects";
+    public const string VoltProjects = "Config";
     
     public SocialLink[] SocialLinks { get; init; }= new SocialLink[]
     {
