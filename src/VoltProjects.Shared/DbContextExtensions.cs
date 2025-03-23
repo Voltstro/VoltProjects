@@ -7,12 +7,10 @@ using System.Text.Json;
 using Medallion.Threading.Postgres;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Npgsql;
 using VoltProjects.Shared.Telemetry;
 
 namespace VoltProjects.Shared;
@@ -44,7 +42,7 @@ public static class DbContextExtensions
         });
         
         services.AddDbContextFactory<VoltProjectDbContext>(options => options.UseNpgsql());
-        services.AddDbContext<VoltProjectDbContext>(options => options.UseNpgsql());
+        //services.AddDbContext<VoltProjectDbContext>(options => options.UseNpgsql());
         return services;
     }
 
@@ -52,13 +50,15 @@ public static class DbContextExtensions
     {
         // ReSharper disable once ExplicitCallerInfoArgument
         using Activity? projectActivity = Tracking.StartActivity(ActivityArea.Database, "migrate");
-        
-        IServiceProvider services = host.Services.CreateScope().ServiceProvider;
+
+        using IServiceScope scope = host.Services.CreateScope();
+        IServiceProvider services = scope.ServiceProvider;
         ILogger logger = services.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(DbContextExtensions));
+
         VoltProjectDbContext dbContext = services.GetRequiredService<VoltProjectDbContext>();
 
         logger.LogInformation("Checking database...");
-        
+
         //Get connection and open it
         DbConnection connection = dbContext.Database.GetDbConnection();
         connection.Open();
@@ -76,24 +76,18 @@ public static class DbContextExtensions
             if (pendingMigrations)
             {
                 logger.LogWarning("Database requires migrations! Migrating...");
-                using IDbContextTransaction transaction = dbContext.Database.BeginTransaction();
-                transaction.CreateSavepoint("Migrations");
                 try
                 {
                     dbContext.Database.Migrate();
-                    transaction.Commit();
-                    
-                    logger.LogInformation("Migrations complete!");
                 }
                 catch (Exception ex)
                 {
-                    transaction.RollbackToSavepoint("Migrations");
                     logger.LogError(ex, "An error occured while migrating the database!");
                     throw;
                 }
             }
         }
-        
+
         return host;
     }
 
