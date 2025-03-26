@@ -185,7 +185,11 @@ public sealed class BuildManager
             //Run all page parses on this page
             foreach (IPageParser pageParser in pageParsers)
             {
+                Stopwatch stopwatch = Stopwatch.StartNew();
                 pageParser.FormatPage(builtDocsLocation, page, ref externalObjectsIncluded, ref doc);
+                
+                stopwatch.Stop();
+                logger.LogDebug("Took {ElapsedMilliseconds}ms to run page parser {ParserType} on {Page}", stopwatch.ElapsedMilliseconds, pageParser.GetType(), page.Path);
             }
             
             //New HTML Content
