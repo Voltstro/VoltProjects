@@ -59,4 +59,6 @@ public sealed class VoltProjectsConfig
     public StorageConfig? ObjectStorageProvider { get; set; }
 
     public TimeSpan ProjectVersionsCacheTime { get; init; } = new(0, 24, 0, 0);
+    
+    public int DbPoolSize { get; init; } = 16;
 }

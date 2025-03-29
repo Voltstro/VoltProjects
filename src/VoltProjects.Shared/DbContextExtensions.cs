@@ -26,9 +26,11 @@ public static class DbContextExtensions
     /// <param name="services"></param>
     /// <param name="configuration"></param>
     /// <param name="typePrefix"></param>
+    /// <param name="pooled"></param>
+    /// <param name="poolSize"></param>
     /// <returns></returns>
     public static IServiceCollection UseVoltProjectDbContext(this IServiceCollection services,
-        IConfiguration configuration, string typePrefix)
+        IConfiguration configuration, string typePrefix, bool pooled = true, int poolSize = 16)
     {
         string connectionStringName = $"{typePrefix}Connection";
         string? connectionString = configuration.GetConnectionString(connectionStringName);
@@ -40,9 +42,22 @@ public static class DbContextExtensions
         {
             builder.EnableDynamicJson();
         });
-        
-        services.AddDbContextFactory<VoltProjectDbContext>(options => options.UseNpgsql());
-        //services.AddDbContext<VoltProjectDbContext>(options => options.UseNpgsql());
+
+        if (pooled)
+        {
+            services.AddDbContextPool<VoltProjectDbContext>(options =>
+            {
+                options.UseNpgsql().UseSnakeCaseNamingConvention();
+            }, poolSize);
+        }
+        else
+        {
+            services.AddDbContextFactory<VoltProjectDbContext>(options =>
+            {
+                options.UseNpgsql().UseSnakeCaseNamingConvention();
+            });
+        }
+
         return services;
     }
 

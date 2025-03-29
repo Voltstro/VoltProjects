@@ -38,7 +38,7 @@ try
     builder.Services.AddHostedService<BuildService>();
 
     //Setup DB
-    builder.Services.UseVoltProjectDbContext(builder.Configuration, "Builder");
+    builder.Services.UseVoltProjectDbContext(builder.Configuration, "Builder", false);
 
     //Http Client
     builder.Services.AddHttpClient();

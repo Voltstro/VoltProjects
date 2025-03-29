@@ -78,7 +78,7 @@ try
     }
 
     //Setup VoltProjects DB
-    builder.Services.UseVoltProjectDbContext(builder.Configuration, "Server");
+    builder.Services.UseVoltProjectDbContext(builder.Configuration, "Server", true, config.DbPoolSize);
 
     //Health Endpoints
     builder.Services.AddHealthChecks();
