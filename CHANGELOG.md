@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Replace `regclass` datatype with `oid` (for Postgres upgrade)
+- Bump copyright year
 
 ## [2.2.3] - 2024-12-27
 
