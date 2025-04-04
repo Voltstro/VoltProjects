@@ -17,6 +17,6 @@ public class Language
     /// <summary>
     ///     Postgres language configuration
     /// </summary>
-    [Column(TypeName = "regconfig")]
+    [Column(TypeName = "oid")]
     public uint Configuration { get; init; }
 }
