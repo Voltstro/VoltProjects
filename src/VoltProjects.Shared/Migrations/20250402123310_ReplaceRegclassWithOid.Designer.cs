@@ -2,23 +2,27 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using VoltProjects.Shared;
+using VoltProjects.Shared.Models;
 
 #nullable disable
 
 namespace VoltProjects.Shared.Migrations
 {
     [DbContext(typeof(VoltProjectDbContext))]
-    partial class VoltProjectDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250402123310_ReplaceRegclassWithOid")]
+    partial class ReplaceRegclassWithOid
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("Npgsql:CollationDefinition:vp_collation_nondeterministic", "en-u-ks-primary,en-u-ks-primary,icu,False")
-                .HasAnnotation("ProductVersion", "8.0.11")
+                .HasAnnotation("ProductVersion", "8.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -55,6 +59,14 @@ namespace VoltProjects.Shared.Migrations
                     b.HasData(
                         new
                         {
+                            Id = "vdocfx",
+                            Application = "vdocfx",
+                            Arguments = new[] { "build", "--output-type PageJson", "--output {0}" },
+                            EnvironmentVariables = new[] { "DOCS_GITHUB_TOKEN=" },
+                            Name = "VDocFx"
+                        },
+                        new
+                        {
                             Id = "docfx",
                             Application = "docfx",
                             Arguments = new[] { "build", "--exportRawModel" },
@@ -80,7 +92,7 @@ namespace VoltProjects.Shared.Migrations
 
                     b.Property<uint>("Configuration")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("oid")
+                        .HasColumnType("regconfig")
                         .HasColumnName("configuration")
                         .HasDefaultValueSql("'english'");
 
@@ -100,38 +112,6 @@ namespace VoltProjects.Shared.Migrations
                             Id = 1,
                             Configuration = 0u,
                             Name = "en"
-                        });
-                });
-
-            modelBuilder.Entity("VoltProjects.Shared.Models.LogLevel", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("name");
-
-                    b.HasKey("Id")
-                        .HasName("pk_log_level");
-
-                    b.ToTable("log_level", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Name = "Info"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Name = "Error"
                         });
                 });
 
@@ -181,12 +161,6 @@ namespace VoltProjects.Shared.Migrations
                         .HasColumnName("name")
                         .UseCollation("vp_collation_nondeterministic");
 
-                    b.Property<bool>("Published")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(true)
-                        .HasColumnName("published");
-
                     b.Property<string>("ShortName")
                         .HasColumnType("text")
                         .HasColumnName("short_name");
@@ -214,10 +188,10 @@ namespace VoltProjects.Shared.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("builder_ver");
 
-                    b.Property<DateTime>("CreationTime")
+                    b.Property<DateTime>("Date")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("creation_time")
+                        .HasColumnName("date")
                         .HasDefaultValueSql("now()");
 
                     b.Property<string>("GitHash")
@@ -225,12 +199,6 @@ namespace VoltProjects.Shared.Migrations
                         .HasMaxLength(41)
                         .HasColumnType("character varying(41)")
                         .HasColumnName("git_hash");
-
-                    b.Property<DateTime>("LastUpdateTime")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_update_time")
-                        .HasDefaultValueSql("now()");
 
                     b.Property<string>("Message")
                         .HasColumnType("text")
@@ -251,95 +219,6 @@ namespace VoltProjects.Shared.Migrations
                         .HasDatabaseName("ix_project_build_event_project_version_id");
 
                     b.ToTable("project_build_event", (string)null);
-                });
-
-            modelBuilder.Entity("VoltProjects.Shared.Models.ProjectBuildEventLog", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("BuildEventId")
-                        .HasColumnType("integer")
-                        .HasColumnName("build_event_id");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("date");
-
-                    b.Property<int>("LogLevelId")
-                        .HasColumnType("integer")
-                        .HasColumnName("log_level_id");
-
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("message");
-
-                    b.HasKey("Id")
-                        .HasName("pk_project_build_event_log");
-
-                    b.HasIndex("BuildEventId")
-                        .HasDatabaseName("ix_project_build_event_log_build_event_id");
-
-                    b.HasIndex("LogLevelId")
-                        .HasDatabaseName("ix_project_build_event_log_log_level_id");
-
-                    b.ToTable("project_build_event_log", (string)null);
-                });
-
-            modelBuilder.Entity("VoltProjects.Shared.Models.ProjectBuildSchedule", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreationTime")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("creation_time")
-                        .HasDefaultValueSql("now()");
-
-                    b.Property<string>("Cron")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("cron");
-
-                    b.Property<bool>("IgnoreBuildEvents")
-                        .HasColumnType("boolean")
-                        .HasColumnName("ignore_build_events");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_active");
-
-                    b.Property<DateTime?>("LastExecuteTime")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_execute_time");
-
-                    b.Property<DateTime>("LastUpdateTime")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_update_time")
-                        .HasDefaultValueSql("now()");
-
-                    b.Property<int>("ProjectVersionId")
-                        .HasColumnType("integer")
-                        .HasColumnName("project_version_id");
-
-                    b.HasKey("Id")
-                        .HasName("pk_project_build_schedule");
-
-                    b.HasIndex("ProjectVersionId")
-                        .HasDatabaseName("ix_project_build_schedule_project_version_id");
-
-                    b.ToTable("project_build_schedule", (string)null);
                 });
 
             modelBuilder.Entity("VoltProjects.Shared.Models.ProjectExternalItem", b =>
@@ -412,7 +291,7 @@ namespace VoltProjects.Shared.Migrations
                     b.ToTable("project_external_item_storage_item", (string)null);
                 });
 
-            modelBuilder.Entity("VoltProjects.Shared.Models.ProjectMenuItem", b =>
+            modelBuilder.Entity("VoltProjects.Shared.Models.ProjectMenu", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -421,32 +300,35 @@ namespace VoltProjects.Shared.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Href")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("href");
+                    b.Property<DateTime>("CreationTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creation_time")
+                        .HasDefaultValueSql("now()");
 
-                    b.Property<int>("ItemOrder")
-                        .HasColumnType("integer")
-                        .HasColumnName("item_order");
+                    b.Property<DateTime>("LastUpdateTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_update_time")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<LinkItem>("LinkItem")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("link_item");
 
                     b.Property<int>("ProjectVersionId")
                         .HasColumnType("integer")
                         .HasColumnName("project_version_id");
 
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("title");
-
                     b.HasKey("Id")
-                        .HasName("pk_project_menu_item");
+                        .HasName("pk_project_menu");
 
-                    b.HasIndex("ProjectVersionId", "Href")
+                    b.HasIndex("ProjectVersionId")
                         .IsUnique()
-                        .HasDatabaseName("ix_project_menu_item_project_version_id_href");
+                        .HasDatabaseName("ix_project_menu_project_version_id");
 
-                    b.ToTable("project_menu_item", (string)null);
+                    b.ToTable("project_menu", (string)null);
                 });
 
             modelBuilder.Entity("VoltProjects.Shared.Models.ProjectPage", b =>
@@ -502,6 +384,10 @@ namespace VoltProjects.Shared.Migrations
                         .HasColumnType("text")
                         .HasColumnName("page_hash");
 
+                    b.Property<int?>("ParentPageId")
+                        .HasColumnType("integer")
+                        .HasColumnName("parent_page_id");
+
                     b.Property<string>("Path")
                         .IsRequired()
                         .HasColumnType("text")
@@ -543,6 +429,9 @@ namespace VoltProjects.Shared.Migrations
                     b.HasKey("Id")
                         .HasName("pk_project_page");
 
+                    b.HasIndex("ParentPageId")
+                        .HasDatabaseName("ix_project_page_parent_page_id");
+
                     b.HasIndex("ProjectTocId")
                         .HasDatabaseName("ix_project_page_project_toc_id");
 
@@ -554,44 +443,6 @@ namespace VoltProjects.Shared.Migrations
                         {
                             t.HasCheckConstraint("ck_toc_nullability_same", "(project_toc_id IS NULL AND toc_rel IS NULL) OR (project_toc_id IS NOT NULL AND toc_rel IS NOT NULL)");
                         });
-                });
-
-            modelBuilder.Entity("VoltProjects.Shared.Models.ProjectPageBreadcrumb", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("BreadcrumbOrder")
-                        .HasColumnType("integer")
-                        .HasColumnName("breadcrumb_order");
-
-                    b.Property<string>("Href")
-                        .HasColumnType("text")
-                        .HasColumnName("href");
-
-                    b.Property<int>("ProjectPageId")
-                        .HasColumnType("integer")
-                        .HasColumnName("project_page_id");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("title");
-
-                    b.HasKey("Id")
-                        .HasName("pk_project_page_breadcrumb");
-
-                    b.HasIndex("ProjectPageId", "Title", "Href")
-                        .IsUnique()
-                        .HasDatabaseName("ix_project_page_breadcrumb_project_page_id_title_href");
-
-                    NpgsqlIndexBuilderExtensions.AreNullsDistinct(b.HasIndex("ProjectPageId", "Title", "Href"), false);
-
-                    b.ToTable("project_page_breadcrumb", (string)null);
                 });
 
             modelBuilder.Entity("VoltProjects.Shared.Models.ProjectPageContributor", b =>
@@ -773,6 +624,11 @@ namespace VoltProjects.Shared.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("project_version_id");
 
+                    b.Property<LinkItem>("TocItem")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("toc_item");
+
                     b.Property<string>("TocRel")
                         .IsRequired()
                         .HasColumnType("text")
@@ -786,51 +642,6 @@ namespace VoltProjects.Shared.Migrations
                         .HasDatabaseName("ix_project_toc_project_version_id_toc_rel");
 
                     b.ToTable("project_toc", (string)null);
-                });
-
-            modelBuilder.Entity("VoltProjects.Shared.Models.ProjectTocItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Href")
-                        .HasColumnType("text")
-                        .HasColumnName("href");
-
-                    b.Property<int>("ItemOrder")
-                        .HasColumnType("integer")
-                        .HasColumnName("item_order");
-
-                    b.Property<int?>("ParentTocItemId")
-                        .HasColumnType("integer")
-                        .HasColumnName("parent_toc_item_id");
-
-                    b.Property<int>("ProjectTocId")
-                        .HasColumnType("integer")
-                        .HasColumnName("project_toc_id");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("title");
-
-                    b.HasKey("Id")
-                        .HasName("pk_project_toc_item");
-
-                    b.HasIndex("ParentTocItemId")
-                        .HasDatabaseName("ix_project_toc_item_parent_toc_item_id");
-
-                    b.HasIndex("ProjectTocId", "Title", "ParentTocItemId", "Href")
-                        .IsUnique()
-                        .HasDatabaseName("ix_project_toc_item_project_toc_id_title_parent_toc_item_id_hr");
-
-                    NpgsqlIndexBuilderExtensions.AreNullsDistinct(b.HasIndex("ProjectTocId", "Title", "ParentTocItemId", "Href"), false);
-
-                    b.ToTable("project_toc_item", (string)null);
                 });
 
             modelBuilder.Entity("VoltProjects.Shared.Models.ProjectVersion", b =>
@@ -890,12 +701,6 @@ namespace VoltProjects.Shared.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("project_id");
 
-                    b.Property<bool>("Published")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(true)
-                        .HasColumnName("published");
-
                     b.Property<string>("VersionTag")
                         .IsRequired()
                         .HasColumnType("text")
@@ -935,39 +740,6 @@ namespace VoltProjects.Shared.Migrations
                     b.Navigation("Project");
                 });
 
-            modelBuilder.Entity("VoltProjects.Shared.Models.ProjectBuildEventLog", b =>
-                {
-                    b.HasOne("VoltProjects.Shared.Models.ProjectBuildEvent", "BuildEvent")
-                        .WithMany("BuildEventLogs")
-                        .HasForeignKey("BuildEventId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_project_build_event_log_project_build_event_build_event_id");
-
-                    b.HasOne("VoltProjects.Shared.Models.LogLevel", "LogLevel")
-                        .WithMany()
-                        .HasForeignKey("LogLevelId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_project_build_event_log_log_level_log_level_id");
-
-                    b.Navigation("BuildEvent");
-
-                    b.Navigation("LogLevel");
-                });
-
-            modelBuilder.Entity("VoltProjects.Shared.Models.ProjectBuildSchedule", b =>
-                {
-                    b.HasOne("VoltProjects.Shared.Models.ProjectVersion", "ProjectVersion")
-                        .WithMany()
-                        .HasForeignKey("ProjectVersionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_project_build_schedule_project_version_project_version_id");
-
-                    b.Navigation("ProjectVersion");
-                });
-
             modelBuilder.Entity("VoltProjects.Shared.Models.ProjectExternalItem", b =>
                 {
                     b.HasOne("VoltProjects.Shared.Models.ProjectVersion", "ProjectVersion")
@@ -1001,20 +773,26 @@ namespace VoltProjects.Shared.Migrations
                     b.Navigation("StorageItem");
                 });
 
-            modelBuilder.Entity("VoltProjects.Shared.Models.ProjectMenuItem", b =>
+            modelBuilder.Entity("VoltProjects.Shared.Models.ProjectMenu", b =>
                 {
                     b.HasOne("VoltProjects.Shared.Models.ProjectVersion", "ProjectVersion")
-                        .WithMany("MenuItems")
+                        .WithMany()
                         .HasForeignKey("ProjectVersionId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("fk_project_menu_item_project_version_project_version_id");
+                        .HasConstraintName("fk_project_menu_project_version_project_version_id");
 
                     b.Navigation("ProjectVersion");
                 });
 
             modelBuilder.Entity("VoltProjects.Shared.Models.ProjectPage", b =>
                 {
+                    b.HasOne("VoltProjects.Shared.Models.ProjectPage", "ParentPage")
+                        .WithMany()
+                        .HasForeignKey("ParentPageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_project_page_project_page_parent_page_id");
+
                     b.HasOne("VoltProjects.Shared.Models.ProjectToc", "ProjectToc")
                         .WithMany()
                         .HasForeignKey("ProjectTocId")
@@ -1022,27 +800,17 @@ namespace VoltProjects.Shared.Migrations
                         .HasConstraintName("fk_project_page_project_toc_project_toc_id");
 
                     b.HasOne("VoltProjects.Shared.Models.ProjectVersion", "ProjectVersion")
-                        .WithMany("Pages")
+                        .WithMany()
                         .HasForeignKey("ProjectVersionId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_project_page_project_version_project_version_id");
 
+                    b.Navigation("ParentPage");
+
                     b.Navigation("ProjectToc");
 
                     b.Navigation("ProjectVersion");
-                });
-
-            modelBuilder.Entity("VoltProjects.Shared.Models.ProjectPageBreadcrumb", b =>
-                {
-                    b.HasOne("VoltProjects.Shared.Models.ProjectPage", "ProjectPage")
-                        .WithMany("Breadcrumbs")
-                        .HasForeignKey("ProjectPageId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_project_page_breadcrumb_project_page_project_page_id");
-
-                    b.Navigation("ProjectPage");
                 });
 
             modelBuilder.Entity("VoltProjects.Shared.Models.ProjectPageContributor", b =>
@@ -1081,7 +849,7 @@ namespace VoltProjects.Shared.Migrations
             modelBuilder.Entity("VoltProjects.Shared.Models.ProjectPreBuild", b =>
                 {
                     b.HasOne("VoltProjects.Shared.Models.ProjectVersion", "ProjectVersion")
-                        .WithMany("PreBuilds")
+                        .WithMany()
                         .HasForeignKey("ProjectVersionId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
@@ -1112,26 +880,6 @@ namespace VoltProjects.Shared.Migrations
                         .HasConstraintName("fk_project_toc_project_version_project_version_id");
 
                     b.Navigation("ProjectVersion");
-                });
-
-            modelBuilder.Entity("VoltProjects.Shared.Models.ProjectTocItem", b =>
-                {
-                    b.HasOne("VoltProjects.Shared.Models.ProjectTocItem", "ParentTocItem")
-                        .WithMany()
-                        .HasForeignKey("ParentTocItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .HasConstraintName("fk_project_toc_item_project_toc_item_parent_toc_item_id");
-
-                    b.HasOne("VoltProjects.Shared.Models.ProjectToc", "ProjectToc")
-                        .WithMany("TocItems")
-                        .HasForeignKey("ProjectTocId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_project_toc_item_project_toc_project_toc_id");
-
-                    b.Navigation("ParentTocItem");
-
-                    b.Navigation("ProjectToc");
                 });
 
             modelBuilder.Entity("VoltProjects.Shared.Models.ProjectVersion", b =>
@@ -1167,30 +915,6 @@ namespace VoltProjects.Shared.Migrations
             modelBuilder.Entity("VoltProjects.Shared.Models.Project", b =>
                 {
                     b.Navigation("ProjectVersions");
-                });
-
-            modelBuilder.Entity("VoltProjects.Shared.Models.ProjectBuildEvent", b =>
-                {
-                    b.Navigation("BuildEventLogs");
-                });
-
-            modelBuilder.Entity("VoltProjects.Shared.Models.ProjectPage", b =>
-                {
-                    b.Navigation("Breadcrumbs");
-                });
-
-            modelBuilder.Entity("VoltProjects.Shared.Models.ProjectToc", b =>
-                {
-                    b.Navigation("TocItems");
-                });
-
-            modelBuilder.Entity("VoltProjects.Shared.Models.ProjectVersion", b =>
-                {
-                    b.Navigation("MenuItems");
-
-                    b.Navigation("Pages");
-
-                    b.Navigation("PreBuilds");
                 });
 #pragma warning restore 612, 618
         }

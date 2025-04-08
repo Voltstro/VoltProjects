@@ -98,7 +98,7 @@ public class ProjectPage
     /// <summary>
     ///     Postgres Language configuration. Should be the same from the set <see cref="Language.Configuration"/>
     /// </summary>
-    [Column(TypeName = "regconfig")]
+    [Column(TypeName = "oid")]
     public uint LanguageConfiguration { get; set; }
     
     /// <summary>
