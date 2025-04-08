@@ -1,24 +1,28 @@
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
+using Microsoft.Extensions.Primitives;
 
 namespace VoltProjects.Server.Shared.Paging;
 
 [HtmlTargetElement("div", Attributes = "paged-count")]
 public class PaginationTagHelper : TagHelper
 {
-    private static readonly string[] ParametersToRemove = new[] { "page", "size" };
-    
-    private IUrlHelperFactory urlHelperFactory;
-    private IHtmlGenerator generator;
+    private readonly IUrlHelperFactory urlHelperFactory;
+    private readonly IHtmlGenerator generator;
+
+    private string baseUrl;
+    private Dictionary<string, string?> queryParams;
     
     public PaginationTagHelper(IUrlHelperFactory helperFactory, IHtmlGenerator generator)
     {
         urlHelperFactory = helperFactory;
         this.generator = generator;
+        queryParams = new Dictionary<string, string?>();
     }
     
     [ViewContext]
@@ -26,8 +30,6 @@ public class PaginationTagHelper : TagHelper
     public ViewContext ViewContext { get; set; }
     
     public PagedCount PagedCount { get; set; }
-    
-    public string BaseUrl { get; set; }
     
     /// <summary>
     ///     CSS class for the UL element holding everything
@@ -51,20 +53,25 @@ public class PaginationTagHelper : TagHelper
 
     public override void Process(TagHelperContext context, TagHelperOutput output)
     {
-        string currentParameters = GetUrlParameters();
-        
+        HttpRequest httpRequest = ViewContext.HttpContext.Request;
+        baseUrl = httpRequest.Path;
+        foreach (KeyValuePair<string, StringValues> queryString in httpRequest.Query)
+        {
+            queryParams.Add(queryString.Key, queryString.Value);
+        }
+
         TagBuilder pageControls = new("ul");
         pageControls.AddCssClass(PaginationClass);
         
         //Add previous page link
-        pageControls.InnerHtml.AppendHtml(CreatePageLink(PagedCount.CurrentPage - 1, "<span aria-hidden=\"true\">&laquo;</span>", true, currentParameters, "Previous Page"));
+        pageControls.InnerHtml.AppendHtml(CreatePageLink(PagedCount.CurrentPage - 1, "<span aria-hidden=\"true\">&laquo;</span>", true, "Previous Page"));
 
         //Create links for each page
         for (int i = 1; i <= PagedCount.TotalPages; i++)
-            pageControls.InnerHtml.AppendHtml(CreatePageLink(i, i.ToString(), false, currentParameters, $"Page {i}"));
+            pageControls.InnerHtml.AppendHtml(CreatePageLink(i, i.ToString(), false, $"Page {i}"));
         
         //Add next page link
-        pageControls.InnerHtml.AppendHtml(CreatePageLink(PagedCount.CurrentPage + 1, "<span aria-hidden=\"true\">&raquo;</span>", true, currentParameters, "Next Page"));
+        pageControls.InnerHtml.AppendHtml(CreatePageLink(PagedCount.CurrentPage + 1, "<span aria-hidden=\"true\">&raquo;</span>", true, "Next Page"));
         
         //Main pagination nav
         TagBuilder navItem = new("nav");
@@ -91,10 +98,6 @@ public class PaginationTagHelper : TagHelper
         sizesList.AddCssClass("dropdown-menu");
         sizesList.AddCssClass("ms-auto");
 
-        string baseSizeUrl = $"{BaseUrl}?page=1";
-        if (currentParameters != string.Empty)
-            baseSizeUrl += $"&{currentParameters}";
-        
         foreach (int pageSize in PagedCount.PageSizes)
         {
             TagBuilder sizeOptionItem = new("li");
@@ -102,8 +105,8 @@ public class PaginationTagHelper : TagHelper
             sizeOptionLink.AddCssClass("dropdown-item");
             if(pageSize == PagedCount.PageSize)
                 sizeOptionLink.AddCssClass("active");
-            
-            sizeOptionLink.Attributes["href"] = $"{baseSizeUrl}&size={pageSize}";
+
+            sizeOptionLink.Attributes["href"] = BuildUrl(new Dictionary<string, string> { { "page", "1" }, { "size", pageSize.ToString() } });
 
             sizeOptionLink.InnerHtml.AppendHtml(pageSize.ToString());
             sizeOptionItem.InnerHtml.AppendHtml(sizeOptionLink);
@@ -114,7 +117,7 @@ public class PaginationTagHelper : TagHelper
         output.Content.AppendHtml(sizeHolder);
     }
 
-    private TagBuilder CreatePageLink(int page, string content, bool previousOrNext, string urlParameters, string ariaLabel)
+    private TagBuilder CreatePageLink(int page, string content, bool previousOrNext, string ariaLabel)
     {
         TagBuilder liTag = new("li");
         liTag.AddCssClass(PageItemClass);
@@ -133,11 +136,7 @@ public class PaginationTagHelper : TagHelper
         TagBuilder tag = new("a");
         tag.AddCssClass(PageLinkClass);
 
-        string href = $"{BaseUrl}?page={page}&size={PagedCount.PageSize}";
-        if (urlParameters != string.Empty)
-            href += $"&{urlParameters}";
-
-        tag.Attributes["href"] = href;
+        tag.Attributes["href"] = BuildUrl(new Dictionary<string, string> { { "page", page.ToString() } });
         tag.Attributes["aria-label"] = ariaLabel;
         
         tag.InnerHtml.AppendHtml(content);
@@ -146,22 +145,14 @@ public class PaginationTagHelper : TagHelper
         return liTag;
     }
 
-    private string GetUrlParameters()
+    private string BuildUrl(Dictionary<string, string> updateParams)
     {
-        List<string> queryParameters = ViewContext.HttpContext.Request.QueryString.Value!.TrimStart('?').Split('&').ToList();
-        for (int i = 0; i < queryParameters.Count; i++)
+        Dictionary<string, string?> builtQueryParams = new(queryParams);
+        foreach (KeyValuePair<string, string> queryString in updateParams)
         {
-            foreach (string parameterToRemove in ParametersToRemove)
-            {
-                string queryParameter = queryParameters[i];
-                if (queryParameter.StartsWith($"{parameterToRemove}="))
-                {
-                    queryParameters.Remove(queryParameter);
-                    break;
-                }
-            }
+            builtQueryParams[queryString.Key] = queryString.Value;
         }
 
-        return string.Join('&', queryParameters);
+        return $"{baseUrl}?{string.Join("&", builtQueryParams.Select(x => $"{x.Key}={x.Value}"))}";
     }
 }
