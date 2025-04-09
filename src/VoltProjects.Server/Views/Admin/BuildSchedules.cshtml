@@ -21,6 +21,8 @@ ViewBag.Title = "Build Schedules";
                     <th scope="col">Cron</th>
                     <th scope="col">Active</th>
                     <th scope="col">Ignore Build Event</th>
+                    <th scope="col">Updated At</th>
+                    <th scope="col">Last Executed At</th>
                     <th></th>
                 </tr>
                 </thead>
@@ -38,6 +40,8 @@ ViewBag.Title = "Build Schedules";
                     <td>
                         <partial name="Shared/BoolIcon" model="@buildSchedule.IgnoreBuildEvents"/>
                     </td>
+                    <td>@buildSchedule.LastUpdateTime</td>
+                    <td>@buildSchedule.LastExecuteTime</td>
                     <td><a asp-controller="Admin" asp-action="BuildSchedule" asp-route-buildScheduleId="@buildSchedule.Id" class="btn btn-primary float-end">Edit</a></td>
                 </tr>
                 }

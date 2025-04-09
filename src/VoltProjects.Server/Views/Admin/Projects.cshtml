@@ -20,6 +20,7 @@
                     <th scope="col">Name</th>
                     <th scope="col">Display Name</th>
                     <th scope="col">Git URL</th>
+                    <th scope="col">Updated At</th>
                     <th scope="col">Published</th>
                     <th></th>
                 </tr>
@@ -32,6 +33,7 @@
                         <td>@project.Name</td>
                         <td>@project.DisplayName</td>
                         <td><a href="@project.GitUrl" target="_blank">@project.GitUrl <i class="bi bi-box-arrow-up-right"></i></a></td>
+                        <td>@project.LastUpdateTime</td>
                         <td><partial name="Shared/BoolIcon" model="@project.Published"/></td>
                         <td><a asp-controller="Admin" asp-action="Project" asp-route-id="@project.Id" class="btn btn-primary float-end">Edit</a></td>
                     </tr>

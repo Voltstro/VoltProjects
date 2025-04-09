@@ -139,6 +139,15 @@ try
                 options.Scope.Add(scope);
             }
         });
+    
+    //Localization
+    builder.Services.Configure<RequestLocalizationOptions>(options =>
+    {
+        options.SetDefaultCulture(config.DefaultCulture);
+        options.AddSupportedCultures(config.SupportedCultures);
+        options.AddSupportedUICultures(config.SupportedCultures);
+        options.ApplyCurrentCultureToResponseHeaders = true;
+    });
 
     //Now setup the app
     WebApplication app = builder.Build();
@@ -169,6 +178,9 @@ try
     
     //Custom Error Page
     app.UseStatusCodePagesWithReExecute("/Eroor/{0}");
+    
+    //Localization
+    app.UseRequestLocalization();
     
     //Response Caching
     app.UseResponseCaching();

@@ -58,15 +58,11 @@ public class Project
     /// <summary>
     ///     When was the last time this project was updated
     /// </summary>
-    [DataType(DataType.DateTime)]
-    [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd HH:mm:ss}", ApplyFormatInEditMode = true)]
     public DateTime LastUpdateTime { get; set; } = DateTime.UtcNow;
     
     /// <summary>
     ///     When was this project created?
     /// </summary>
-    [DataType(DataType.DateTime)]
-    [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd HH:mm:ss}", ApplyFormatInEditMode = true)]
     public DateTime CreationTime { get; set; } = DateTime.UtcNow;
 
     public ICollection<ProjectVersion> ProjectVersions { get; } = new List<ProjectVersion>();

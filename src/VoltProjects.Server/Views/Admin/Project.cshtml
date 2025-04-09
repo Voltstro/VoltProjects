@@ -120,6 +120,7 @@
                             <th scope="col">Doc Build</th>
                             <th scope="col">Default</th>
                             <th scope="col">Published</th>
+                            <th scope="col">Updated At</th>
                             <th></th>
                         </tr>
                         </thead>
@@ -137,6 +138,7 @@
                                         <partial name="Shared/BoolIcon" model="@projectVersion.IsDefault"/>
                                     </td>
                                     <td><partial name="Shared/BoolIcon" model="@projectVersion.Published"/></td>
+                                    <td>@projectVersion.LastUpdateTime</td>
                                     <td><a asp-controller="Admin" asp-action="ProjectVersion" asp-route-projectId="@Model.Id" asp-route-projectVersionId="@projectVersion.Id" class="btn btn-primary float-end">Edit</a></td>
                                 </tr>
                             }

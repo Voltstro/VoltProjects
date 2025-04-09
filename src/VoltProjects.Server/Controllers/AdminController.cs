@@ -48,7 +48,7 @@ public class AdminController : Controller
     [Route("projects/")]
     public async Task<IActionResult> Projects(int page, int size)
     {
-        IQueryable<Project> projectsQuery = dbContext.Projects.OrderBy(x => x.Id);
+        IQueryable<Project> projectsQuery = dbContext.Projects.OrderByDescending(x => x.Id);
         PagedResult<Project> projectsPaged = await PagedResult<Project>.Create(projectsQuery, page, size);
         
         return View(new ProjectsPageModel
@@ -74,7 +74,7 @@ public class AdminController : Controller
         if (id != null)
         {
             Project? foundProject = dbContext.Projects
-                .Include(x => x.ProjectVersions)
+                .Include(x => x.ProjectVersions.OrderByDescending(y => y.Id))
                 .ThenInclude(x => x.DocBuilder)
                 .FirstOrDefault(x => x.Id == id);
             
@@ -327,7 +327,8 @@ public class AdminController : Controller
         IQueryable<ProjectBuildSchedule> buildSchedulesQuery = dbContext
             .ProjectBuildSchedules
             .Include(x => x.ProjectVersion)
-            .ThenInclude(x => x.Project);
+            .ThenInclude(x => x.Project)
+            .OrderByDescending(x => x.Id);
         PagedResult<ProjectBuildSchedule> buildSchedules =
             await PagedResult<ProjectBuildSchedule>.Create(buildSchedulesQuery, page, size);
         

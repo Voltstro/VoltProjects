@@ -61,4 +61,8 @@ public sealed class VoltProjectsConfig
     public TimeSpan ProjectVersionsCacheTime { get; init; } = new(0, 24, 0, 0);
     
     public int DbPoolSize { get; init; } = 16;
+    
+    public string DefaultCulture { get; init; } = "en-AU";
+    
+    public string[] SupportedCultures { get; init; } = new[] { "en-AU", "en-GB", "en-CA", "en-US", "en" };
 }
