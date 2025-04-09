@@ -5,9 +5,8 @@ This guide should hopefully get the basics across for hosting Volt Projects.
 ## Prerequisites
 
 - Postgres 17
-- An [Object Storage Provider](object-storage.md)
-- An OpenId provider (E.G: [Microsoft Entra Id](https://learn.microsoft.com/en-au/entra/fundamentals/whatis), [Google Identity](https://developers.google.com/identity/openid-connect/openid-connect), [GitLab](https://docs.gitlab.com/integration/openid_connect_provider/))
-  - It doesn't have to be a cloud solution, the only thing that matters is that it adheres to the OpenId spec
+- An [Object Storage provider](object-storage.md)
+- An [OpenId provider](openid-provider.md)
 - Docker (or something that can run Docker containers)
 
 ## Database Setup
