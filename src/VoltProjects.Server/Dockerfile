@@ -37,6 +37,15 @@ RUN dotnet publish "VoltProjects.Server/VoltProjects.Server.csproj" -c Release -
 
 # Final Stage
 FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine AS final
+
+# Setup ICU
+ENV \
+    DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
+    LC_ALL=en_US.UTF-8 \
+    LANG=en_US.UTF-8
+
+RUN apk add --no-cache icu-data-full icu-libs
+
 WORKDIR /app
 EXPOSE 80
 COPY --from=build-app /app/publish .
