@@ -2,7 +2,9 @@
  * Main JS for admin side of Volt Projects
  */
 
-import '../shared/index';
+import 'bootstrap/js/dist/alert';
+
+import '../shared';
 import { cronValidator } from '../shared/validation/cronValidator';
 import { ValidationService } from '../shared/validation/validationService';
 import { addCronExplainer } from './cron/cronExplain';

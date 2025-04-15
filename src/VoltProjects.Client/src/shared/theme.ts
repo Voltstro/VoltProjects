@@ -1,7 +1,7 @@
 import Cookies from 'js-cookie';
 
-const cookieThemeName = 'vp-theme';
-const allowedThemes: string[] = ['dark', 'light'];
+const THEME_COOKIE_NAME = 'vp-theme';
+const THEME_ALLOWED_THEME_NAMES: string[] = ['dark', 'light'];
 
 /**
  * Toggles current theme
@@ -20,7 +20,7 @@ export function toggleTheme(): void {
  */
 export function setTheme(theme: 'light' | 'dark'): void {
     //Shouldn't happen
-    if(!allowedThemes.find(x => x == theme))
+    if(!THEME_ALLOWED_THEME_NAMES.find(x => x == theme))
         theme = 'dark';
 
     //Set bootstrap theme
@@ -52,10 +52,10 @@ export function getPreferredTheme(): 'light' | 'dark' {
 }
 
 function setStoredTheme(theme: string): void {
-    Cookies.set(cookieThemeName, theme, {
+    Cookies.set(THEME_COOKIE_NAME, theme, {
         sameSite: 'lax',
         expires: 160
     });
 }
 
-const getStoredTheme = (): string => Cookies.get(cookieThemeName);
+const getStoredTheme = (): string => Cookies.get(THEME_COOKIE_NAME);

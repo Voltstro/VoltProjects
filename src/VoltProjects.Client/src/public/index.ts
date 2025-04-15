@@ -1,13 +1,14 @@
-//Shared main entry
+/**
+ * Main JS for the public side of Volt Projects
+ */
+
+// Import shared
 import '../shared';
 
-import { renderAside } from './nav';
+import { initAside } from './aside';
 import { initToc } from './toc';
 import { initSearchNav } from './searchNav';
 
-/**
- * Main entry for public
- */
-renderAside();
+initAside();
 initToc();
 initSearchNav();

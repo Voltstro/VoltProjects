@@ -1,9 +1,6 @@
-import Popover from 'bootstrap/js/dist/popover';
+import { Popover } from 'bootstrap';
 import { debounce } from '../shared/utility';
 
-/**
- * Provides preview functionality to project search nav
- */
 export function initSearchNav(): void {
     //Attempt to get search nav
     const searchNavElement = document.getElementById('search-nav') as HTMLInputElement;

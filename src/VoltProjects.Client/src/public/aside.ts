@@ -1,3 +1,4 @@
+import { ScrollSpy } from 'bootstrap';
 import { isVisible } from '../shared/utility';
 
 export interface NavItem {
@@ -5,19 +6,24 @@ export interface NavItem {
   href?: string
 }
 
+const IN_THIS_ARTICLE_ID = 'in-this-article';
+const ARTICLE_ID = 'article';
+
 /**
- * Renders out the aside
+ * Installs the aside which has "In this Article"
  */
-export function renderAside(): void {
-    const inThisArticle = document.getElementById('in-this-article');
-    if(!inThisArticle)
+export function initAside(): void {
+    const inThisArticle = document.getElementById(IN_THIS_ARTICLE_ID);
+    const articleElement = document.getElementById(ARTICLE_ID);
+
+    if(!inThisArticle || !articleElement)
         return;
 
-    const sections = Array.from(document.querySelectorAll('article h2'))
-        .filter(e => isVisible(e))
-        .map(item => ({ name: item.textContent, href: '#' + item.id }));
+    const sections = Array.from(articleElement.querySelectorAll('h2, h3, h4, h5, h6'))
+        .filter(e => isVisible(e) && e.id)
+        .map(item => ({ name: item.textContent, href: '#' + item.id, type: item.tagName.toLowerCase() }));
 
-    if (!inThisArticle || sections.length <= 0) {
+    if (sections.length <= 0) {
         return;
     }
 
@@ -36,11 +42,17 @@ export function renderAside(): void {
     const asideLinks: HTMLAnchorElement[] = [];
     for(const section of sections) {
         const newHeader = document.createElement('a');
-        newHeader.setAttribute('class', 'nav-link');
+        newHeader.setAttribute('class', `nav-link type-${section.type}`);
         newHeader.innerText = section.name;
         newHeader.href = section.href;
 
         inThisArticleNav.appendChild(newHeader);
         asideLinks.push(newHeader);
     }
+
+    //Create scrollspy
+    new ScrollSpy(articleElement, {
+        target: inThisArticle,
+        offset: 0
+    });
 }

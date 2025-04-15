@@ -2,7 +2,7 @@
 
 This project contains the source needed to build out VoltProject's client-side resources.
 
-This project uses Yarn for package management, [Vite](https://vitejs.dev/) for building the entire project, [TypeScript](https://www.typescriptlang.org/) for typed JavaScript and [Bootstrap](https://getbootstrap.com/) with some custom [scss](https://sass-lang.com/documentation/syntax/) for frontend styling.
+This project uses pnpm for package management, [Vite](https://vitejs.dev/) for building the entire project, [TypeScript](https://www.typescriptlang.org/) for typed JavaScript and [Bootstrap](https://getbootstrap.com/) with some custom [scss](https://sass-lang.com/documentation/syntax/) for frontend styling.
 
 Client resources are served to the browser by `VoltProjects.Server`.
 

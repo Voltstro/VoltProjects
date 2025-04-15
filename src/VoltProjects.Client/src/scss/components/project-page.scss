@@ -130,20 +130,35 @@
 
     .nav {
         display: block;
-        padding-left: 16px;
-        margin-left: 4px;
-        border-left: 2px solid var(--bs-body-color);
-
         a {
-            padding: 5px 5px 0px 5px;
+            border-left: $aside-border-size solid transparent;
+            padding: 2px 4px 2px 0.75rem;
+            color: var(--bs-body-color);
         }
 
         a.active {
-            border-left: 3px solid $primary;
+            border-left: $aside-border-size solid var(--bs-body-color);
+            color: var(--bs-link-color);
         }
 
         a:hover {
-            text-decoration: underline;
+            border-left: $aside-border-size solid var(--bs-body-color);
+        }
+
+        .type-h3 {
+            margin-left: 1em;
+        }
+
+        .type-h4 {
+            margin-left: 2em;
+        }
+
+        .type-h5 {
+            margin-left: 3em;
+        }
+
+        .type-h6 {
+            margin-left: 4em;
         }
     }
 }
