@@ -1,3 +1,12 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json"
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "assignees": ["voltstro"],
+  "ignorePaths": [
+    "src/**/Dockerfile",
+    "src/docker-compose.yml"
+  ],
+  "timezone": "Australia/Brisbane",
+  "schedule": [
+    "* * 1 * *"
+  ]
 }
