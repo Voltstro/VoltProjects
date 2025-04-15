@@ -1,3 +1,4 @@
+@using System.Security.Claims
 @using Microsoft.AspNetCore.Mvc.TagHelpers
 @using VoltProjects.Server.Shared.Helpers
 
@@ -14,11 +15,35 @@
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbar">
-            <ul class="navbar-nav flex-grow">
+            <ul class="navbar-nav me-auto">
                 <li>
                     <a class="nav-link @Html.ActiveClass("Main", "About")" asp-controller="Main" asp-action="About">About</a>
                 </li>
             </ul>
+            
+            @* Admin Dropdown *@
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <ul class="d-flex m-0 p-0">
+                    <div class="dropdown">
+                        <button class="btn btn-link d-flex align-items-center text-white text-decoration-none dropdown-toggle p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <img src="/admin/auth/profile/" alt="User Icon" class="rounded-circle me-2" width="38" height="38">
+                            <strong>@User.FindFirstValue("name")</strong>
+                        </button>
+                        <ul class="dropdown-menu text-small shadow">
+                            <li>
+                                <a class="dropdown-item" asp-controller="Admin" asp-action="Index">Admin</a>
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider"/>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" asp-controller="AdminAuth" asp-action="Signout">Sign out</a>
+                            </li>
+                        </ul>
+                    </div>
+                </ul>
+            }
         </div>
     </div>
 </nav>

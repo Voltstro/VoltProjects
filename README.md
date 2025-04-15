@@ -16,7 +16,7 @@ Volt Projects main purpose is to host a project's documentation. It handles the 
 
 ### Database Setup
 
-For either hosting or development of Volt Projects, you will need a Postgres 15 database. You can really use whatever service you want to run Postgres, ([local install](https://www.postgresql.org/download/), [Docker](https://hub.docker.com/_/postgres/), etc), as long as VP can connect to it using a [connection string](https://www.npgsql.org/doc/connection-string-parameters.html).
+For either hosting or development of Volt Projects, you will need a Postgres 17 database. You can really use whatever service you want to run Postgres, ([local install](https://www.postgresql.org/download/), [Docker](https://hub.docker.com/_/postgres/), etc), as long as VP can connect to it using a [connection string](https://www.npgsql.org/doc/connection-string-parameters.html).
 
 You will obviously need the database for VP and a user to access the DB.
 
@@ -33,9 +33,13 @@ GRANT USAGE ON SCHEMA public TO voltprojects;
 > [!NOTE]
 > Do not use this password in a production environment! If your dumb enough to not realize this, then you should definitely not be hosting a production instance.
 
-### Azure Blob Storage
+### Object Storage
 
-VoltProjects.Builder makes use of Azure Blob Storage for uploading image assets. You will need an Azure Storage Account (or use [Azurite](https://github.com/Azure/Azurite) locally), and create a container for Volt Projects to use. The container needs to be setup for public access. When running VoltProjects.Builder, you need to set `VP_AZURE_CREDENTIAL` environment variable to one of your storage account's connection strings. The `PublicUrl` in both server and builder's config then needs to be set to your container's public url (usually `https://<Account Name>.blob.core.windows.net/<Container Name>/`).
+Volt Project uses "object storage" for storage of project's external assets, such as images and scripts. Supported object storage providers are [Azure Storage](https://learn.microsoft.com/en-au/azure/storage/common/storage-account-overview), [AWS S3](https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html) (or other S3 implementations such as [Cloudflare's R2](https://developers.cloudflare.com/r2/)) and [Google Cloud Storage](https://cloud.google.com/storage/docs/).
+
+You will need to use one of these providers (or an emulator such [Azurite](https://learn.microsoft.com/en-au/azure/storage/common/storage-use-azurite)). You will also need to configure the container to host to blobs publicly.
+
+Configure the object storage provider using `Config.ObjectStorageProvider` in the appsettings for both Server and Builder. The credentials for storage providers are always provided by environment variables.
 
 ### Hosting
 
@@ -58,7 +62,15 @@ services:
       - "8080:80"
     environment:
       - ConnectionStrings__ServerConnection
-      - VoltProjects__PublicUrl
+      - Config__ObjectStorageProvider__Provider
+      - Config__ObjectStorageProvider__ContainerName
+      - Config__ObjectStorageProvider__BasePath
+      - Config__ObjectStorageProvider__SubPath
+      - Config__PublicUrl
+      - Config__OpenIdConfig__Authority
+      - Config__OpenIdConfig__ClientId
+      - Config__OpenIdConfig__ClientSecret
+      - VP_AZURE_CREDENTIAL
 
   builder:
     image: voltstro/vpbuilder:latest
@@ -66,7 +78,10 @@ services:
     restart: unless-stopped
     environment:
       - ConnectionStrings__BuilderConnection
-      - Config__StorageConfig__PublicUrl
+      - Config__ObjectStorageProvider__Provider
+      - Config__ObjectStorageProvider__ContainerName
+      - Config__ObjectStorageProvider__BasePath
+      - Config__ObjectStorageProvider__SubPath
       - VP_AZURE_CREDENTIAL
 ```
 
@@ -75,9 +90,9 @@ services:
 #### Prerequisites
 
 ```
-.NET 8 SDK
-Yarn
-Postgres 15
+.NET 9 SDK
+NodeJs 22
+Postgres 17
 ```
 
 ### Setup
@@ -85,8 +100,8 @@ Postgres 15
 1. Build the client project by using these commands in the `src/VoltProjects.Client` directory.
 
     ```
-    yarn
-    yarn run build
+    pnpm install
+    pnpm run build
     ```
 
 2. Update `appsettings.json` in both Builder and Server accordingly for what you need.
@@ -95,23 +110,7 @@ Postgres 15
 
 4. Run either the Server or Builder project for it to migrate the database. You can close it once the DB has been migrated.
 
-5. Add Projects to build to the `project` and `project_version` tables, and the project's accompanying pre build command to `project_pre_build`. An example for VoltRpc is provided below.
-
-    ```sql
-    INSERT INTO public.project
-    ("name", short_name, description, git_url, icon_path, display_name)
-    VALUES('VoltRpc', NULL, 'An RPC library which is designed to be both simple to use and fast.', 'https://github.com/Voltstro-Studios/VoltRpc', 'icon.svg', 'VoltRpc');
-    
-    INSERT INTO public.project_version
-        (project_id, version_tag, git_branch, git_tag, doc_builder_id, docs_path, docs_built_path, language_id, is_default)
-        VALUES(1, 'latest', 'master', NULL, 'docfx', 'docs/', 'docs/_site/', 1, true);
-        
-    INSERT INTO public.project_pre_build
-        (project_version_id, "order", command, arguments)
-        VALUES(1, 1, 'docfx', 'metadata docs/docfx.json');
-    ```
-
-6. Run Builder and Server projects. Make sure everything in builder goes well. You can access the server on `http://localhost:5000`.
+5. Run Builder and Server projects. Make sure everything in builder goes well. You can access the server on `http://localhost:5000`.
 
 #### Docker-Compose
 

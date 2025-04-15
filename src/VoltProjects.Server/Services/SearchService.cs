@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -6,7 +7,10 @@ using System.Threading.Tasks;
 using Ganss.Xss;
 using Microsoft.EntityFrameworkCore;
 using VoltProjects.Server.Models.Searching;
+using VoltProjects.Server.Shared.Paging;
 using VoltProjects.Shared;
+using VoltProjects.Shared.Models;
+
 
 namespace VoltProjects.Server.Services;
 
@@ -15,6 +19,7 @@ namespace VoltProjects.Server.Services;
 /// </summary>
 public sealed class SearchService
 {
+	private readonly VoltProjectDbContext dbContext;
     private readonly HtmlSanitizer sanitizer;
 
     /// <summary>
@@ -36,33 +41,19 @@ JOIN public.project AS project
 WHERE
 	to_tsvector(language_configuration, title || content) @@ websearch_to_tsquery(@p0)
 AND project_page.published = TRUE
-AND project.id = ANY(@p1)
-AND project_version.id = ANY(@p2)
+AND project.id = @p1
+AND project_version.id = @p2
 ORDER BY (
 	ts_rank_cd(to_tsvector(language_configuration, title || content), websearch_to_tsquery(@p0))
 ) DESC
-";
-
-    private const string CountQuerySql = @"
-SELECT
-	count(*) as ""Value""
-FROM public.project_page AS project_page
-JOIN public.project_version AS project_version
-	ON project_version.id = project_page.project_version_id 
-JOIN public.project AS project
-	ON project.id = project_version.project_id
-WHERE
-	to_tsvector(language_configuration, title || content) @@ websearch_to_tsquery(@p0)
-AND project_page.published = TRUE
-AND project.id = ANY(@p1)
-AND project_version.id = ANY(@p2)
 ";
     
     /// <summary>
     ///		Creates a new <see cref="SearchService"/> instance
     /// </summary>
-    public SearchService()
+    public SearchService(VoltProjectDbContext dbContext)
     {
+	    this.dbContext = dbContext;
         sanitizer = new HtmlSanitizer(new HtmlSanitizerOptions
         {
 	        AllowedTags = new HashSet<string>
@@ -72,30 +63,26 @@ AND project_version.id = ANY(@p2)
         });
     }
 
-    public async Task<SearchPagedResult> Search(VoltProjectDbContext dbContext, string query, int page, int size, int[] projectIds, int[] projectVersionIds, CancellationToken cancellationToken = default)
+    /// <summary>
+    ///		Performs a search query
+    /// </summary>
+    /// <param name="query"></param>
+    /// <param name="projectId"></param>
+    /// <param name="projectVersionId"></param>
+    /// <param name="pageIndex"></param>
+    /// <param name="pageSize"></param>
+    /// <returns></returns>
+    public async Task<PagedResult<SearchResult>> Search(string query, int projectId, int projectVersionId, int pageIndex, int pageSize, CancellationToken cancellationToken)
     {
-	    Stopwatch stopwatch = Stopwatch.StartNew();
-	    
-	    //Get total results. Yes, doing ToArray()[0] is not pretty, but it works
-	    IQueryable<int> countSearchSqlQuery =
-		    dbContext.Database.SqlQueryRaw<int>(CountQuerySql, query, projectIds, projectVersionIds);
-	    int totalResults = countSearchSqlQuery.ToArray()[0];
-	    
-	    //Get actual paged results
-	    IQueryable<SearchResult> mainSearchSqlQuery =
-		    dbContext.Database.SqlQueryRaw<SearchResult>(MainQuerySql, query, projectIds, projectVersionIds);
-        SearchResult[] results = await mainSearchSqlQuery
-	        .Skip((page - 1) * size)
-	        .Take(size)
-	        .ToArrayAsync(cancellationToken);
-        
-        //Sanitize results, excluding <mark>
-        foreach (SearchResult result in results)
-        {
-	        result.Headline = sanitizer.Sanitize(result.Headline);
-        }
-        
-        stopwatch.Stop();
-        return new SearchPagedResult(results, totalResults, size, page, stopwatch.Elapsed.TotalSeconds, projectIds, projectVersionIds);
+	    IQueryable<SearchResult> searchQuery = dbContext.Database.SqlQueryRaw<SearchResult>(MainQuerySql, query, projectId, projectVersionId);
+	    PagedResult<SearchResult> pagedResult = await PagedResult<SearchResult>.Create(searchQuery, pageIndex, pageSize, [5, 15, 25, 50], [15, 25, 50],
+		    items =>
+		    {
+			    foreach (SearchResult result in items)
+			    {
+				    result.Headline = sanitizer.Sanitize(result.Headline);
+			    }
+		    }, cancellationToken);
+	    return pagedResult;
     }
 }

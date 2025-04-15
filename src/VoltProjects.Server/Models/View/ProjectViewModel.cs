@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using VoltProjects.Shared.Models;
 
 namespace VoltProjects.Server.Models.View;
@@ -25,7 +26,7 @@ public sealed class ProjectViewModel
     public ProjectHeaderModel ProjectHeaderModel { get; init; }
     
     /// <summary>
-    ///     Project's TOC
+    ///     Project's TOC items
     /// </summary>
-    public TocItem? Toc { get; init; }
+    public IReadOnlyList<TocItem>? TocItems { get; init; }
 }

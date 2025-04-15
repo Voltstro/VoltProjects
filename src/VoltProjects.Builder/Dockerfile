@@ -1,5 +1,5 @@
 ﻿# Build Stage
-FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS build
 WORKDIR /src
 
 # Restore Projects
@@ -11,6 +11,7 @@ RUN dotnet restore "VoltProjects.Builder/VoltProjects.Builder.csproj"
 COPY version.json version.json
 COPY VoltProjects.Shared/ VoltProjects.Shared/
 COPY VoltProjects.Builder/ VoltProjects.Builder/
+COPY VoltProjects.Builder.HlJs/ VoltProjects.Builder.HlJs/
 
 # Build App
 RUN dotnet publish "VoltProjects.Builder/VoltProjects.Builder.csproj" -c Release -o /app/publish /p:UseAppHost=false --no-restore
@@ -25,15 +26,12 @@ RUN VoltProjects.Integration.MkDocs/venv/bin/python -m pip install mkdocs VoltPr
 
 # Final Stage
 # We using SDK to run the app, as .NET doc projects need it
-FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS final
+FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS final
 WORKDIR /app
 RUN apk add --no-cache python3 py3-pip
 
-# Install VDocFx
-RUN dotnet tool update -g vdocfx --version "1.0.0-0010-gaa68456a75" --add-source https://pkgs.dev.azure.com/Voltstro/VDocFx/_packaging/VDocFx/nuget/v3/index.json
-
 # Install DocFx
-RUN dotnet tool update -g docfx --version "2.77.0"
+RUN dotnet tool update -g docfx --version "2.78.3"
 
 # Install MKDocs
 COPY VoltProjects.Integration.MkDocs/ /src/VoltProjects.Integration.MkDocs/

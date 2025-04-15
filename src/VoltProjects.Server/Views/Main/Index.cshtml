@@ -1,5 +1,5 @@
-@using VoltProjects.Server.Models
-@model VoltProjects.Server.Models.ProjectInfo[]
+@using VoltProjects.Shared.Models
+@model VoltProjects.Server.Models.View.MainViewModel
 @{
     ViewBag.Title = "Home";
     ViewBag.Description = "Volt Projects - Find all documentation available related to Voltstro's projects in one place!";
@@ -20,52 +20,39 @@
     <h4 class="pt-1">Listing of all projects documentation that is currently on-hand.</h4>
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3">
         <cache>
-            @foreach (ProjectInfo project in Model)
+            @foreach (Project project in Model.Projects)
             {
-                <div class="col py-3">
-                    <div class="card shadow h-100">
-                        <div class="row g-0 h-100">
-                            <div class="col-12 col-xl-3">
-                                <img class="prj-icon mx-auto mt-3 d-block rounded" alt="Project Icon" src="@project.IconPath"/>
-                            </div>
-                            <div class="col-12 col-xl-9 card-body">
-                                <div class="d-inline-flex flex-column h-100">
-                                    <div class="row">
-                                        <h5 class="card-title">
-                                            <a class="prj-title" href="/@project.Name/@project.DefaultVersion/">@project.DisplayName</a>
-                                        </h5>
-                                        <p class="card-text">@project.Description</p>
-                                    </div>
-                                    <div class="row flex-grow-1 pt-3">
-                                        <div class="mt-auto">
-                                            <div class="btn-group dropend d-flex d-lg-block">
-                                                <a class="btn btn-primary" href="/@project.Name/@project.DefaultVersion/">View</a>
-                                                @if (project.OtherVersions.Length > 0)
-                                                {
-                                                    <button class="btn btn-primary dropdown-toggle dropdown-toggle-split" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                        <span class="visually-hidden">Toggle Dropend</span>
-                                                    </button>
-                                                    <ul class="dropdown-menu">
-                                                        <li>
-                                                            <a class="dropdown-item active" href="/@project.Name/@project.DefaultVersion/">Latest</a>
-                                                        </li>
-                                                        @foreach (string version in project.OtherVersions)
-                                                        {
-                                                            <li>
-                                                                <a class="dropdown-item" href="/@project.Name/@version/">@version</a>
-                                                            </li>
-                                                        }
-                                                    </ul>
-                                                }
-                                            </div>
+                string defaultVersion = project.ProjectVersions.FirstOrDefault(x => x.IsDefault)!.VersionTag;
+                @:<div class="col py-3">
+                <div class="card shadow h-100">
+                    <div class="row g-0 h-100">
+                        <div class="col-12 col-xl-3">
+                            @if (project.IconPath != null)
+                            {
+                                <img class="prj-icon mx-auto mt-3 d-block rounded" alt="@project.Name's Project Icon" src="@(System.IO.Path.Combine(Model.PublicUrl, project.Name, project.IconPath))"/>
+                            }
+                        </div>
+                        <div class="col-12 col-xl-9 card-body">
+                            <div class="d-inline-flex flex-column h-100">
+                                <div class="row">
+                                    <h5 class="card-title">
+                                        <a class="prj-title" href="/@project.Name/@defaultVersion/">@project.DisplayName</a>
+                                    </h5>
+                                    <p class="card-text">@project.Description</p>
+                                </div>
+                                <div class="row flex-grow-1 pt-3">
+                                    <div class="mt-auto">
+                                        <div class="btn-group dropend d-flex d-lg-block">
+                                            <a class="btn btn-primary" href="/@project.Name/@defaultVersion/">View</a>
                                         </div>
                                     </div>
-
                                 </div>
+
                             </div>
                         </div>
                     </div>
                 </div>
+                @:</div>
             }
         </cache>
     </div>

@@ -16,8 +16,7 @@
             </ul>
             <ul class="d-flex m-0 p-0">
                 <form method="get" action="/search/" class="w-100">
-                    <input type="hidden" name="projectId" value="@Model.ProjectId"/>
-                    <input type="hidden" name="projectVersionId" value="@Model.ProjectVersionId"/>
+                    <input type="hidden" name="project" value="@Model.ProjectId|@Model.ProjectVersionId"/>
 
                     <div class="input-group">
                         <input

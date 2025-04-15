@@ -1,0 +1,22 @@
+- name: Welcome
+  href: index.md
+
+- name: Hosting
+  items:
+    - name: Getting Started
+      href: hosting/getting-started.md
+    - name: Object Storage
+      href: hosting/object-storage.md
+    - name: OpenId Provider
+      href: hosting/openid-provider.md
+    - name: Sentry
+      href: hosting/sentry.md
+
+- name: Administration
+  href: administration.md
+
+- name: Builders
+  href: builders.md
+
+- name: Development
+  href: dev.md

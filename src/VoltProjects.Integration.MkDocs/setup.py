@@ -6,7 +6,7 @@ long_description = (this_directory / "README.md").read_text()
 
 setup(
     name = 'mkdocs_vp_integration',
-    version = '1.0.0',
+    version = '1.1.0',
     description =' Integration for MkDocs and VoltProject',
     long_description = long_description,
     url = '',

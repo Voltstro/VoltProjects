@@ -1,0 +1,156 @@
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@using VoltProjects.Shared.Models
+@model VoltProjects.Server.Models.View.Admin.ProjectPageModel
+@{
+    string title = "New Project";
+    if (Model.Id != null)
+        title = $"Editing {Model.Name} Project";
+        
+    ViewBag.Title = title;
+
+    ViewBag.PreviousTitle = "Back to Projects";
+    ViewBag.PreviousAction = "Projects";
+}
+
+<div class="container pt-4">
+    @if (Model is { Success: true })
+    {
+        <div class="alert alert-success alert-dismissible show" role="alert">
+            Project was successfully saved.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    else if (Model is {Success: false})
+    {
+        <div class="alert alert-danger alert-dismissible show" role="alert">
+            Failed to save project.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <form asp-controller="Admin" asp-action="Project" asp-route-id="@Model?.Id" method="post" enctype="multipart/form-data">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="m-0 fw-bold">Basic Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-1 mb-3">
+                        <label asp-for="Id" class="form-label">ID</label>
+                        <input asp-for="Id" type="text" class="form-control" disabled>
+                    </div>
+
+                    <div class="col-3 mb-4">
+                        <label asp-for="Name" class="form-label">Name</label>
+                        <input asp-for="Name" type="text" class="form-control">
+                        <span asp-validation-for="Name" class="invalid-feedback"></span>
+                    </div>
+
+                    <div class="col-4 mb-4">
+                        <label asp-for="DisplayName" class="form-label">Display Name</label>
+                        <input asp-for="DisplayName" type="text" class="form-control">
+                        <span asp-validation-for="DisplayName" class="invalid-feedback"></span>
+                    </div>
+
+                    <div class="col-4 mb-4">
+                        <label asp-for="ShortName" class="form-label">Short Name</label>
+                        <input asp-for="ShortName" type="text" class="form-control">
+                        <span asp-validation-for="ShortName" class="invalid-feedback"></span>
+                    </div>
+
+                    <div class="col-8 mb-8">
+                        <label asp-for="GitUrl" class="form-label">Git URL</label>
+                        <input asp-for="GitUrl" type="url" class="form-control">
+                        <span asp-validation-for="GitUrl" class="invalid-feedback"></span>
+                    </div>
+
+                    <div class="col-4 mb-4">
+                        <label asp-for="ProjectIcon" class="form-label">Project Icon</label>
+                        @if (!string.IsNullOrWhiteSpace(Model.IconPath))
+                        {
+                            <div class="pb-2">
+                                <img class="rounded" height="128" alt="Project Icon" src="@Model.IconPath"/>
+                            </div>
+                        }
+                        <div>
+                            <input asp-for="ProjectIcon" class="form-control" type="file" accept="image/png, image/jpeg, image/webp, image/svg+xml">
+                        </div>
+                    </div>
+
+                    <div class="col-12 mb-4">
+                        <label asp-for="Description" class="form-label">Description</label>
+                        <textarea asp-for="Description" class="form-control"></textarea>
+                        <span asp-validation-for="Description" class="invalid-feedback"></span>
+                    </div>
+                    
+                    <div class="col-1 mb-4">
+                        <label asp-for="Published" class="form-label">Published</label>
+                        <div class="form-check form-switch form-switch-md">
+                            <input asp-for="Published" class="form-check-input" type="checkbox" role="switch">
+                        </div>
+                    </div>
+
+                    <div class="col-3 mb-4">
+                        <label asp-for="CreationTime" class="form-label">Created At</label>
+                        <input asp-for="CreationTime" type="text" class="form-control" disabled></input>
+                    </div>
+
+                    <div class="col-3 mb-4">
+                        <label asp-for="LastUpdateTime" class="form-label">Last Updated At</label>
+                        <input asp-for="LastUpdateTime" type="text" class="form-control" disabled></input>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (Model.Id != null)
+        {
+            <div class="card mt-4">
+                <div class="card-header d-flex">
+                    <h5 class="m-0 fw-bold align-content-center">Versions</h5>
+                    <a asp-route="AdminProjectVersionNew" asp-route-projectId="@Model.Id" class="btn btn-primary ms-auto">New</a>
+                </div>
+                <div class="card-body">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Version Tag</th>
+                            <th scope="col">Git Branch</th>
+                            <th scope="col">Doc Build</th>
+                            <th scope="col">Default</th>
+                            <th scope="col">Published</th>
+                            <th scope="col">Updated At</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @if (Model.ProjectVersions != null)
+                        {
+                            @foreach (ProjectVersion projectVersion in Model.ProjectVersions)
+                            {
+                                <tr>
+                                    <th scope="row">@projectVersion.Id</th>
+                                    <td>@projectVersion.VersionTag</td>
+                                    <td>@projectVersion.GitBranch</td>
+                                    <td>@projectVersion.DocBuilder.Name</td>
+                                    <td>
+                                        <partial name="Shared/BoolIcon" model="@projectVersion.IsDefault"/>
+                                    </td>
+                                    <td><partial name="Shared/BoolIcon" model="@projectVersion.Published"/></td>
+                                    <td>@projectVersion.LastUpdateTime</td>
+                                    <td><a asp-controller="Admin" asp-action="ProjectVersion" asp-route-projectId="@Model.Id" asp-route-projectVersionId="@projectVersion.Id" class="btn btn-primary float-end">Edit</a></td>
+                                </tr>
+                            }
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+
+        <div class="pt-4">
+            <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+    </form>
+</div>

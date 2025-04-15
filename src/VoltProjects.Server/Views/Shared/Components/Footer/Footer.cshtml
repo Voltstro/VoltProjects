@@ -1,5 +1,6 @@
 @using VoltProjects.Server.Models
 @using VoltProjects.Server.Shared
+@using VoltProjects.Server.Shared.Helpers
 @model VoltProjects.Server.Models.View.FooterViewModel
 
 <div class="shadow footer-container border-top">
@@ -7,34 +8,19 @@
         <footer class="row text-muted">
             <div class="col-md-10 col-sm-12">
                 <p class="text-body-secondary">Copyright (c) 2022-2025 Voltstro</p>
-                
                 <p class="d-print-none">
                     VoltProjects is licensed under the <a class="text-decoration-none" href="https://github.com/Voltstro/VoltProjects/blob/master/LICENSE">GPL-3.0 License</a>. The content served may be licensed under a different license.
                     <br />
                     @Model.UsingWording VoltProjects v<a class="text-muted text-decoration-none" href="@($"https://github.com/Voltstro/VoltProjects/releases/tag/{Versioning.Version}")">@Versioning.Version</a>
                 </p>
-                
             </div>
             <div class="col-md-2 col-sm-12 text-end d-print-none">
                 <div class="row h-100">
-                    <div class="col-12 dropup dropup-center"> 
-                        <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Theme
+                    <div class="col-12"> 
+                        <button class="btn btn-secondary" type="button" onclick="window.vGlobal.toggleTheme()" title="Change Theme">
+                            <i id="theme-btn-icon" class="bi @(MvcHelper.GetUserTheme(Context.Request) == "light" ? "bi-brightness-high-fill" : "bi-moon-fill")"></i>
                         </button>
-                        <ul class="dropdown-menu">
-                            <li>
-                                <button id="theme-dark-btn" class="dropdown-item active" onclick="window.vGlobal.setTheme('dark');">
-                                    <i class="bi bi-moon-fill"></i> Dark
-                                </button>
-                            </li>
-                            <li>
-                                <button id="theme-light-btn" class="dropdown-item" onclick="window.vGlobal.setTheme('light');">
-                                    <i class="bi bi-brightness-high-fill"></i> Light
-                                </button>
-                            </li>
-                        </ul>
                     </div>
-                    
                     <div>
                         @foreach (SocialLink socialLink in Model.SocialLinks)
                         {
@@ -42,8 +28,6 @@
                         }
                     </div>
                 </div>
-                
-                
             </div>
         </footer>
     </div>

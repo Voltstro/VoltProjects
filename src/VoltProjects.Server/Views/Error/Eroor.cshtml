@@ -8,33 +8,26 @@
 
 @if (Model.ProjectNavModel != null)
 {
-@section NavbarSecond
-{
-    <partial name="/Views/Project/Shared/ProjectNav.cshtml" model="Model.ProjectNavModel"/>
-}
+    @section NavbarSecond
+    {
+        <partial name="/Views/Project/Shared/ProjectNav.cshtml" model="Model.ProjectNavModel"/>
+    }
 }
 
 <!-- 01000101 01110010 01101111 01101111 01110010 -->
 <div class="container">
     <div class="hero container">
         <div class="hero-content">
-            @if (Model.ErrorCode == null)
-            {
-                <h1>An Unknown Error Has Occured!</h1>
-            }
-            else
-            {
-                <h1>@Model.ErrorCode - @Model.ErrorMessage</h1>
-            }
+            <h1>@Model.ErrorCode - @Model.ErrorMessage</h1>
             <div class="lead">
                 <p>@Model.ErrorMessageDetailed</p>
             </div>
             @if (Model.ErrorCode == HttpStatusCode.NotFound)
             {
                 <div class="actions">
-                    @if (Model is { Project: not null,ProjectVersion: not null })
+                    @if (Model.ProjectNavModel != null)
                     {
-                        <a class="btn btn-primary btn-lg" href="/@Model.Project/@Model.ProjectVersion/">Go to Project Index</a>
+                        <a class="btn btn-primary btn-lg" href="@Model.ProjectNavModel.BasePath">Go to Project Index</a>
                     }
                     <a class="btn btn-primary btn-lg" href="/">Go to Index</a>
                 </div>

@@ -1,0 +1,48 @@
+@using VoltProjects.Shared.Models
+@model VoltProjects.Server.Models.View.Admin.BuildEventsModel
+@{
+    ViewBag.Title = "Build Events";
+}
+
+<div class="container pt-4">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="m-0 fw-bold align-content-center">Build Events</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-striped table-hover">
+                <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Project</th>
+                    <th scope="col">Version Tag</th>
+                    <th scope="col">Successful</th>
+                    <th scope="col">Message</th>
+                    <th scope="col">Updated At</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (ProjectBuildEvent buildEvent in Model.ProjectBuildEvents.Items)
+                {
+                    <tr>
+                        <th>@buildEvent.Id</th>
+                        <td>@buildEvent.Project.Project.Name</td>
+                        <td>@buildEvent.Project.VersionTag</td>
+                        <td>
+                            <partial name="Shared/BoolIcon" model="@buildEvent.Successful"/>
+                        </td>
+                        <td>@buildEvent.Message</td>
+                        <td>@buildEvent.LastUpdateTime</td>
+                        <td><a asp-controller="Admin" asp-action="BuildEvent" asp-route-eventId="@buildEvent.Id" class="btn btn-primary float-end">View Logs</a></td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+
+            @* Pagination Controls *@
+            <div class="mt-4 d-flex" paged-count="@Model.ProjectBuildEvents">
+            </div>
+        </div>
+    </div>
+</div>

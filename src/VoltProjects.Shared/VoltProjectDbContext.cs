@@ -23,22 +23,32 @@ public sealed class VoltProjectDbContext : DbContext
     }
     
     public DbSet<DocBuilder> DocBuilders { get; set; }
+    
+    public DbSet<LogLevel> LogLevels { get; set; }
 
     public DbSet<Project> Projects { get; set; }
     
     public DbSet<ProjectBuildEvent> ProjectBuildEvents { get; set; }
     
+    public DbSet<ProjectBuildEventLog> ProjectBuildEventLogs { get; set; }
+    
+    public DbSet<ProjectBuildSchedule> ProjectBuildSchedules { get; set; }
+    
     public DbSet<ProjectVersion> ProjectVersions { get; set; }
     
     public DbSet<ProjectPage> ProjectPages { get; set; }
+    
+    public DbSet<ProjectPageBreadcrumb> ProjectPageBreadcrumbs { get; set; }
     
     public DbSet<ProjectPageContributor> ProjectPageContributors { get; set; }
     
     public DbSet<ProjectPageStorageItem> ProjectPageStorageItems { get; set; }
 
-    public DbSet<ProjectMenu> ProjectMenus { get; set; }
+    public DbSet<ProjectMenuItem> ProjectMenuItems { get; set; }
     
     public DbSet<ProjectToc> ProjectTocs { get; set; }
+    
+    public DbSet<ProjectTocItem> ProjectTocItems { get; set; }
     
     public DbSet<ProjectStorageItem> ProjectStorageItems { get; set; }
 
@@ -52,6 +62,9 @@ public sealed class VoltProjectDbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
+        if(optionsBuilder.IsConfigured)
+            return;
+        
         optionsBuilder
             .UseNpgsql()
             .UseSnakeCaseNamingConvention();
@@ -75,7 +88,20 @@ public sealed class VoltProjectDbContext : DbContext
                 .Property(p => p.CreationTime)
                 .HasDefaultValueSql("now()");
             
-            //Project Version
+            modelBuilder.Entity<Project>()
+                .Property(p => p.Published)
+                .HasDefaultValue(true);
+
+            //ProjectBuildSchedule
+            modelBuilder.Entity<ProjectBuildSchedule>()
+                .Property(p => p.CreationTime)
+                .HasDefaultValueSql("now()");
+            
+            modelBuilder.Entity<ProjectBuildSchedule>()
+                .Property(p => p.LastUpdateTime)
+                .HasDefaultValueSql("now()");
+            
+            //ProjectVersion
             modelBuilder.Entity<ProjectVersion>()
                 .Property(p => p.LastUpdateTime)
                 .HasDefaultValueSql("now()");
@@ -84,16 +110,11 @@ public sealed class VoltProjectDbContext : DbContext
                 .Property(p => p.CreationTime)
                 .HasDefaultValueSql("now()");
             
-            //Project Menu
-            modelBuilder.Entity<ProjectMenu>()
-                .Property(p => p.LastUpdateTime)
-                .HasDefaultValueSql("now()");
-
-            modelBuilder.Entity<ProjectMenu>()
-                .Property(p => p.CreationTime)
-                .HasDefaultValueSql("now()");
+            modelBuilder.Entity<ProjectVersion>()
+                .Property(p => p.Published)
+                .HasDefaultValue(true);
             
-            //Project Page
+            //ProjectPage
             modelBuilder.Entity<ProjectPage>()
                 .Property(p => p.LastUpdateTime)
                 .HasDefaultValueSql("now()");
@@ -135,7 +156,11 @@ public sealed class VoltProjectDbContext : DbContext
             
             //Project Build Event
             modelBuilder.Entity<ProjectBuildEvent>()
-                .Property(p => p.Date)
+                .Property(p => p.LastUpdateTime)
+                .HasDefaultValueSql("now()");
+            
+            modelBuilder.Entity<ProjectBuildEvent>()
+                .Property(p => p.CreationTime)
                 .HasDefaultValueSql("now()");
             
             //External Item
@@ -160,14 +185,25 @@ public sealed class VoltProjectDbContext : DbContext
             
             //Project Build Event
             modelBuilder.Entity<ProjectBuildEvent>()
-                .Property(p => p.Id).UseIdentityAlwaysColumn();
+                .Property(p => p.Id)
+                .UseIdentityAlwaysColumn();
+            
+            //ProjectBuildEventLog
+            modelBuilder.Entity<ProjectBuildEventLog>()
+                .Property(p => p.Id)
+                .UseIdentityAlwaysColumn();
+            
+            //ProjectBuildSchedule
+            modelBuilder.Entity<ProjectBuildSchedule>()
+                .Property(p => p.Id)
+                .UseIdentityAlwaysColumn();
             
             //Project Menu
-            modelBuilder.Entity<ProjectMenu>()
+            modelBuilder.Entity<ProjectMenuItem>()
                 .Property(p => p.Id).UseIdentityAlwaysColumn();
             
-            modelBuilder.Entity<ProjectMenu>()
-                .HasIndex(p => new { p.ProjectVersionId })
+            modelBuilder.Entity<ProjectMenuItem>()
+                .HasIndex(p => new { p.ProjectVersionId, p.Href })
                 .IsUnique();
 
             //Project Page Unique Keys
@@ -177,6 +213,16 @@ public sealed class VoltProjectDbContext : DbContext
             modelBuilder.Entity<ProjectPage>()
                 .HasIndex(p => new { p.ProjectVersionId, p.Path })
                 .IsUnique();
+            
+            //ProjectPageBreadcrumb
+            modelBuilder.Entity<ProjectPageBreadcrumb>()
+                .Property(p => p.Id)
+                .UseIdentityAlwaysColumn();
+
+            modelBuilder.Entity<ProjectPageBreadcrumb>()
+                .HasIndex(p => new { p.ProjectPageId, p.Title, p.Href })
+                .IsUnique()
+                .AreNullsDistinct(false);
             
             //Project Page Contributor
             modelBuilder.Entity<ProjectPageContributor>()
@@ -211,6 +257,12 @@ public sealed class VoltProjectDbContext : DbContext
             modelBuilder.Entity<ProjectToc>()
                 .HasIndex(p => new { p.ProjectVersionId, p.TocRel })
                 .IsUnique();
+            
+            //ProjectTocItem
+            modelBuilder.Entity<ProjectTocItem>()
+                .HasIndex(p => new { p.ProjectTocId, p.Title, p.ParentTocItemId, p.Href })
+                .IsUnique()
+                .AreNullsDistinct(false);
             
             //Project Version
             modelBuilder.Entity<ProjectVersion>()
@@ -256,6 +308,23 @@ public sealed class VoltProjectDbContext : DbContext
                 .HasOne(p => p.Project)
                 .WithMany()
                 .OnDelete(DeleteBehavior.Restrict);
+
+            //ProjectBuildEventLog
+            modelBuilder.Entity<ProjectBuildEventLog>()
+                .HasOne(p => p.BuildEvent)
+                .WithMany(p => p.BuildEventLogs)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ProjectBuildEventLog>()
+                .HasOne(p => p.LogLevel)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
+                
+                //ProjectBuildSchedule
+            modelBuilder.Entity<ProjectBuildSchedule>()
+                .HasOne(p => p.ProjectVersion)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
             
             //ProjectExternalItem
             modelBuilder.Entity<ProjectExternalItem>()
@@ -273,27 +342,28 @@ public sealed class VoltProjectDbContext : DbContext
                 .HasOne(p => p.StorageItem)
                 .WithMany()
                 .OnDelete(DeleteBehavior.Restrict);
-            
-            //ProjectMenu
-            modelBuilder.Entity<ProjectMenu>()
+
+            //ProjectMenuItem
+            modelBuilder.Entity<ProjectMenuItem>()
                 .HasOne(p => p.ProjectVersion)
-                .WithMany()
+                .WithMany(p => p.MenuItems)
                 .OnDelete(DeleteBehavior.Restrict);
             
             //ProjectPage
             modelBuilder.Entity<ProjectPage>()
                 .HasOne(p => p.ProjectVersion)
-                .WithMany()
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<ProjectPage>()
-                .HasOne(p => p.ParentPage)
-                .WithMany()
+                .WithMany(p => p.Pages)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<ProjectPage>()
                 .HasOne(p => p.ProjectToc)
                 .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            //ProjectPageBreadcrumb
+            modelBuilder.Entity<ProjectPageBreadcrumb>()
+                .HasOne(p => p.ProjectPage)
+                .WithMany(p => p.Breadcrumbs)
                 .OnDelete(DeleteBehavior.Restrict);
             
             //ProjectPageContributor
@@ -316,7 +386,7 @@ public sealed class VoltProjectDbContext : DbContext
             //ProjectPreBuild
             modelBuilder.Entity<ProjectPreBuild>()
                 .HasOne(p => p.ProjectVersion)
-                .WithMany()
+                .WithMany(p => p.PreBuilds)
                 .OnDelete(DeleteBehavior.Restrict);
             
             //ProjectStorageItem
@@ -330,6 +400,17 @@ public sealed class VoltProjectDbContext : DbContext
                 .HasOne(p => p.ProjectVersion)
                 .WithMany()
                 .OnDelete(DeleteBehavior.Restrict);
+            
+            //ProjectTocItem
+            modelBuilder.Entity<ProjectTocItem>()
+                .HasOne(p => p.ProjectToc)
+                .WithMany(x => x.TocItems)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ProjectTocItem>()
+                .HasOne(p => p.ParentTocItem)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Cascade);
             
             //ProjectVersion
             modelBuilder.Entity<ProjectVersion>()
@@ -346,8 +427,6 @@ public sealed class VoltProjectDbContext : DbContext
                 .HasOne(p => p.Language)
                 .WithMany()
                 .OnDelete(DeleteBehavior.Restrict);
-
-            
         }
         
         //Collations
@@ -363,28 +442,11 @@ public sealed class VoltProjectDbContext : DbContext
                 .UseCollation("vp_collation_nondeterministic");
         }
         
-        //Ignore
-        {
-            //Project Page
-            modelBuilder.Entity<ProjectPage>()
-#pragma warning disable CS0618 // Type or member is obsolete
-                .Ignore(p => p.ParentPageId)
-                .Ignore(p => p.ParentPage);
-#pragma warning restore CS0618 // Type or member is obsolete
-        }
-        
         //Seed data
         {
             //Doc Builder
             modelBuilder.Entity<DocBuilder>()
                 .HasData(new DocBuilder
-                {
-                    Id = "vdocfx",
-                    Name = "VDocFx",
-                    Application = "vdocfx",
-                    Arguments = ["build", "--output-type PageJson", "--output {0}"],
-                    EnvironmentVariables = ["DOCS_GITHUB_TOKEN="]
-                }, new DocBuilder
                 {
                     Id = "docfx",
                     Name = "DocFx",
@@ -400,13 +462,26 @@ public sealed class VoltProjectDbContext : DbContext
         
             //Language
             modelBuilder.Entity<Language>()
-                .Property(p => p.Id).UseIdentityAlwaysColumn();
+                .Property(p => p.Id)
+                .UseIdentityAlwaysColumn();
         
             modelBuilder.Entity<Language>()
                 .HasData(new Language
                 {
                     Id = 1,
                     Name = "en"
+                });
+            
+            //LogLevel
+            modelBuilder.Entity<LogLevel>()
+                .HasData(new LogLevel
+                {
+                    Id = 1,
+                    Name = "Info"
+                }, new LogLevel
+                {
+                    Id = 2,
+                    Name = "Error"
                 });
         }
     }

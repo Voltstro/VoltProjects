@@ -1,43 +1,34 @@
 @using VoltProjects.Server.Models
 @using VoltProjects.Server.Shared.Helpers
-@model VoltProjects.Server.Models.TocItem
+@model List<VoltProjects.Server.Models.TocItem>
 
 @{
-    void RenderToc(TocItem toc)
+    void RenderToc(List<TocItem> tocItems)
     {
-        @if (toc.Title == null && toc.Href == null && toc.Items != null)
+        foreach (TocItem tocItem in tocItems)
         {
-            <ul class="@(toc.IsActive ? "active" : "")">
-                @foreach (TocItem item in toc.Items)
-                {
-                    RenderToc(item);
-                }
-            </ul>
-            return;
-        }
-
-        <li @(Html.Attr("class", "active", () => toc.IsActive))>
-            <a class="@(toc.IsActive ? "active" : "")" href="@toc.Href">
-                @if (toc.Items != null)
-                {
-                    <i class="toggle">
-                        <svg width="16" height="16" viewBox="0 0 16 16">
-                            <path fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 14l6-6-6-6"></path>
-                        </svg>
-                    </i>
-                }
-                @toc.Title
-            </a>
-            @if (toc.Items != null)
-            {
-                <ul @(Html.Attr("class", "active", () => toc.IsActive))>
-                    @foreach (TocItem item in toc.Items)
+            <li @(Html.Attr("class", "active", () => tocItem.IsActive))>
+                <a class="@(tocItem.IsActive ? "active" : "")" href="@tocItem.Href">
+                    @if (tocItem.Items != null)
                     {
-                        RenderToc(item);
+                        <i class="toggle">
+                            <svg width="16" height="16" viewBox="0 0 16 16">
+                                <path fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 14l6-6-6-6"></path>
+                            </svg>
+                        </i>
                     }
-                </ul>
-            }
-        </li>
+                    @tocItem.Title
+                </a>
+                @if (tocItem.Items != null)
+                {
+                    <ul @(Html.Attr("class", "active", () => tocItem.IsActive))>
+                        @{
+                            RenderToc(tocItem.Items);
+                        }
+                    </ul>
+                }
+            </li>
+        }
     }
 }
 
@@ -54,9 +45,11 @@
                 </div>
                         
                 <div class="toc" id="toc">
-                    @{
-                        RenderToc(Model);
-                    }
+                    <ul>
+                        @{
+                            RenderToc(Model);
+                        }
+                    </ul>
                 </div>
             </div>
         </div>
