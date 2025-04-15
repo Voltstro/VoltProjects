@@ -83,27 +83,41 @@ public class MkDocsBuilder : IBuilder
             throw new FileNotFoundException("Either menu.json, tocs.json or pages.json file(s) are missing!");
 
         //Create project menu
-        LinkItem? menuItem = JsonSerializer.Deserialize<LinkItem>(File.ReadAllText(menuFile));
-        if (menuItem == null)
+        MkDocsVpIntegrationModels.MenuModel? menuModel = JsonSerializer.Deserialize<MkDocsVpIntegrationModels.MenuModel>(File.ReadAllText(menuFile));
+        if (menuModel == null)
             throw new NullReferenceException("Menu.json was deserialized as null!");
 
-        ProjectMenu projectMenu = new()
+        LinkItem[] menuItems = menuModel.Value.MenuItems;
+        ProjectMenuItem[] projectMenuItems = new ProjectMenuItem[menuItems.Length];
+        for (int i = 0; i < menuItems.Length; i++)
         {
-            ProjectVersionId = projectVersion.Id,
-            LinkItem = menuItem
-        };
+            LinkItem menuItem = menuItems[i];
+            projectMenuItems[i] = new ProjectMenuItem
+            {
+                ProjectVersionId = projectVersion.Id,
+                Title = menuItem.Title!,
+                Href = menuItem.Href!,
+                ItemOrder = i
+            };
+        }
         
         //Create TOCs
         MkDocsVpIntegrationModels.TocModel tocsModel = JsonSerializer.Deserialize<MkDocsVpIntegrationModels.TocModel>(File.ReadAllText(tocFile));
+        
+        List<ProjectTocItem> projectTocItems = new();
         ProjectToc[] projectTocs = new ProjectToc[tocsModel.Tocs.Length];
         for (int i = 0; i < projectTocs.Length; i++)
         {
-            projectTocs[i] = new ProjectToc
+            MkDocsVpIntegrationModels.TocItem tocModel = tocsModel.Tocs[i];
+            ProjectToc projectToc = new ProjectToc
             {
                 ProjectVersionId = projectVersion.Id,
-                TocRel = tocsModel.Tocs[i].TocIndex,
-                TocItem = tocsModel.Tocs[i].LinkItem
+                TocRel = tocModel.TocIndex
             };
+            projectTocs[i] = projectToc;
+
+            int order = 0;
+            projectTocItems.AddRange(tocModel.LinkItems.Select(linkItem => new ProjectTocItem { Title = linkItem.Title!, Href = linkItem.Href, ItemOrder = order++, ProjectToc = projectToc }));
         }
         
         //Create pages
@@ -188,6 +202,7 @@ public class MkDocsBuilder : IBuilder
             {
                 ProjectVersionId = projectVersion.Id,
                 Path = pagePath,
+                Published = true,
                 Content = pageContent,
                 Aside = true,
                 Metabar = displayMetabar,
@@ -200,6 +215,6 @@ public class MkDocsBuilder : IBuilder
             };
         }
 
-        return new BuildResult(projectMenu, projectTocs, pages);
+        return new BuildResult(projectMenuItems, projectTocs, projectTocItems.ToArray(), pages);
     }
 }

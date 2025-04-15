@@ -1,10 +1,49 @@
+@using VoltProjects.Server.Shared.Helpers
+@using VoltProjects.Shared.Models
 @model VoltProjects.Server.Models.View.ProjectHeaderModel
+
+@{
+    string baseProjectPath = $"/{Model.ProjectPage.ProjectVersion.Project.Name}/{Model.ProjectPage.ProjectVersion.VersionTag}/";
+}
 
 @if (Model.ProjectPage.TitleDisplay)
 {
-    <!-- Project Page Header -->
     <div class="d-inline-flex w-100">
-        <h1 class="me-auto">@Model.ProjectPage.Title</h1>
+        @if (Model.ProjectPage.Breadcrumbs.Count > 0)
+        {
+            <div class="me-auto d-block d-print-none">
+                <div>
+                    <nav aria-label="breadcrumb" class="">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item">
+                                <a class="bi bi-house-door-fill" href="@(baseProjectPath)" title="Project Home Page"></a>
+                            </li>
+
+                            @for (int i = 0; i < Model.ProjectPage.Breadcrumbs.Count; i++)
+                            {
+                                ProjectPageBreadcrumb breadcrumb = Model.ProjectPage.Breadcrumbs[i];
+                                bool lastItem = i == Model.ProjectPage.Breadcrumbs.Count - 1;
+                                @:<li class="breadcrumb-item @(lastItem ? "active" : string.Empty)" @Html.Attr("aria-current", "page", () => lastItem)>
+                                @if (!lastItem && !string.IsNullOrWhiteSpace(breadcrumb.Href))
+                                {
+                                    <a href="@baseProjectPath@breadcrumb.Href">@breadcrumb.Title</a>
+                                }
+                                else
+                                {
+                                    @breadcrumb.Title
+                                }
+
+                                @:</li>
+                            }
+                        </ol >
+                    </nav>
+                </div>
+            </div>
+        }
+        else
+        {
+            <h1 class="me-auto">@Model.ProjectPage.Title</h1>
+        }
         <div class="d-flex pt-1 d-print-none">
             @if (Model.ProjectPage.GitUrl != null)
             {
@@ -12,7 +51,7 @@
                     <i class="bi bi-pencil-fill" style="padding-top: 3px"></i>
                 </a>
             }
-                    
+
             <div class="dropdown d-flex">
                 <button class="btn btn-outline btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="height: 35px">
                     <i class="bi bi-three-dots-vertical"></i>
@@ -21,22 +60,43 @@
                     <li><button class="dropdown-item bi bi-printer-fill" onclick="window.print()"> Print</button></li>
                     <li><hr class="dropdown-divider"></li>
                     <li>
-                        <a 
+                        <a
                             class="dropdown-item bi bi-twitter-x"
                             href="https://x.com/intent/tweet?text=@(Html.UrlEncoder.Encode($"Check out this!"))&url=@(Html.UrlEncoder.Encode(Model.PageFullUrl.ToString()))"
-                            target="_blank" rel="noopener noreferrer"
-                            > Share on X</a>
+                            target="_blank" rel="noopener noreferrer"> Share on X</a>
                     </li>
                     <li>
-                        <a 
+                        <a
                             class="dropdown-item bi bi-envelope-fill"
                             href="mailto:?subject=@(Html.UrlEncoder.Encode($"{Model.ProjectPage.Title} - {Model.ProjectPage.ProjectVersion.Project.Name} | VoltProjects"))&body=@(Html.UrlEncoder.Encode($"Check out this! {Model.PageFullUrl.ToString()}"))"> Email</a>
                     </li>
                 </ul>
             </div>
-                    
         </div>
     </div>
-            
-    <partial name="Shared/ProjectMetabar" model="Model.ProjectPage"/>
+
+    @if (Model.ProjectPage.Breadcrumbs.Count > 0)
+    {
+        <h1 class="d-block">@Model.ProjectPage.Title</h1>
+    }
+    
+    /* Metabar */
+    @if (Model.ProjectPage.Metabar)
+    {
+        <ul class="metabar">
+            <li>
+                <time datetime="@Model.ProjectPage.PublishedDate.ToString("yyyy-MM-dd")">@Model.ProjectPage.PublishedDate.ToString("yyyy-MM-dd")</time>
+            </li>
+            <li>
+                @if (Model.ProjectPage.WordCount > 400)
+                {
+                    <span>@((int)Math.Round(Model.ProjectPage.WordCount.Value / 200f, 0)) minutes to read</span>
+                }
+                else
+                {
+                    <span>2 minutes to read</span>
+                }
+            </li>
+        </ul>
+    }
 }

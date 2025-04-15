@@ -1,4 +1,5 @@
 using VoltProjects.Server.Models.Searching;
+using VoltProjects.Server.Shared.Paging;
 using VoltProjects.Shared.Models;
 
 namespace VoltProjects.Server.Models.View;
@@ -11,28 +12,31 @@ public sealed class SearchViewModel
     /// <summary>
     ///     Creates a new <see cref="SearchViewModel"/> instance
     /// </summary>
-    /// <param name="projects"></param>
     /// <param name="query"></param>
-    /// <param name="searchResult"></param>
-    public SearchViewModel(ProjectSearch[] projects, string? query, SearchPagedResult? searchResult)
+    /// <param name="projects"></param>
+    /// <param name="selectedProject"></param>
+    public SearchViewModel(string? query, Project[] projects, ProjectVersion? selectedProject, PagedResult<SearchResult>? searchResult)
     {
-        Projects = projects;
         Query = query;
-        PagedResult = searchResult;
+        Projects = projects;
+        Project = selectedProject;
+        SearchResult = searchResult;
     }
     
     /// <summary>
-    ///     All available projects
+    ///     All projects available
     /// </summary>
-    public ProjectSearch[] Projects { get; init; }
+    public Project[] Projects { get; }
+
+    /// <summary>
+    ///     Selected project
+    /// </summary>
+    public ProjectVersion? Project { get; }
     
     /// <summary>
     ///     Inputted search query
     /// </summary>
-    public string? Query { get; init; }
+    public string? Query { get; }
     
-    /// <summary>
-    ///     <see cref="SearchPagedResult"/> result for this <see cref="Query"/>
-    /// </summary>
-    public SearchPagedResult? PagedResult { get; init; }
+    public PagedResult<SearchResult>? SearchResult { get; }
 }

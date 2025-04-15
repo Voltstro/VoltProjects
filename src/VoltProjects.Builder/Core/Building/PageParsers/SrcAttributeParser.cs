@@ -1,8 +1,8 @@
 using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
 using VoltProjects.Builder.Core.Building.ExternalObjects;
-using VoltProjects.Builder.Services.Storage;
 using VoltProjects.Shared.Models;
+using VoltProjects.Shared.Services.Storage;
 
 namespace VoltProjects.Builder.Core.Building.PageParsers;
 

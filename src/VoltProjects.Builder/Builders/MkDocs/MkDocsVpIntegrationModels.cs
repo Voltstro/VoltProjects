@@ -29,6 +29,12 @@ public class MkDocsVpIntegrationModels
         public string? TocIndex { get; set; }
     }
     
+    public struct MenuModel
+    {
+        [JsonPropertyName("menu")]
+        public LinkItem[] MenuItems { get; set; }
+    }
+    
     public struct TocModel
     {
         [JsonPropertyName("tocs")]
@@ -40,7 +46,7 @@ public class MkDocsVpIntegrationModels
         [JsonPropertyName("toc_index")]
         public string TocIndex { get; set; }
         
-        [JsonPropertyName("toc_item")]
-        public LinkItem LinkItem { get; set; }
+        [JsonPropertyName("toc_items")]
+        public LinkItem[] LinkItems { get; set; }
     }
 }

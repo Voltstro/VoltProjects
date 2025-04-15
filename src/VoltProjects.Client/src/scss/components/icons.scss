@@ -1,0 +1,37 @@
+// Override font import so build imports font file correctly
+//$bootstrap-icons-font-src: url("bootstrap-icons/font/fonts/bootstrap-icons.woff2") format("woff2"),
+//                           url("bootstrap-icons/font/fonts/bootstrap-icons.woff") format("woff") !default;
+
+$bootstrap-icons-font-file: "bootstrap-icons/font/fonts/bootstrap-icons" !default;
+
+//Main Bootstrap icon import
+@import "bootstrap-icons/font/bootstrap-icons";
+
+/*
+.bi-discord::before { content: map-get($bootstrap-icons-map, "discord"); }
+.bi-github::before { content: map-get($bootstrap-icons-map, "github"); }
+.bi-envelope-fill::before { content: map-get($bootstrap-icons-map, "envelope-fill"); }
+.bi-globe2::before { content: map-get($bootstrap-icons-map, "globe2"); }
+.bi-twitter::before { content: map-get($bootstrap-icons-map, "twitter"); }
+.bi-funnel::before { content: map-get($bootstrap-icons-map, "funnel"); }
+.bi-moon-fill::before { content: map-get($bootstrap-icons-map, "moon-fill"); }
+.bi-pencil-fill::before { content: map-get($bootstrap-icons-map, "pencil-fill"); }
+.bi-brightness-high-fill::before { content: map-get($bootstrap-icons-map, "brightness-high-fill"); }
+.bi-mastodon::before { content: map-get($bootstrap-icons-map, "mastodon"); }
+.bi-three-dots-vertical::before { content: map-get($bootstrap-icons-map, "three-dots-vertical"); }
+.bi-printer-fill::before { content: map-get($bootstrap-icons-map, "printer-fill"); }
+.bi-twitter-x::before { content: map-get($bootstrap-icons-map, "twitter-x"); }
+.bi-search::before { content: map-get($bootstrap-icons-map, "search"); }
+.bi-house-door-fill::before { content: map-get($bootstrap-icons-map, "house-door-fill"); }
+*/
+
+//Fix icon-link
+.icon-link {
+    > .bi {
+      height: 100% !important;
+    }
+}
+  
+.bi-large::before {
+    font-size: 15em;
+}

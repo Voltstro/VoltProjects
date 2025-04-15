@@ -1,8 +1,6 @@
-using System.IO.Compression;
-using System.Security.Cryptography;
-using System.Text;
 using Jint;
 using Jint.Native;
+using Jint.Native.Object;
 using Microsoft.Extensions.Logging;
 
 namespace VoltProjects.Builder.Services;
@@ -12,13 +10,10 @@ namespace VoltProjects.Builder.Services;
 /// </summary>
 public sealed class HtmlHighlightService
 {
-    private const string HlJsPath = "Data/highlight.js";
-    private const string HlJsZip = "Data/highlight.zip";
-    private const string HlJsFileHash = "d3b7a8e4fb3c86f214a1bdbad45e7d52";
-    
     private readonly ILogger<HtmlHighlightService> logger;
     
     private readonly Engine engine;
+    private readonly JsValue hljsEntry;
     private readonly object parseLock;
 
     /// <summary>
@@ -30,34 +25,32 @@ public sealed class HtmlHighlightService
     {
         this.logger = logger;
         parseLock = new object();
-
-        //Check if highlight.js exists
-        if (!File.Exists(HlJsPath))
-        {
-            logger.LogWarning("highlight.js doesn't exist... extracting...");
-            ExtractZip();
-        }
-
-        //Read it
-        string jsFile = File.ReadAllText(HlJsPath);
-
-        //Check hash of js file
-        byte[] jsFileBytes = Encoding.UTF8.GetBytes(jsFile);
-        byte[] jsFileHashBytes = MD5.HashData(jsFileBytes);
-        string jsFileHash = BitConverter.ToString(jsFileHashBytes).Replace("-", string.Empty).ToLowerInvariant();
-
-        if (jsFileHash != HlJsFileHash)
-        {
-            this.logger.LogWarning("highlight.js file does not have excepted hash. Most like needs updating. Re-extracting...");
-            ExtractZip();
-
-            //Re-read
-            jsFile = File.ReadAllText(HlJsPath);
-        }
-
+        
+        //Get internal hljs script and read it
+        using Stream? hljsScriptStream = typeof(HtmlHighlightService).Assembly.GetManifestResourceStream("HighlightJs/index.js");
+        if (hljsScriptStream == null)
+            throw new FileNotFoundException("Failed to load HighlightJs script!");
+        
+        using StreamReader hljsReader = new(hljsScriptStream);
+        string hljsSrc = hljsReader.ReadToEnd();
+        
         //Create Jint Engine
-        engine = new Engine();
-        engine.Execute(jsFile);
+        engine = new Engine(options =>
+        {
+            options.Strict = true;
+        });
+        
+        //Create the module and get the entry function
+        engine.Modules.Add("hljs", 
+            x => x
+                .WithOptions(_ => new ModuleParsingOptions
+                {
+                    CompileRegex = true,
+                    Tolerant = true
+                })
+                .AddSource(hljsSrc));
+        ObjectInstance module = engine.Modules.Import("hljs");
+        hljsEntry = module.Get("default");
     }
 
     /// <summary>
@@ -74,11 +67,12 @@ public sealed class HtmlHighlightService
             //Need lock, Jint is not thread safe
             lock (parseLock)
             {
-                engine.SetValue("input", codeBlock);
-                engine.SetValue("languages", language != null ? new[] { language } : null);
-                engine.Execute("highlighted = hljs.highlightAuto(input, languages)");
-                JsValue parsedCodeBlock = engine.Evaluate("highlighted");
-                return parsedCodeBlock.AsObject()["value"].AsString();
+                JsValue inputValue =  JsValue.FromObject(engine, codeBlock);
+                JsValue languageValue = JsValue.FromObject(engine, language != null ? new[] { language } : null);
+
+                JsValue result = hljsEntry.Call(inputValue, languageValue);
+                string codeBlockHighlighted = result.AsObject()["value"].AsString();
+                return codeBlockHighlighted;
             }
         }
         catch (Exception ex)
@@ -86,14 +80,5 @@ public sealed class HtmlHighlightService
             logger.LogError(ex, "Error while highlighting code block!");
             return codeBlock;
         }
-    }
-
-    private void ExtractZip()
-    {
-        if (!File.Exists(HlJsZip))
-            throw new FileNotFoundException("HLJs zip doesn't exist!");
-            
-        //Extracting time
-        ZipFile.ExtractToDirectory(HlJsZip, "Data/", true);
     }
 }

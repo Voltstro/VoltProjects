@@ -5,11 +5,11 @@ using Microsoft.Extensions.Hosting;
 using Serilog;
 using VoltProjects.Builder.Core;
 using VoltProjects.Builder.Services;
-using VoltProjects.Builder.Services.Storage;
 using VoltProjects.Shared;
 using VoltProjects.Shared.Logging;
+using VoltProjects.Shared.Services.Storage;
+using VoltProjects.Shared.Telemetry;
 using WebMarkupMin.Core;
-using IStorageService = VoltProjects.Builder.Services.Storage.IStorageService;
 
 //Create application
 HostApplicationBuilder builder = Host.CreateApplicationBuilder();
@@ -22,11 +22,13 @@ try
     builder.Services.AddTracking(builder.Configuration);
     
     //Setup Config
-    IConfigurationSection config = builder.Configuration.GetSection("Config");
-    builder.Services.Configure<VoltProjectsBuilderConfig>(config);
+    VoltProjectsBuilderConfig config = new();
+    IConfigurationSection configSection = builder.Configuration.GetSection("Config");
+    configSection.Bind(config);
+    builder.Services.Configure<VoltProjectsBuilderConfig>(configSection);
     
     //Our singletons
-    builder.Services.InstallStorageServiceProvider(config.Get<VoltProjectsBuilderConfig>()!);
+    builder.Services.InstallStorageServiceProvider(config.ObjectStorageProvider);
     builder.Services.AddSingleton<HtmlMinifier>();
     builder.Services.AddSingleton<HtmlHighlightService>();
     builder.Services.AddSingleton<ProjectRepoService>();
@@ -36,8 +38,9 @@ try
     builder.Services.AddHostedService<BuildService>();
 
     //Setup DB
-    builder.Services.UseVoltProjectDbContext(builder.Configuration, "Builder");
+    builder.Services.UseVoltProjectDbContext(builder.Configuration, "Builder", false);
 
+    //Http Client
     builder.Services.AddHttpClient();
 
     //Setup app

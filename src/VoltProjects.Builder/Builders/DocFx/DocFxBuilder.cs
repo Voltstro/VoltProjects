@@ -30,42 +30,48 @@ public class DocFxBuilder : IBuilder
         //Get all models first
         string[] modelFiles = Directory.GetFiles(docsBuiltPath, "*.raw.json", SearchOption.AllDirectories);
 
-        //Deal with regular TOCs first
-        List<ProjectToc> projectTocs = new();
+        //Project Menu
+        //Make assumption that the root toc.raw.json is the "menu" for the project
         string menuTocLocation = Path.Combine(docsBuiltPath, "toc.raw.json");
-        foreach (string modelFilePath in modelFiles.Where(x => Path.GetFileName(x) == "toc.raw.json" && x != menuTocLocation))
+        
+        //Project TOC and TOC items
+        string[] tocFiles = modelFiles.Where(x => Path.GetFileName(x) == "toc.raw.json" && x != menuTocLocation).ToArray();
+        ProjectToc[] projectTocs = new ProjectToc[tocFiles.Length];
+        List<ProjectTocItem> projectTocItems = new();
+        for (int i = 0; i < projectTocs.Length; i++)
         {
-            string pathRelativity = Path.GetRelativePath(docsBuiltPath, modelFilePath);
-            DocFxRawModel model = JsonSerializer.Deserialize<DocFxRawModel>(File.ReadAllText(modelFilePath));
-
-            List<LinkItem> linkItems = new List<LinkItem>();
-            for (int i = 0; i < model.Items.Length; i++)
-            {
-                DocFxRawModel.DocfxMenuItem menuItem = model.Items[i];
-                LinkItem? buildToc = BuildToc(menuItem);
-                if(buildToc != null)
-                    linkItems.Add(buildToc);
-            }
-                
-            ProjectToc projectToc = new()
+            string tocFile = tocFiles[i];
+            string pathRelativity = Path.GetRelativePath(docsBuiltPath, tocFile);
+            
+            //Create TOC
+            projectTocs[i] = new ProjectToc
             {
                 ProjectVersionId = projectVersion.Id,
                 TocRel = pathRelativity,
-                TocItem = new LinkItem
-                {
-                    Items = linkItems.ToArray()
-                }
             };
-            projectTocs.Add(projectToc);
+            
+            DocFxRawModel? model = JsonSerializer.Deserialize<DocFxRawModel>(File.ReadAllText(tocFile));
+            if (model == null)
+                throw new FileLoadException($"Failed to deserialize TOC file at {tocFile}!");
+
+            DocFxRawModel.DocfxMenuItem[] tocItems = model.Items;
+            
+            int order = 0;
+            foreach (DocFxRawModel.DocfxMenuItem menuItem in tocItems)
+            {
+                BuildToc(projectVersion.Id, projectTocs[i], menuItem, null, ref order, ref projectTocItems);
+            }
         }
         
         //Do main project menu, it should be located at root
         if(!File.Exists(menuTocLocation))
             throw new NullReferenceException("Root project TOC could not be found!");
         
-        DocFxRawModel projectMenuModel = JsonSerializer.Deserialize<DocFxRawModel>(File.ReadAllText(menuTocLocation));
-        LinkItem[] projectMenuLinks = new LinkItem[projectMenuModel.Items.Length];
-
+        DocFxRawModel? projectMenuModel = JsonSerializer.Deserialize<DocFxRawModel>(File.ReadAllText(menuTocLocation));
+        if (projectMenuModel == null)
+            throw new FileLoadException($"Failed to deserialize menu file at {menuTocLocation}!");
+        
+        ProjectMenuItem[] projectMenuItems = new ProjectMenuItem[projectMenuModel.Items.Length];
         for (int i = 0; i < projectMenuModel.Items.Length; i++)
         {
             DocFxRawModel.DocfxMenuItem tocItem = projectMenuModel.Items[i];
@@ -77,21 +83,14 @@ public class DocFxBuilder : IBuilder
             if (href != null && href.EndsWith(".html"))
                 href = $"{href[..^5]}/";
                     
-            projectMenuLinks[i] = new LinkItem
+            projectMenuItems[i] = new ProjectMenuItem
             {
-                Title = projectMenuModel.Items[i].Name,
-                Href = href?.ToLower()
+                Title = tocItem.Name,
+                Href = href.ToLower(),
+                ProjectVersionId = projectVersion.Id,
+                ItemOrder = i
             };
         }
-
-        ProjectMenu projectMenu = new()
-        {
-            ProjectVersionId = projectVersion.Id,
-            LinkItem = new LinkItem
-            {
-                Items = projectMenuLinks
-            }
-        };
         
         //Now for project pages
         List<ProjectPage> projectPages = new();
@@ -152,8 +151,7 @@ public class DocFxBuilder : IBuilder
             if (firstNode is { Name: "h1" })
                 articleNode.ChildNodes.Remove(firstNode);
 
-            if (pageTitle == null)
-                pageTitle = firstNode.InnerText.Replace("\n", "").TrimStart().TrimEnd();
+            pageTitle ??= firstNode.InnerText.Replace("\n", "").TrimStart().TrimEnd();
             
             //Process links, DocFx uses ugly links, we do not
             HtmlNodeCollection? links = articleNode.SelectNodes(".//a/@href");
@@ -254,7 +252,19 @@ public class DocFxBuilder : IBuilder
             });
         }
         
-        return new BuildResult(projectMenu, projectTocs.ToArray(), projectPages.ToArray());
+        return new BuildResult(projectMenuItems, projectTocs, projectTocItems.ToArray(), projectPages.ToArray());
+    }
+
+    private static string GetPagePath(string path)
+    {
+        //Need to prettify DocFX paths
+        if (path.EndsWith("index.html"))
+            path = path[..^10];
+
+        if (path.EndsWith(".html"))
+            path = $"{path[..^5]}/";
+
+        return path.ToLower();
     }
 
     private void ProcessNodesCssClasses(HtmlNode node)
@@ -280,35 +290,31 @@ public class DocFxBuilder : IBuilder
             ProcessNodesCssClasses(childNode);
         }
     }
-    
-    private LinkItem? BuildToc(DocFxRawModel.DocfxMenuItem tocModel)
+
+    private static void BuildToc(int projectVersionId, ProjectToc holderToc, DocFxRawModel.DocfxMenuItem tocModel, ProjectTocItem? parentTocItem, ref int order, ref List<ProjectTocItem> tocItems)
     {
-        List<LinkItem> childTocItems = new List<LinkItem>();
+        string? tocItemHref = tocModel.Href == null ? null : GetPagePath(tocModel.Href);
+        if (tocItemHref == string.Empty)
+            return;
+        
+        ProjectTocItem newTocItem = new()
+        {
+            ProjectToc = holderToc,
+            Href = tocItemHref,
+            Title = tocModel.Name!,
+            ItemOrder = order,
+            ParentTocItem = parentTocItem
+        };
+        tocItems.Add(newTocItem);
+        
+        order++;
+
         if (tocModel.Items != null)
         {
-            for (int i = 0; i < tocModel.Items.Length; i++)
+            foreach (DocFxRawModel.DocfxMenuItem tocModelItem in tocModel.Items)
             {
-                DocFxRawModel.DocfxMenuItem childModel = tocModel.Items![i];
-                LinkItem? builtChildToc = BuildToc(childModel);
-                if(builtChildToc != null)
-                    childTocItems.Add(builtChildToc);
+                BuildToc(projectVersionId, holderToc, tocModelItem, newTocItem, ref order, ref tocItems);
             }
         }
-        
-        string? href = tocModel.Href;
-        if (href != null && href.EndsWith("index.html"))
-            return null;
-        
-        if (href != null && href.EndsWith(".html"))
-            href = $"{href[..^5]}/";
-        
-        LinkItem newToc = new()
-        {
-            Href = href?.ToLower(),
-            Title = tocModel.Name,
-            Items = childTocItems.Count > 0 ? childTocItems.ToArray() : null
-        };
-
-        return newToc;
     }
 }

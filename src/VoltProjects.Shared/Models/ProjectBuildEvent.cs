@@ -44,7 +44,14 @@ public class ProjectBuildEvent
     public string GitHash { get; set; }
     
     /// <summary>
-    ///     What time was this build completed?
+    ///     When was the last time this build event was updated
     /// </summary>
-    public DateTime Date { get; set; }
+    public DateTime LastUpdateTime { get; set; }
+    
+    /// <summary>
+    ///     When was this build event created
+    /// </summary>
+    public DateTime CreationTime { get; set; }
+    
+    public List<ProjectBuildEventLog> BuildEventLogs { get; set; }
 }

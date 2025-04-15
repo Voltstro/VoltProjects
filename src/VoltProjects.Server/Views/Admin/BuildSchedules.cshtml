@@ -1,0 +1,56 @@
+@model VoltProjects.Server.Models.View.Admin.BuildSchedulesModel
+@{
+ViewBag.Title = "Build Schedules";
+}
+
+@using VoltProjects.Shared.Models
+
+<div class="container pt-4">
+    <div class="card">
+        <div class="card-header d-flex">
+            <h5 class="m-0 fw-bold align-content-center">Build Schedules</h5>
+            <a asp-route="AdminBuildScheduleNew" class="btn btn-primary ms-auto">New</a>
+        </div>
+        <div class="card-body">
+            <table class="table table-striped table-hover">
+                <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Project</th>
+                    <th scope="col">Version Tag</th>
+                    <th scope="col">Cron</th>
+                    <th scope="col">Active</th>
+                    <th scope="col">Ignore Build Event</th>
+                    <th scope="col">Updated At</th>
+                    <th scope="col">Last Executed At</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (ProjectBuildSchedule buildSchedule in Model.BuildSchedules.Items)
+                {
+                <tr>
+                    <th>@buildSchedule.Id</th>
+                    <td>@buildSchedule.ProjectVersion.Project.Name</td>
+                    <td>@buildSchedule.ProjectVersion.VersionTag</td>
+                    <td>@buildSchedule.Cron</td>
+                    <td>
+                        <partial name="Shared/BoolIcon" model="@buildSchedule.IsActive"/>
+                    </td>
+                    <td>
+                        <partial name="Shared/BoolIcon" model="@buildSchedule.IgnoreBuildEvents"/>
+                    </td>
+                    <td>@buildSchedule.LastUpdateTime</td>
+                    <td>@buildSchedule.LastExecuteTime</td>
+                    <td><a asp-controller="Admin" asp-action="BuildSchedule" asp-route-buildScheduleId="@buildSchedule.Id" class="btn btn-primary float-end">Edit</a></td>
+                </tr>
+                }
+                </tbody>
+            </table>
+
+            @* Pagination Controls *@
+            <div class="mt-4 d-flex" paged-count="@Model.BuildSchedules">
+            </div>
+        </div>
+    </div>
+</div>

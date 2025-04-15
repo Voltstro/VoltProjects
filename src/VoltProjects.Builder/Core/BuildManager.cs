@@ -7,9 +7,9 @@ using VoltProjects.Builder.Core.Building.ExternalObjects;
 using VoltProjects.Builder.Core.Building.PageParsers;
 using VoltProjects.Builder.Builders;
 using VoltProjects.Builder.Services;
-using VoltProjects.Builder.Services.Storage;
 using VoltProjects.Shared;
 using VoltProjects.Shared.Models;
+using VoltProjects.Shared.Services.Storage;
 using WebMarkupMin.Core;
 
 namespace VoltProjects.Builder.Core;
@@ -76,7 +76,7 @@ public sealed class BuildManager
     /// <param name="projectVersion"></param>
     /// <param name="projectPath"></param>
     /// <param name="cancellationToken"></param>
-    public async Task BuildProject(VoltProjectDbContext dbContext, ProjectVersion projectVersion, string projectPath, CancellationToken cancellationToken)
+    public async Task<BuildProjectResult> BuildProject(VoltProjectDbContext dbContext, ProjectVersion projectVersion, string projectPath, CancellationToken cancellationToken)
     {
         //First, get the builder
         KeyValuePair<string, IBuilder>? buildFindResult = builders.FirstOrDefault(x => x.Key == projectVersion.DocBuilderId);
@@ -96,8 +96,17 @@ public sealed class BuildManager
         if(Directory.Exists(builtDocsLocation))
             Directory.Delete(builtDocsLocation, true);
 
-        //First, run the build process
-        ExecuteDocBuilderProcess(builder, projectVersion, docsLocation, builtDocsLocation);
+        List<ProjectBuildEventLog> buildEventLogs = new();
+        
+        ProjectPreBuild[] prebuildCommands = await dbContext.PreBuildCommands
+            .AsNoTracking()
+            .Where(x => x.ProjectVersionId == projectVersion.Id)
+            .OrderBy(x => x.Order)
+            .ToArrayAsync(cancellationToken);
+        
+        //Run pre-build, then build
+        buildEventLogs.AddRange(ExecuteDocPreBuildCommands(prebuildCommands, projectPath));
+        buildEventLogs.AddRange(ExecuteDocBuilderProcess(builder, projectVersion, docsLocation, builtDocsLocation));
         
         //Now check that built docs exist
         if (!Directory.Exists(builtDocsLocation))
@@ -106,19 +115,66 @@ public sealed class BuildManager
         //Build models
         BuildResult buildResult = builder.BuildProject(projectVersion, docsLocation, builtDocsLocation);
         
-        //Upsert results into DB
-        //Upsert project menu
-        ProjectMenu projectMenu = buildResult.ProjectMenu;
-        await dbContext.UpsertProjectMenu(projectMenu);
-
+        //Upsert project menu items, and delete any unused ones
+        ProjectMenuItem[] menuItems = await dbContext.UpsertProjectMenuItems(buildResult.ProjectMenuItems);
+        await dbContext.ProjectMenuItems
+            .Where(p => !menuItems.Contains(p) && p.ProjectVersionId == projectVersion.Id)
+            .ExecuteDeleteAsync(cancellationToken);
+        
         //Upsert project TOCs
-        ProjectToc[] tocItems = await dbContext.UpsertProjectTOCs(buildResult.ProjectTocs, projectVersion);
+        ProjectToc[] tocItems = await dbContext.UpsertProjectTocs(buildResult.ProjectTocs);
+        
+        //Deal with project TOC items
+        List<ProjectTocItem> rootTocItems = buildResult.ProjectTocItems.Where(x => x.ParentTocItem == null).ToList();
+        foreach (ProjectTocItem rootTocItem in rootTocItems)
+        {
+            ProjectToc tocItem = tocItems.First(x => x.TocRel == rootTocItem.ProjectToc.TocRel);
+            rootTocItem.ProjectTocId = tocItem.Id;
+        }
+        
+        rootTocItems = (await dbContext.UpsertProjectTocItems(rootTocItems.ToArray())).ToList();
+        
+        //Now child TOC items
+        List<ProjectTocItem> childTocItems = buildResult.ProjectTocItems.Where(x => x.ParentTocItem != null).ToList();
+        List<ProjectTocItem> upsertTocItems = [];
+        while (childTocItems.Count > 0)
+        {
+            int lastChildTocItemSize = childTocItems.Count;
+            upsertTocItems.Clear();
+            for (int i = 0; i < childTocItems.Count; i++)
+            {
+                ProjectTocItem childTocItem = childTocItems[i];
+                ProjectTocItem? rootTocItem = rootTocItems.FirstOrDefault(x => x.Href == childTocItem.ParentTocItem!.Href && x.Title == childTocItem.ParentTocItem.Title);
+                if(rootTocItem == null)
+                    continue;
+
+                childTocItem.ProjectTocId = tocItems.First(x => x.TocRel == childTocItem.ProjectToc.TocRel).Id;
+                childTocItem.ParentTocItemId = rootTocItem.Id;
+                upsertTocItems.Add(childTocItem);
+                childTocItems.Remove(childTocItem);
+            }
+
+            //Stop infinite loops
+            if (lastChildTocItemSize == childTocItems.Count)
+                throw new Exception(
+                    $"{lastChildTocItemSize} TOC items existed before child's parents were processed, but by the end there was still that many!");
+            
+            //Upsert this batch
+            ProjectTocItem[] batchUpsertResults = await dbContext.UpsertProjectTocItems(upsertTocItems.ToArray());
+            rootTocItems.AddRange(batchUpsertResults);
+        }
+
+        // Delete any not upsertted
+        await dbContext.ProjectTocItems.Where(p =>
+            !rootTocItems.Contains(p) && p.ProjectToc.ProjectVersionId == projectVersion.Id)
+            .ExecuteDeleteAsync(cancellationToken);
 
         //Pre-Process pages
         ProjectPage[] pages = buildResult.ProjectPages;
         List<IExternalObjectHandler> externalObjectsIncluded = new();
         foreach (ProjectPage page in pages)
         {
+            page.ProjectVersionId = projectVersion.Id;
             page.ProjectVersion = projectVersion;
             page.LanguageConfiguration = projectVersion.Language.Configuration;
 
@@ -129,7 +185,11 @@ public sealed class BuildManager
             //Run all page parses on this page
             foreach (IPageParser pageParser in pageParsers)
             {
+                Stopwatch stopwatch = Stopwatch.StartNew();
                 pageParser.FormatPage(builtDocsLocation, page, ref externalObjectsIncluded, ref doc);
+                
+                stopwatch.Stop();
+                logger.LogDebug("Took {ElapsedMilliseconds}ms to run page parser {ParserType} on {Page}", stopwatch.ElapsedMilliseconds, pageParser.GetType(), page.Path);
             }
             
             //New HTML Content
@@ -142,8 +202,10 @@ public sealed class BuildManager
             if (page.ProjectToc != null)
             {
                 ProjectToc? toc = tocItems.FirstOrDefault(x => x.TocRel == page.ProjectToc.TocRel);
-                page.ProjectTocId = toc.Id;
-                page.ProjectToc = null;
+                if (toc == null)
+                    logger.LogWarning("Page {PagePath} has a TOC rel of {TocRel}, which was not found in the upserted TOCs!", page.Path, page.ProjectToc.TocRel);
+                else
+                    page.ProjectTocId = toc.Id;
             }
 
             //Calculate hash
@@ -215,7 +277,10 @@ public sealed class BuildManager
             storageItems = await dbContext.UpsertProjectStorageAssets(storageItems);
         
         //Upsert pages
-        pages = await dbContext.UpsertProjectPages(pages, projectVersion);
+        pages = await dbContext.UpsertProjectPages(pages);
+        await dbContext.ProjectPages
+            .Where(p => !pages.Contains(p) && p.ProjectVersionId == projectVersion.Id)
+            .ExecuteUpdateAsync(p => p.SetProperty(b => b.Published, false), cancellationToken);
 
         //Creation and upserting of ProjectExternalItemStorageItem
         {
@@ -267,27 +332,128 @@ public sealed class BuildManager
             if (projectPageStorageItems.Count > 0)
                 await dbContext.UpsertProjectPageStorageItems(projectPageStorageItems.ToArray());
         }
+        
+        //Calculate breadcrumbs for each page
+        List<ProjectPageBreadcrumb> breadcrumbs = new();
+        foreach (ProjectPage projectPage in pages)
+        {
+            List<ProjectPageBreadcrumb> pageBreadcrumbs = new();
+            int order = 0;
+            
+            //First, attempt menu
+            ProjectMenuItem? menuItem = menuItems.FirstOrDefault(x => projectPage.Path.Contains(x.Href));
+            if(menuItem != null)
+                pageBreadcrumbs.Add(new ProjectPageBreadcrumb
+                {
+                    BreadcrumbOrder = order++,
+                    Title = menuItem.Title,
+                    Href = menuItem.Href,
+                    ProjectPageId = projectPage.Id
+                });
+            
+            //Now TOC Items
+            FindBreadcrumbsInTocItems(rootTocItems, projectPage, ref order, ref pageBreadcrumbs);
+            
+            //if(pageBreadcrumbs.Count > 1)
+            breadcrumbs.AddRange(pageBreadcrumbs);
+        }
 
+        ProjectPageBreadcrumb[] upsertBreadcrumbs = await dbContext.UpsertProjectPageBreadcrumbs(breadcrumbs.ToArray());
+        await dbContext.ProjectPageBreadcrumbs
+            .Where(x => !upsertBreadcrumbs.Contains(x) && x.ProjectPage.ProjectVersionId == projectVersion.Id)
+            .ExecuteDeleteAsync(cancellationToken);
+        //dbContext.ProjectPageBreadcrumbs.AddRange(breadcrumbs);
+        
         //Cleanup
         foreach (IExternalObjectHandler objectHandler in externalObjectsIncluded)
         {
             objectHandler.Dispose();
         }
+
+        return new BuildProjectResult
+        {
+            BuildEventLogs = buildEventLogs
+        };
     }
 
-    private void ExecuteDocBuilderProcess(IBuilder builder, ProjectVersion projectVersion, string docsLocation, string docsBuiltLocation)
+    private List<ProjectBuildEventLog> ExecuteDocPreBuildCommands(ProjectPreBuild[] preBuildCommands, string repoPath)
+    {
+        //Run prebuild
+        List<ProjectBuildEventLog> eventLogs = new();
+        foreach (ProjectPreBuild prebuildCommand in preBuildCommands)
+        {
+            string? arguments = prebuildCommand.Arguments;
+            arguments ??= string.Empty;
+            ProcessStartInfo startInfo = new(prebuildCommand.Command, arguments)
+            {
+                WorkingDirectory = repoPath,
+                RedirectStandardError = true,
+                RedirectStandardOutput = true
+            };
+            
+            Process process = new()
+            {
+                StartInfo = startInfo
+            };
+
+            process.OutputDataReceived += (sender, args) =>
+            {
+                string? data = args.Data;
+                if(string.IsNullOrWhiteSpace(data))
+                    return;
+                
+                logger.LogInformation("[Pre-Build Process]: {Data}", data);
+                eventLogs.Add(new ProjectBuildEventLog
+                {
+                    LogLevelId = 1,
+                    Date = DateTime.UtcNow,
+                    Message = data
+                });
+            };
+            process.ErrorDataReceived += (sender, args) =>
+            {
+                string? data = args.Data;
+                if(string.IsNullOrWhiteSpace(data))
+                    return;
+                
+                logger.LogError("[Pre-Build Process]: {Data}", data);
+                eventLogs.Add(new ProjectBuildEventLog
+                {
+                    LogLevelId = 2,
+                    Date = DateTime.UtcNow,
+                    Message = data
+                });
+            };
+            process.Start();
+            process.BeginErrorReadLine();
+            process.BeginOutputReadLine();
+            process.WaitForExit();
+            process.CancelErrorRead();
+            process.CancelOutputRead();
+
+            if (process.ExitCode != 0)
+                throw new Exception("Action process failed to run!");
+            
+            process.Dispose();
+        }
+
+        return eventLogs;
+    }
+
+    private List<ProjectBuildEventLog> ExecuteDocBuilderProcess(IBuilder builder, ProjectVersion projectVersion, string docsLocation, string docsBuiltLocation)
     {
         DocBuilder docBuilder = projectVersion.DocBuilder;
 
         string[]? arguments = docBuilder.Arguments;
         builder.PrepareBuilder(ref arguments, docsLocation, docsBuiltLocation);
 
-        arguments ??= Array.Empty<string>();
+        arguments ??= [];
 
-        ProcessStartInfo processStartInfo = new(docBuilder.Application)
+        ProcessStartInfo processStartInfo = new(docBuilder.Application, string.Join(' ', arguments))
         {
-            Arguments = string.Join(' ', arguments),
-            WorkingDirectory = docsLocation
+            WorkingDirectory = docsLocation,
+            RedirectStandardError = true,
+            RedirectStandardOutput = true
         };
         
         //TODO: Better way of doing this, please...
@@ -301,15 +467,99 @@ public sealed class BuildManager
                 processStartInfo.EnvironmentVariables[splitEnv[0]] = splitEnv[1];
             }
 
+        List<ProjectBuildEventLog> eventLogs = new List<ProjectBuildEventLog>();
         Process process = new();
         process.StartInfo = processStartInfo;
+        process.EnableRaisingEvents = true;
+        process.OutputDataReceived += (sender, args) =>
+        {
+            string? data = args.Data;
+            if(string.IsNullOrWhiteSpace(data))
+                return;
+            logger.LogInformation("[Build Process]: {Data}", data);
+            eventLogs.Add(new ProjectBuildEventLog
+            {
+                LogLevelId = 1,
+                Date = DateTime.UtcNow,
+                Message = data
+            });
+        };
+        process.ErrorDataReceived += (sender, args) =>
+        {
+            string? data = args.Data;
+            if(string.IsNullOrWhiteSpace(data))
+                return;
+            logger.LogError("[Build Process]: {Data}", data);
+            eventLogs.Add(new ProjectBuildEventLog
+            {
+                LogLevelId = 2,
+                Date = DateTime.UtcNow,
+                Message = data
+            });
+        };
         process.Start();
 
+        process.BeginErrorReadLine();
+        process.BeginOutputReadLine();
         process.WaitForExit();
+        
+        process.CancelErrorRead();
+        process.CancelOutputRead();
 
         if (process.ExitCode != 0)
             throw new Exception("Builder failed to exit cleanly!");
         
         process.Dispose();
+        return eventLogs;
+    }
+
+    private void FindBreadcrumbsInTocItems(List<ProjectTocItem> tocItems, ProjectPage projectPage, ref int order, ref List<ProjectPageBreadcrumb> breadcrumbs)
+    {
+        ProjectTocItem? tocItem = tocItems.FirstOrDefault(x => x.Href != null && projectPage.Path.Contains(x.Href));
+        if(tocItem == null)
+            return;
+        
+        //Ensure all parents are added
+        if (tocItem.ParentTocItemId != null)
+        {
+            ProjectTocItem? parentTocItem = tocItems.First(x => x.Id == tocItem.ParentTocItemId);
+            while (parentTocItem != null)
+            {
+                ProjectPageBreadcrumb? existingParentBreadcrumb = breadcrumbs.FirstOrDefault(x =>
+                    x.ProjectPageId == projectPage.Id && x.Title == parentTocItem.Title &&
+                    x.Href == parentTocItem.Href);
+                
+                if(existingParentBreadcrumb == null)
+                    breadcrumbs.Add(new ProjectPageBreadcrumb
+                    {
+                        BreadcrumbOrder = order++,
+                        Title = parentTocItem.Title,
+                        Href = parentTocItem.Href,
+                        ProjectPageId = projectPage.Id
+                    });
+
+                if (parentTocItem.ParentTocItemId != null)
+                    parentTocItem = tocItems.FirstOrDefault(x => x.Id == parentTocItem.ParentTocItemId);
+                else
+                    parentTocItem = null;
+            }
+        }
+        
+        //Then add itself breadcrumb
+        ProjectPageBreadcrumb? existingBreadcrumb = breadcrumbs.FirstOrDefault(x =>
+            x.ProjectPageId == projectPage.Id && x.Title == tocItem.Title &&
+            x.Href == tocItem.Href);
+        if(existingBreadcrumb == null)
+            breadcrumbs.Add(new ProjectPageBreadcrumb
+            {
+                BreadcrumbOrder = order++,
+                Title = tocItem.Title,
+                Href = tocItem.Href,
+                ProjectPageId = projectPage.Id
+            });
+        
+        //Now do child items
+        List<ProjectTocItem> childTocItems = tocItems.Where(x => x.ParentTocItemId == tocItem.Id).ToList();
+        FindBreadcrumbsInTocItems(childTocItems, projectPage, ref order, ref breadcrumbs);
     }
 }

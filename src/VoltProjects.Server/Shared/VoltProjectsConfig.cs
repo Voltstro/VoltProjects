@@ -1,11 +1,12 @@
 using System;
 using VoltProjects.Server.Models;
+using VoltProjects.Shared.Services.Storage;
 
 namespace VoltProjects.Server.Shared;
 
 public sealed class VoltProjectsConfig
 {
-    public const string VoltProjects = "VoltProjects";
+    public const string VoltProjects = "Config";
     
     public SocialLink[] SocialLinks { get; init; }= new SocialLink[]
     {
@@ -45,11 +46,23 @@ public sealed class VoltProjectsConfig
     
     public string PublicUrl { get; init; }
 
-    public TimeSpan SitemapGenerationDelayTime = new TimeSpan(6, 0, 0);
+    public TimeSpan SitemapCacheExpiration = new TimeSpan(1, 0, 0, 0);
     
     public string[] CorsSites { get; init; }
     
     public string SiteUrl { get; init; }
     
     public int CacheTime { get; set; } = 2678400; //Default: 30 days
+    
+    public OpenIdConfig OpenIdConfig { get; init; }
+    
+    public StorageConfig? ObjectStorageProvider { get; set; }
+
+    public TimeSpan ProjectVersionsCacheTime { get; init; } = new(0, 24, 0, 0);
+    
+    public int DbPoolSize { get; init; } = 16;
+    
+    public string DefaultCulture { get; init; } = "en-AU";
+    
+    public string[] SupportedCultures { get; init; } = new[] { "en-AU", "en-GB", "en-CA", "en-US", "en" };
 }

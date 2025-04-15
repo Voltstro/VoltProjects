@@ -34,10 +34,10 @@ public class ProjectPreBuild
     /// <summary>
     ///     When was the last time this TOC was updated
     /// </summary>
-    public DateTime LastUpdateTime { get; set; }
+    public DateTime LastUpdateTime { get; set; } = DateTime.UtcNow;
     
     /// <summary>
     ///     When was this TOC created?
     /// </summary>
-    public DateTime CreationTime { get; set; }
+    public DateTime CreationTime { get; set; } = DateTime.UtcNow;
 }

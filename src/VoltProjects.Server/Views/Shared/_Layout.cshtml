@@ -5,8 +5,8 @@
 <head>
     @await Component.InvokeAsync("MetaTags")
     <link rel="icon" type="image/x-icon" href="~/favicon.ico"/>
-    <link rel="preload" as="style" href="~/assets/main.css" asp-append-version="true"/>
-    <link rel="stylesheet" href="~/assets/main.css" asp-append-version="true"/>
+    <link rel="preload" as="style" href="~/assets/index.css" asp-append-version="true"/>
+    <link rel="stylesheet" href="~/assets/index.css" asp-append-version="true"/>
     @await RenderSectionAsync("TopInclude", false)
 </head>
 
@@ -20,7 +20,7 @@
     @await RenderSectionAsync("BottomJs", false)
 </main>
 @await Component.InvokeAsync("Footer")
-<script type="module" src="~/js/main.js" asp-append-version="true" defer></script>
+<script type="module" src="~/js/public.js" asp-append-version="true" defer></script>
 @await RenderSectionAsync("BottomInclude", false)
 </body>
 </html>

@@ -1,6 +1,7 @@
 version: "3.9"
 
 services:
+  # VoltProjects Server
   server:
     image: voltstro/vpserver
     build:
@@ -12,7 +13,15 @@ services:
       - "8080:8080"
     environment:
       - ConnectionStrings__ServerConnection
-      - VoltProjects__PublicUrl
+      - Config__ObjectStorageProvider__Provider
+      - Config__ObjectStorageProvider__ContainerName
+      - Config__ObjectStorageProvider__BasePath
+      - Config__ObjectStorageProvider__SubPath
+      - Config__PublicUrl
+      - Config__OpenIdConfig__Authority
+      - Config__OpenIdConfig__ClientId
+      - Config__OpenIdConfig__ClientSecret
+      - VP_AZURE_CREDENTIAL
     depends_on:
       - database
       - azurite
@@ -29,13 +38,14 @@ services:
       - Config__ObjectStorageProvider__Provider
       - Config__ObjectStorageProvider__ContainerName
       - Config__ObjectStorageProvider__BasePath
+      - Config__ObjectStorageProvider__SubPath
       - VP_AZURE_CREDENTIAL
     depends_on:
       - database
       - azurite
 
   database:
-    image: postgres:15.4-alpine
+    image: postgres:17-alpine
     container_name: database
     restart: unless-stopped
     volumes:

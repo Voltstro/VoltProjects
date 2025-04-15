@@ -1,5 +1,6 @@
 using VoltProjects.Builder.Services;
 using VoltProjects.Shared.Models;
+using VoltProjects.Shared.Services;
 
 namespace VoltProjects.Builder.Core.Building.ExternalObjects;
 

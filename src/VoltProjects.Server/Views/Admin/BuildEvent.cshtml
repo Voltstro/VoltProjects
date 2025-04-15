@@ -1,0 +1,91 @@
+@using VoltProjects.Shared.Models
+@model VoltProjects.Server.Models.View.Admin.BuildEventModel
+@{
+    string title = "Build Event";
+    //if (Model.ProjectVersion != null)
+    //    title = $"Editing {Model.ProjectVersion.Project.Name} - {Model.ProjectVersion.VersionTag} Build Schedule";
+
+    ViewBag.Title = title;
+
+    ViewBag.PreviousTitle = "Back to Build Events";
+    ViewBag.PreviousAction = "BuildEvents";
+}
+
+<div class="container pt-4">
+    <!-- Main Content --> 
+    <div class="card">
+        <div class="card-header">
+            <h5 class="m-0 fw-bold">Build Schedule</h5>
+        </div>
+
+        <div class="card-body">
+            <div class="row">
+                <div class="col-1 mb-3">
+                    <label asp-for="Id" class="form-label">ID</label>
+                    <input asp-for="Id" type="text" class="form-control" disabled>
+                </div>
+
+                <div class="col-1 mb-3">
+                    <label asp-for="Successful" class="form-label d-block">Successful</label>
+                    <partial name="Shared/BoolIcon" model="@Model.Successful"/>
+                </div>
+
+                <div class="col-10 mb-3">
+                    <label asp-for="Message" class="form-label">Message</label>
+                    <input asp-for="Message" type="text" class="form-control" disabled>
+                </div>
+
+                <div class="col-6 mb-3">
+                    <label asp-for="GitHash" class="form-label">Git Hash</label>
+                    <input asp-for="GitHash" type="text" class="form-control" disabled>
+                </div>
+
+                <div class="col-3 mb-4">
+                    <label asp-for="CreationTime" class="form-label">Created At</label>
+                    <input asp-for="CreationTime" type="text" class="form-control" disabled></input>
+                </div>
+
+                <div class="col-3 mb-4">
+                    <label asp-for="LastUpdateTime" class="form-label">Last Updated At</label>
+                    <input asp-for="LastUpdateTime" type="text" class="form-control" disabled></input>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Logs -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="m-0 fw-bold">Logs</h5>
+        </div>
+        
+        <div class="card-body">
+            <table class="table table-striped table-hover">
+                <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Date</th>
+                    <th scope="col">Log Level</th>
+                    <th scope="col">Message</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (ProjectBuildEventLog eventLog in Model.BuildEventLogs.Items)
+                {
+                    string messageColor = eventLog.LogLevel.Id == 2 ? "table-danger" : string.Empty;
+                    @:<tr class="@messageColor">
+                        <th>@eventLog.Id</th>
+                        <td class="text-center">@eventLog.Date</td>
+                        <td>@eventLog.LogLevel.Name</td>
+                        <td class="text-break">@eventLog.Message</td>
+                        @:</tr>
+                }
+                </tbody>
+            </table>
+
+            @* Pagination Controls *@
+            <div class="mt-4 d-flex" paged-count="@Model.BuildEventLogs">
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Common;
-using System.Data.Entity;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -8,12 +7,11 @@ using System.Text.Json;
 using Medallion.Threading.Postgres;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Npgsql;
+using VoltProjects.Shared.Telemetry;
 
 namespace VoltProjects.Shared;
 
@@ -28,9 +26,11 @@ public static class DbContextExtensions
     /// <param name="services"></param>
     /// <param name="configuration"></param>
     /// <param name="typePrefix"></param>
+    /// <param name="pooled"></param>
+    /// <param name="poolSize"></param>
     /// <returns></returns>
     public static IServiceCollection UseVoltProjectDbContext(this IServiceCollection services,
-        IConfiguration configuration, string typePrefix)
+        IConfiguration configuration, string typePrefix, bool pooled = true, int poolSize = 16)
     {
         string connectionStringName = $"{typePrefix}Connection";
         string? connectionString = configuration.GetConnectionString(connectionStringName);
@@ -42,23 +42,38 @@ public static class DbContextExtensions
         {
             builder.EnableDynamicJson();
         });
-        
-        services.AddDbContextFactory<VoltProjectDbContext>(options => options.UseNpgsql());
-        services.AddDbContext<VoltProjectDbContext>(options => options.UseNpgsql());
+
+        if (pooled)
+        {
+            services.AddDbContextPool<VoltProjectDbContext>(options =>
+            {
+                options.UseNpgsql().UseSnakeCaseNamingConvention();
+            }, poolSize);
+        }
+        else
+        {
+            services.AddDbContextFactory<VoltProjectDbContext>(options =>
+            {
+                options.UseNpgsql().UseSnakeCaseNamingConvention();
+            });
+        }
+
         return services;
     }
 
     public static IHost HandleDbMigrations(this IHost host)
     {
         // ReSharper disable once ExplicitCallerInfoArgument
-        using Activity? projectActivity = Tracking.TrackingActivitySource.StartActivity("DB-Migrations");
-        
-        IServiceProvider services = host.Services.CreateScope().ServiceProvider;
+        using Activity? projectActivity = Tracking.StartActivity(ActivityArea.Database, "migrate");
+
+        using IServiceScope scope = host.Services.CreateScope();
+        IServiceProvider services = scope.ServiceProvider;
         ILogger logger = services.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(DbContextExtensions));
+
         VoltProjectDbContext dbContext = services.GetRequiredService<VoltProjectDbContext>();
 
         logger.LogInformation("Checking database...");
-        
+
         //Get connection and open it
         DbConnection connection = dbContext.Database.GetDbConnection();
         connection.Open();
@@ -76,22 +91,18 @@ public static class DbContextExtensions
             if (pendingMigrations)
             {
                 logger.LogWarning("Database requires migrations! Migrating...");
-                using IDbContextTransaction transaction = dbContext.Database.BeginTransaction();
-                transaction.CreateSavepoint("Migrations");
                 try
                 {
                     dbContext.Database.Migrate();
-                    transaction.Commit();
                 }
                 catch (Exception ex)
                 {
-                    transaction.RollbackToSavepoint("Migrations");
-                    logger.LogError("An error occured while migrating the db!", ex);
+                    logger.LogError(ex, "An error occured while migrating the database!");
                     throw;
                 }
             }
         }
-        
+
         return host;
     }
 
@@ -104,7 +115,7 @@ public static class DbContextExtensions
     /// <param name="paramCountAllocStartIndex"></param>
     /// <typeparam name="TEntity"></typeparam>
     /// <returns></returns>
-    internal static (object?[], string[]) GenerateParams<TEntity>(TEntity[] values, Expression<Func<TEntity, object?>> paramsExpression, bool includeRow = true, int paramCountAllocStartIndex = 0)
+    public static (object?[], string[]) GenerateParams<TEntity>(TEntity[] values, Expression<Func<TEntity, object?>> paramsExpression, bool includeRow = true, int paramCountAllocStartIndex = 0)
     {
         IReadOnlyList<PropertyInfo> properties = paramsExpression.GetPropertyAccessList();
         int propertiesCount = properties.Count;
