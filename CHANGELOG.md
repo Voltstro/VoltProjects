@@ -4,6 +4,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.0] - Unreleased
+
+NOTE: This release requires Postgres 17! Upgrade to Postgres 17 before updating apps.
+
+### Added
+
+- Admin UI
+- Job Based Project Building
+  - Projects used to be built on a fixed schedule. Now are able to customize how often/when a project and its versions are built.
+- Breadcrumbs
+- Project "Publish" flag
+
+### Changed
+
+- Upgrade to .NET 9
+- Change Theme Select to a Button
+- Minor theme improvements
+- Improve ProjectMenu and ProjectToc
+  - These tables used to store what they need as JSON. Lets not do this anymore, and use actual tables
+- Sitemap Generation Improvements
+- Use compiled EF queries
+- Replace Upserts with Merge
+
+### Fixed
+
+- Fix Mobile No-Aside With No-TOC Pages
+
+### Removed
+
+- Remove deprecated VDocFx Builder
+
 ## [2.2.5] - 2025-04-04
 
 ### Changed
