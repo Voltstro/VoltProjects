@@ -2,7 +2,7 @@
 
 Volt Projects's docs are built from here.
 
-UWB docs are generated using [DocFx](https://dotnet.github.io/docfx/). See the DocFx site for setup of the tool.
+Volt Projects docs are generated using [DocFx](https://dotnet.github.io/docfx/). See the DocFx site for setup of the tool.
 
 ## Building Locally
 
