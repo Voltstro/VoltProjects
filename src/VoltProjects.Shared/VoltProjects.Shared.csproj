@@ -11,7 +11,7 @@
     </ItemGroup>
     
     <ItemGroup>
-        <PackageReference Include="AWSSDK.S3" Version="3.7.416.10" />
+        <PackageReference Include="AWSSDK.S3" Version="3.7.501" />
         <PackageReference Include="Azure.Storage.Blobs" Version="12.24.0" />
         <PackageReference Include="Cronos" Version="0.10.0" />
         <PackageReference Include="Google.Cloud.Storage.V1" Version="4.11.0" />
