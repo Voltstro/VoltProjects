@@ -10,7 +10,7 @@
 
     <ItemGroup>
       <PackageReference Include="HtmlSanitizer" Version="9.0.886" />
-      <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.3" />
+      <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.8" />
       <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.8" />
       <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="9.0.4" />
       <PackageReference Include="Nerdbank.GitVersioning" Version="3.7.115">
