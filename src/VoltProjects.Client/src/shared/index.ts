@@ -1,8 +1,6 @@
-//Bootstrap JS stuff we use
-import 'bootstrap/js/dist/collapse';
-
+import './collapse';
+import './dropdown';
 import { setTheme, getPreferredTheme, toggleTheme } from './theme';
-import { initDropdowns } from './dropdown';
 
 /**
  * Main shared entry point
@@ -18,5 +16,4 @@ declare global {
 
 window.vGlobal = vGlobal;
 
-initDropdowns();
 setTheme(getPreferredTheme());
