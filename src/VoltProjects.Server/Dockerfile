@@ -9,12 +9,14 @@ RUN corepack install
 RUN pnpm install
 
 # Copy everything else
+COPY VoltProjects.Client/build/ ./build/
 COPY VoltProjects.Client/src/ ./src/
 COPY VoltProjects.Client/public/ ./public/
 COPY VoltProjects.Client/tsconfig.json ./
 COPY VoltProjects.Client/vite.config.ts ./
 
 # Build Client
+RUN pnpm run icons
 RUN pnpm run build:dist
 
 # Build Server Stage

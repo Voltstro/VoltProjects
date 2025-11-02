@@ -7,10 +7,12 @@
     "build:dev": "tsc && vite build --mode development",
     "build": "tsc && vite build --mode production",
     "build:dist": "tsc && vite build --mode production-dist",
+    "icons": "node build/generate-icons.cjs",
     "watch": "tsc && vite build --watch --mode development",
     "lint": "eslint"
   },
   "devDependencies": {
+    "@twbs/fantasticon": "^3.1.0",
     "@types/bootstrap": "^5.2.10",
     "@types/js-cookie": "^3.0.6",
     "@types/node": "^22.14.1",

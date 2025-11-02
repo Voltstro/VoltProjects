@@ -18,7 +18,8 @@ Corepack
 ### Building
 
 1. Install packages using `pnpm install`
-2. Build using `pnpm run build`
+2. Generate out icons using `pnpm run icons`
+3. Build using `pnpm run build`
    - Files will be outputted to `../VoltProjects.Server/wwwroot`.
 
 ### Development
