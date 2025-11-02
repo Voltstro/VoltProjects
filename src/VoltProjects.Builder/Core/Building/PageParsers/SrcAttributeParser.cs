@@ -55,6 +55,10 @@ public class SrcAttributeParser : IPageParser
                     string objectPathInProject = Path.GetRelativePath(builtDocsLocation, objectPath);
                     string fullObjectPath = Path.Combine(builtDocsLocation, objectPathInProject);
 
+                    //All images will be webp by the end
+                    if (srcType.ObjectType == SrcObjectType.Image)
+                        objectPathInProject = Path.ChangeExtension(objectPathInProject, ".webp");
+
                     //Check to see if we have created an object handler for this object already.
                     IExternalObjectHandler? externalObject = externalObjects
                         .FirstOrDefault(x => x.PathInBuiltDocs == objectPathInProject);
