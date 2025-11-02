@@ -56,7 +56,7 @@ public class SrcAttributeParser : IPageParser
                     string fullObjectPath = Path.Combine(builtDocsLocation, objectPathInProject);
 
                     //All images will be webp by the end
-                    if (srcType.ObjectType == SrcObjectType.Image)
+                    if (srcType.ObjectType == SrcObjectType.Image && !fullObjectPath.EndsWith("svg"))
                         objectPathInProject = Path.ChangeExtension(objectPathInProject, ".webp");
 
                     //Check to see if we have created an object handler for this object already.

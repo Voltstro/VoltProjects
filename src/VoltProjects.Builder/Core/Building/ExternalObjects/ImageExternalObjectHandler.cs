@@ -23,7 +23,7 @@ public sealed class ImageExternalObjectHandler : GenericExternalObject
 
     public override async Task<Stream> GetUploadFileStream()
     {
-        if (ContentType != "image/webp")
+        if (ContentType != "image/svg+xml")
         {
             //Convert image to webp
             Image image = await Image.LoadAsync(ObjectStream);

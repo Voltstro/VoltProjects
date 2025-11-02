@@ -35,7 +35,7 @@ public class GenericExternalObject : IExternalObjectHandler
         
         UploadPath = Path.Combine(projectName, projectVersion, filePathRelativeToBuiltDocs);
         
-        ContentType = MimeMap.GetMimeType(filePathRelativeToBuiltDocs);
+        ContentType = MimeMap.GetMimeType(Path.GetExtension(filePathRelativeToBuiltDocs));
         
         ObjectStream = File.OpenRead(fullFilePath);
         Hash = Helper.GetFileHash(ObjectStream);
