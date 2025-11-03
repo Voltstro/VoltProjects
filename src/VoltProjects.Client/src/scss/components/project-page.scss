@@ -118,6 +118,10 @@
 
     .nav {
         display: block;
+        max-height: 50vh;
+        overflow-y: auto;
+        scrollbar-color: var(--bs-body-color) var(--bs-body-bg);
+
         a {
             border-left: $aside-border-size solid transparent;
             padding: 2px 4px 2px 0.75rem;
