@@ -10,6 +10,7 @@ export function initPreBuildCommandsHandler(): void {
     //Install sortable JS onto the list
     const preBuildCommandsList = document.getElementById(PREBUILD_COMMAND_ID_PREFIX) as HTMLUListElement;
     Sortable.create(preBuildCommandsList, {
+        handle: '.admin-dragable-handle',
         onChange: () => {
             const childPreBuildCommandsListElements = getPreBuildCommandElements();
             for (let i = 0; i < preBuildCommandsCount; i++) {
@@ -48,7 +49,7 @@ export function initPreBuildCommandsHandler(): void {
 
         //Drag handle
         const dragHandleDiv = document.createElement('div');
-        dragHandleDiv.setAttribute('class', 'col-auto align-content-center p-0 ps-1');
+        dragHandleDiv.setAttribute('class', 'col-auto align-content-center p-0 ps-1 admin-dragable-handle');
 
         const dragHandle = document.createElement('i');
         dragHandle.setAttribute('class', 'bi bi-grip-vertical');
@@ -64,6 +65,7 @@ export function initPreBuildCommandsHandler(): void {
         commandInput.setAttribute('id', `${PREBUILD_COMMAND_ID_PREFIX}_${preBuildCommandsCount}__Command`);
         commandInput.setAttribute('name', `${PREBUILD_COMMAND_ID_PREFIX}[${preBuildCommandsCount}].Command`);
         commandInput.setAttribute('type', 'text');
+        commandInput.setAttribute('placeholder', 'Command...');
         commandInput.setAttribute('data-val', 'true');
         commandInput.setAttribute('data-val-required', 'The Command field is required.');
         commandDiv.appendChild(commandInput);
@@ -78,6 +80,7 @@ export function initPreBuildCommandsHandler(): void {
         argumentInput.setAttribute('id', `${PREBUILD_COMMAND_ID_PREFIX}_${preBuildCommandsCount}__Arguments`);
         argumentInput.setAttribute('name', `${PREBUILD_COMMAND_ID_PREFIX}[${preBuildCommandsCount}].Arguments`);
         argumentInput.setAttribute('type', 'text');
+        argumentInput.setAttribute('placeholder', 'Arguments...');
         argumentsDiv.appendChild(argumentInput);
         listItemRow.appendChild(argumentsDiv);
 

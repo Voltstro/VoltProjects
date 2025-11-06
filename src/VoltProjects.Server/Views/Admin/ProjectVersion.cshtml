@@ -99,7 +99,7 @@ ViewBag.PreviousActionData = new Dictionary<string, string> { { "id", Model.Proj
                     </div>
                     
                     <div class="col-6">
-                        
+                        <!-- Blank to fill -->
                     </div>
 
                     <div class="col-1 mb-4">
@@ -126,29 +126,32 @@ ViewBag.PreviousActionData = new Dictionary<string, string> { { "id", Model.Proj
         {
             <div class="card mt-4">
                 <div class="card-header">
-                    <h5 class="m-0 fw-bold">Pre-Build Commands</h5>
+                    <div class="d-flex">
+                        <h5 class="m-0 fw-bold align-content-center">Pre-Build Commands</h5>
+                        <button type="button" class="btn btn-primary ms-auto" id="PreBuildCommandsBtn">New Pre-Build Command</button>
+                    </div>
                 </div>
             
                 <div class="card-body">
                     <ul class="list-group pb-4" id="PreBuildCommands">
                         @for (int i = 0; i < Model.PreBuildCommands.Length; i++)
                         {
-                            <li class="list-group-item admin-dragable">
+                            <li class="list-group-item">
                                 <input type="hidden" asp-for="PreBuildCommands[i].Id" />
                                 <input type="hidden" asp-for="PreBuildCommands[i].Order" data-pbc-order/>
                                 <input type="hidden" asp-for="PreBuildCommands[i].Deleted"/>
                                 <input type="hidden" asp-for="PreBuildCommands[i].CreationTime"/>
                                 <div class="row">
-                                    <div class="col-auto align-content-center p-0 ps-1">
+                                    <div class="col-auto align-content-center p-0 ps-1 admin-dragable-handle">
                                         <i class="bi bi-grip-vertical"></i>
                                     </div>
                                 
                                     <div class="col-2">
-                                        <input asp-for="PreBuildCommands[i].Command" class="form-control"/>
+                                        <input asp-for="PreBuildCommands[i].Command" class="form-control" placeholder="Command..."/>
                                     </div>
 
                                     <div class="col">
-                                        <input asp-for="PreBuildCommands[i].Arguments" class="form-control"/>
+                                        <input asp-for="PreBuildCommands[i].Arguments" class="form-control" placeholder="Arguments..."/>
                                     </div>
                                     
                                     <div class="col-auto">
@@ -158,10 +161,6 @@ ViewBag.PreviousActionData = new Dictionary<string, string> { { "id", Model.Proj
                             </li>
                         }
                     </ul>
-
-                    <div>
-                        <button type="button" class="btn btn-primary" id="PreBuildCommandsBtn">New Pre-Build Command</button>
-                    </div>
                 </div>
             </div>
         }
