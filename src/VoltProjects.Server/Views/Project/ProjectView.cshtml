@@ -3,6 +3,7 @@
 @{
     ViewBag.Title = $"{Model.ProjectPage.Title} - {Model.ProjectPage.ProjectVersion.Project.DisplayName}";
     ViewBag.Description = Model.ProjectPage.Description;
+    ViewBag.NoIndex = !Model.ProjectPage.ProjectVersion.SeIndexable;
 }
 
 @section TopInclude

@@ -25,6 +25,7 @@ public class ProjectVersionPageModel : ProjectVersion
         LanguageId = projectVersion.LanguageId;
         Language = projectVersion.Language;
         IsDefault = projectVersion.IsDefault;
+        SeIndexable = projectVersion.SeIndexable;
         CreationTime = projectVersion.CreationTime;
         LastUpdateTime = projectVersion.LastUpdateTime;
 

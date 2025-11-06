@@ -9,7 +9,7 @@
 <title>@pageTitle</title>
 <meta name="description" content="@ViewBag.Description">
 <meta name="keywords" content="Voltstro,Voltstro-Studios,Docs,Documentation">
-<meta name="robots" content="noai, noimageai">
+<meta name="robots" content="@Model.RobotsTag">
 @if (Model.RequestPath != null)
 {
     <link rel="canonical" href="@Model.RequestPath" />

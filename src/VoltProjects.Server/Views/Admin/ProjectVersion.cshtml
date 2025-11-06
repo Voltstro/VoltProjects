@@ -91,14 +91,21 @@ ViewBag.PreviousActionData = new Dictionary<string, string> { { "id", Model.Proj
                         <span asp-validation-for="LanguageId" class="invalid-feedback"></span>
                     </div>
 
-                    <div class="col-2 mb-4">
+                    <div class="col-1 mb-4">
                         <label asp-for="IsDefault" class="form-label">Is Default</label>
                         <div class="form-check form-switch form-switch-md">
                             <input asp-for="IsDefault" class="form-check-input" type="checkbox" role="switch">
                         </div>
                     </div>
                     
-                    <div class="col-6">
+                    <div class="col-2 mb-4">
+                        <label asp-for="SeIndexable" class="form-label">Search Engine Indexable</label>
+                        <div class="form-check form-switch form-switch-md">
+                            <input asp-for="SeIndexable" class="form-check-input" type="checkbox" role="switch">
+                        </div>
+                    </div>
+                    
+                    <div class="col-5">
                         <!-- Blank to fill -->
                     </div>
 

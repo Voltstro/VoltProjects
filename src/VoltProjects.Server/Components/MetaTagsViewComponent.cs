@@ -33,9 +33,15 @@ public class MetaTagsViewComponent : ViewComponent
             fullUrl = new Uri(baseUri, requestPath);
         }
         
+        string robotsTag = "noai,noimageai";
+        bool? noIndex = ViewBag.NoIndex;
+        if (noIndex.HasValue && noIndex.Value)
+            robotsTag += ",noindex";
+        
         return Task.FromResult<IViewComponentResult>(View("MetaTags", new MetaTagsViewModel
         {
             StructuredDataJson = structuredDataService.StructuredDataJson,
+            RobotsTag = robotsTag,
             RequestPath = fullUrl
         }));
     }

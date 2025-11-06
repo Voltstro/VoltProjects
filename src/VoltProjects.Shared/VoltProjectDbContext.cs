@@ -113,6 +113,10 @@ public sealed class VoltProjectDbContext : DbContext
             modelBuilder.Entity<ProjectVersion>()
                 .Property(p => p.Published)
                 .HasDefaultValue(true);
+
+            modelBuilder.Entity<ProjectVersion>()
+                .Property(p => p.SeIndexable)
+                .HasDefaultValue(true);
             
             //ProjectPage
             modelBuilder.Entity<ProjectPage>()

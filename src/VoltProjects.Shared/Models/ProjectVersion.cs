@@ -64,6 +64,11 @@ public class ProjectVersion
     public bool Published { get; set; } = true;
 
     /// <summary>
+    ///     Is this project search engine indexable
+    /// </summary>
+    public bool SeIndexable { get; set; } = true;
+
+    /// <summary>
     ///     When was the last time this project was updated
     /// </summary>
     public DateTime LastUpdateTime { get; set; } = DateTime.UtcNow;

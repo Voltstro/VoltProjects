@@ -268,6 +268,7 @@ public class AdminController : Controller
             editProject.DocBuilderId = model.DocBuilderId;
             editProject.LanguageId = model.LanguageId;
             editProject.IsDefault = model.IsDefault;
+            editProject.SeIndexable = model.SeIndexable;
             editProject.Published = model.Published;
             
             //Pre-Builds

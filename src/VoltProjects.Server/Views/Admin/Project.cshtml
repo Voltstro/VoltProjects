@@ -119,6 +119,7 @@
                             <th scope="col">Git Branch</th>
                             <th scope="col">Doc Build</th>
                             <th scope="col">Default</th>
+                            <th scope="col">SE Indexable</th>
                             <th scope="col">Published</th>
                             <th scope="col">Updated At</th>
                             <th></th>
@@ -134,9 +135,8 @@
                                     <td>@projectVersion.VersionTag</td>
                                     <td>@projectVersion.GitBranch</td>
                                     <td>@projectVersion.DocBuilder.Name</td>
-                                    <td>
-                                        <partial name="Shared/BoolIcon" model="@projectVersion.IsDefault"/>
-                                    </td>
+                                    <td><partial name="Shared/BoolIcon" model="@projectVersion.IsDefault"/></td>
+                                    <td><partial name="Shared/BoolIcon" model="@projectVersion.SeIndexable"/></td>
                                     <td><partial name="Shared/BoolIcon" model="@projectVersion.Published"/></td>
                                     <td>@projectVersion.LastUpdateTime</td>
                                     <td><a asp-controller="Admin" asp-action="ProjectVersion" asp-route-projectId="@Model.Id" asp-route-projectVersionId="@projectVersion.Id" class="btn btn-primary float-end">Edit</a></td>
