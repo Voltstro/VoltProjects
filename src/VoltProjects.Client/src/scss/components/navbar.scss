@@ -5,3 +5,9 @@
 .navbar-brand {
     font-weight: $large-font-weight;
 }
+
+.nav-item {
+    display: flex;
+    text-align: center;
+    align-items: center;
+}
