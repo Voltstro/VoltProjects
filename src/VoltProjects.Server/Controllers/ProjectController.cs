@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -89,7 +90,9 @@ public class ProjectController : Controller
         using (Tracking.StartActivity(ActivityArea.Project, "nav"))
         {
             IReadOnlyList<MenuItem> menuItems = await projectService.GetProjectMenuItems(projectVersion, requestPath);
-            navModel = new ProjectNavModel(projectVersion, menuItems);
+            string[] otherProjectVersions =
+                (await projectService.GetProjectVersionsForProject(projectName)).Select(x => x.VersionTag).ToArray();
+            navModel = new ProjectNavModel(projectVersion, otherProjectVersions, menuItems);
         }
         
         //TOC Items

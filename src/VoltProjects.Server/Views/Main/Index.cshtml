@@ -33,21 +33,30 @@
                             }
                         </div>
                         <div class="col-12 col-xl-9 card-body">
-                            <div class="d-inline-flex flex-column h-100">
-                                <div class="row">
-                                    <h5 class="card-title">
-                                        <a class="prj-title" href="/@project.Name/@defaultVersion/">@project.DisplayName</a>
-                                    </h5>
-                                    <p class="card-text">@project.Description</p>
-                                </div>
-                                <div class="row flex-grow-1 pt-3">
-                                    <div class="mt-auto">
-                                        <div class="btn-group dropend d-flex d-lg-block">
-                                            <a class="btn btn-primary" href="/@project.Name/@defaultVersion/">View</a>
-                                        </div>
+                            <div class="row">
+                                <h5 class="card-title">
+                                    <a class="prj-title" href="/@project.Name/@defaultVersion/">@project.DisplayName</a>
+                                </h5>
+                                <p class="card-text">@project.Description</p>
+                            </div>
+                            <div class="row flex-grow-1 pt-3">
+                                <div class="mt-auto">
+                                    <div class="btn-group">
+                                        <a class="btn btn-primary d-block" href="/@project.Name/@defaultVersion/">View</a>
+                                        @if (project.ProjectVersions.Count > 1)
+                                        {
+                                            <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <span class="visually-hidden">Toggle Dropdown</span>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                @foreach (ProjectVersion projectVersion in project.ProjectVersions)
+                                                {
+                                                    <li><a class="dropdown-item" href="/@project.Name/@projectVersion.VersionTag/">@projectVersion.VersionTag</a></li>
+                                                }
+                                            </ul>
+                                        }
                                     </div>
                                 </div>
-
                             </div>
                         </div>
                     </div>

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -77,7 +78,9 @@ public class ErrorController : Controller
                 using (Tracking.StartActivity(ActivityArea.Project, "nav"))
                 {
                     IReadOnlyList<MenuItem> menuItems = await projectService.GetProjectMenuItems(projectVersion, null);
-                    navModel = new ProjectNavModel(projectVersion, menuItems);
+                    string[] otherProjectVersions =
+                        (await projectService.GetProjectVersionsForProject(projectVersion.Project.Name)).Select(x => x.VersionTag).ToArray();
+                    navModel = new ProjectNavModel(projectVersion, otherProjectVersions, menuItems);
                 }
             }
         }

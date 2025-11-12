@@ -9,13 +9,16 @@ namespace VoltProjects.Server.Models.View;
 /// </summary>
 public sealed class ProjectNavModel
 {
-    public ProjectNavModel(ProjectVersion projectVersion, IReadOnlyList<MenuItem> menuItems)
+    public ProjectNavModel(ProjectVersion projectVersion, string[] projectVersions, IReadOnlyList<MenuItem> menuItems)
     {
         string baseProjectPath = $"/{Path.Combine(projectVersion.Project.Name, projectVersion.VersionTag)}";
         
         ProjectId = projectVersion.ProjectId;
         ProjectVersionId = projectVersion.Id;
-        ProjectName = projectVersion.Project.DisplayName;
+        ProjectVersionTag = projectVersion.VersionTag;
+        ProjectName = projectVersion.Project.Name;
+        ProjectDisplayName = projectVersion.Project.DisplayName;
+        ProjectVersions = projectVersions;
         BasePath = baseProjectPath;
         MenuItems = menuItems;
     }
@@ -31,9 +34,24 @@ public sealed class ProjectNavModel
     public int ProjectVersionId { get; }
     
     /// <summary>
-    ///     Name of this project to display
+    ///     The project's version tag
+    /// </summary>
+    public string ProjectVersionTag { get; }
+    
+    /// <summary>
+    ///     Project's name
     /// </summary>
     public string ProjectName { get; }
+    
+    /// <summary>
+    ///     Name of this project to display
+    /// </summary>
+    public string ProjectDisplayName { get; }
+    
+    /// <summary>
+    ///     All project version tags for the project
+    /// </summary>
+    public string[] ProjectVersions { get; }
     
     /// <summary>
     ///     Base path of this project

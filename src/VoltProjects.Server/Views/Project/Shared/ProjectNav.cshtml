@@ -3,7 +3,7 @@
 
 <nav class="navbar navbar-expand-md border-bottom">
     <div class="container">
-        <a class="navbar-brand" href="@Model.BasePath">@Model.ProjectName</a>
+        <a class="navbar-brand" href="@Model.BasePath">@Model.ProjectDisplayName</a>
         <div class="collapse navbar-collapse" id="navbar">
 
             <ul class="navbar-nav me-auto">
@@ -15,6 +15,21 @@
                 }
             </ul>
             <ul class="d-flex m-0 p-0">
+                @if (Model.ProjectVersions.Length > 1)
+                {
+                    <div class="dropdown me-2 d-none d-lg-inline">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            @Model.ProjectVersionTag
+                        </button>
+                        <ul class="dropdown-menu">
+                            @foreach (string projectVersion in Model.ProjectVersions)
+                            {
+                                <li><a class="dropdown-item @(projectVersion == @Model.ProjectVersionTag ? "active" : string.Empty)" href="/@Model.ProjectName/@projectVersion/">@projectVersion</a></li>
+                            }
+                        </ul>
+                    </div>
+                }
+                
                 <form method="get" action="/search/" class="w-100">
                     <input type="hidden" name="project" value="@Model.ProjectId|@Model.ProjectVersionId"/>
 
@@ -26,8 +41,7 @@
                             aria-label="Search"
                             name="query"
                             id="search-nav"
-                            autocomplete="off"
-                            />
+                            autocomplete="off"/>
                         <button type="submit" class="btn btn-outline-secondary project-search-btn bi bi-search" aria-label="Submit Search"></button>
                     </div>
                 </form>

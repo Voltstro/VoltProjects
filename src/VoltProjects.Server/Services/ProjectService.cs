@@ -168,6 +168,24 @@ public sealed class ProjectService
     }
 
     /// <summary>
+    ///     Gets all <see cref="ProjectVersion"/> that belong to a project
+    /// </summary>
+    /// <param name="projectName"></param>
+    /// <returns></returns>
+    public async Task<ProjectVersion[]> GetProjectVersionsForProject(string projectName)
+    {
+        string cacheKey = $"ProjectVersions-{projectName}";
+        ProjectVersion[]? projectVersions = await memoryCache.GetOrCreateAsync(cacheKey, async entry =>
+        {
+            ProjectVersion[] projectVersions = await ProjectVersionsForProjectQuery(dbContext, projectName).ToArrayAsync();
+            entry.AbsoluteExpirationRelativeToNow = config.ProjectVersionsCacheTime;
+            return projectVersions;
+        });
+
+        return projectVersions!;
+    }
+
+    /// <summary>
     ///     Gets all <see cref="Project"/> and their <see cref="ProjectVersion"/>
     /// </summary>
     /// <returns></returns>
@@ -296,5 +314,16 @@ public sealed class ProjectService
                 .ThenBy(x => x.VersionTag)
                 .Where(x => x.Published && x.Project.Published)
                 .ToArray()
+        );
+
+    //Project versions for a project query
+    private static readonly Func<VoltProjectDbContext, string, IAsyncEnumerable<ProjectVersion>> ProjectVersionsForProjectQuery =
+        EF.CompileAsyncQuery((VoltProjectDbContext context, string projectName) => context.ProjectVersions
+            .AsNoTracking()
+            .Include(x => x.Project)
+            .OrderBy(x => x.Project.Name)
+            .ThenBy(x => x.VersionTag)
+            .Where(x => x.Published && x.Project.Published && x.Project.Name == projectName)
+            .AsQueryable()
         );
 }
