@@ -14,6 +14,7 @@ namespace VoltProjects.Server.Controllers;
 /// <summary>
 ///     Main <see cref="Controller"/>, for the index and about pages
 /// </summary>
+[ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
 public class MainController : Controller
 {
     private readonly ProjectService projectService;
@@ -31,7 +32,6 @@ public class MainController : Controller
     {
         Project[] projects = await projectService.GetProjects();
         
-        HttpContext.SetCacheControl(config.CacheTime);
         return View(new MainViewModel(projects, config.PublicUrl));
     }
 

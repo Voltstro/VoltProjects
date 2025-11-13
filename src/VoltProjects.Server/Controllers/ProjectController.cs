@@ -21,6 +21,7 @@ namespace VoltProjects.Server.Controllers;
 /// <summary>
 ///     Main Projects View Controller
 /// </summary>
+[ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
 public class ProjectController : Controller
 {
     private readonly ProjectService projectService;
@@ -100,8 +101,7 @@ public class ProjectController : Controller
 
         Uri baseUri = new(config.SiteUrl);
         Uri fullUrl = new(baseUri, requestPath);
-
-        HttpContext.SetCacheControl(config.CacheTime);
+        
         return View("ProjectView", new ProjectViewModel
         {
             BasePath = baseProjectPath,

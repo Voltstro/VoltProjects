@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace VoltProjects.Server.Controllers;
 
 [Route("/admin/auth/")]
+[ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
 public class AdminAuthController : Controller
 {
     [HttpGet]
