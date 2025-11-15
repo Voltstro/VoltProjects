@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/Properties/">
+    <File Path="Directory.Build.props" />
+    <File Path="version.json" />
+  </Folder>
+  <Project Path="VoltProjects.Builder/VoltProjects.Builder.csproj" />
+  <Project Path="VoltProjects.Server/VoltProjects.Server.csproj" />
+  <Project Path="VoltProjects.Shared/VoltProjects.Shared.csproj" />
+  <Project Path="VoltProjects.Tests/VoltProjects.Tests.csproj" />
+</Solution>
