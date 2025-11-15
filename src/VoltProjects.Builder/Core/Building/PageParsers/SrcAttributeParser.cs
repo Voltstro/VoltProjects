@@ -2,6 +2,7 @@ using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
 using VoltProjects.Builder.Core.Building.ExternalObjects;
 using VoltProjects.Shared.Models;
+using VoltProjects.Shared.Services;
 using VoltProjects.Shared.Services.Storage;
 
 namespace VoltProjects.Builder.Core.Building.PageParsers;
@@ -66,10 +67,30 @@ public class SrcAttributeParser : IPageParser
                     {
                         string projectVersion = page.ProjectVersion.VersionTag;
                         string projectName = page.ProjectVersion.Project.Name;
-                        
-                        externalObject = srcType.ObjectType == SrcObjectType.Image
-                            ? new ImageExternalObjectHandler(fullObjectPath, objectPathInProject, projectName, projectVersion) 
-                            : new GenericExternalObject(fullObjectPath, objectPathInProject, projectName, projectVersion);
+
+                        if (srcType.ObjectType == SrcObjectType.Image)
+                        {
+                            string mimeType = MimeMap.GetMimeType(fullObjectPath);
+                            
+                            if (mimeType == "image/svg+xml")
+                            {
+                                SvgExternalObjectHandler svgExternalObjectHandler = new(fullObjectPath, objectPathInProject, projectName, projectVersion);
+                                if(svgExternalObjectHandler.Width != null)
+                                    htmlNode.SetAttributeValue("width", svgExternalObjectHandler.Width);
+                                externalObject = svgExternalObjectHandler;
+                            }
+                            else
+                            {
+                                ImageExternalObjectHandler imageExternalObject = new(fullObjectPath, objectPathInProject, projectName, projectVersion);
+                                htmlNode.SetAttributeValue("width", imageExternalObject.Width.ToString());
+                                externalObject = imageExternalObject;
+                            }
+                        }
+                        else
+                        {
+                            externalObject = new GenericExternalObject(fullObjectPath, objectPathInProject, projectName, projectVersion);
+                        }
+
                         externalObjects.Add(externalObject);
                     }
                     

@@ -4,11 +4,13 @@ using VoltProjects.Shared.Models;
 namespace VoltProjects.Builder.Core.Building.ExternalObjects;
 
 /// <summary>
-///     Image variant of <see cref="GenericExternalObject"/>.
-///     <para>Converts any image type to webp</para>
+///     External object handler for images, E.G: PNGs, JPEG.
+///     <para>Will convert any image to a webp on upload</para>
 /// </summary>
 public sealed class ImageExternalObjectHandler : GenericExternalObject
 {
+    private readonly Image image;
+    
     /// <summary>
     ///     Creates a new <see cref="ImageExternalObjectHandler"/> instance
     /// </summary>
@@ -19,24 +21,22 @@ public sealed class ImageExternalObjectHandler : GenericExternalObject
     public ImageExternalObjectHandler(string fullFilePath, string filePathRelativeToBuiltDocs, string projectName, string projectVersion)
         : base(fullFilePath, filePathRelativeToBuiltDocs, projectName, projectVersion)
     {
+        image = Image.Load(ObjectStream);
     }
+    
+    public int Width => image.Width;
+    public int Height => image.Height;
 
     public override async Task<Stream> GetUploadFileStream()
     {
-        if (ContentType != "image/svg+xml")
-        {
-            //Convert image to webp
-            Image image = await Image.LoadAsync(ObjectStream);
+        //Dispose of the old stream
+        await ObjectStream.DisposeAsync();
             
-            //Dispose of the old stream
-            await ObjectStream.DisposeAsync();
-            
-            ObjectStream = new MemoryStream();
-            await image.SaveAsWebpAsync(ObjectStream);
-            image.Dispose();
+        ObjectStream = new MemoryStream();
+        await image.SaveAsWebpAsync(ObjectStream);
+        image.Dispose();
 
-            ObjectStream.Position = 0;
-        }
+        ObjectStream.Position = 0;
         
         return await base.GetUploadFileStream();
     }
