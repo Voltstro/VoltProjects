@@ -59,10 +59,7 @@ internal sealed class AzureStorageService : IStorageService
             blobHttpHeader.ContentType = groupedStorageItem.ContentType;
             foreach (TUploadFile storageItem in groupedStorageItem.Items)
             {
-                string uploadPath = Path.Combine(config.SubPath!, storageItem.UploadPath);
-                BlobClient newBlob = storageClient.GetBlobClient(uploadPath);
-                Stream fileStream = await storageItem.GetUploadFileStream();
-                tasks.Enqueue(newBlob.UploadAsync(fileStream, options, cancellationToken));
+                tasks.Enqueue(UploadNewBlob(storageItem, options, cancellationToken));
             }
 
             await Task.WhenAll(tasks);
@@ -86,10 +83,7 @@ internal sealed class AzureStorageService : IStorageService
             }
         };
         
-        string uploadPath = Path.Combine(config.SubPath!, fileUpload.UploadPath);
-        BlobClient newBlob = storageClient.GetBlobClient(uploadPath);
-        Stream fileStream = await fileUpload.GetUploadFileStream();
-        await newBlob.UploadAsync(fileStream, options, cancellationToken);
+        await UploadNewBlob(fileUpload, options, cancellationToken);
     }
 
     public string GetFullUploadUrl<TUploadFile>(TUploadFile externalObject) where TUploadFile : IUploadFile
@@ -97,6 +91,14 @@ internal sealed class AzureStorageService : IStorageService
         Uri baseUri = new(config.BasePath!);
         Uri fullUri = new(baseUri, Path.Combine(config.ContainerName!, config.SubPath ?? string.Empty, externalObject.UploadPath));
         return fullUri.ToString();
+    }
+
+    private async Task<Response<BlobContentInfo>> UploadNewBlob(IUploadFile fileUpload, BlobUploadOptions uploadOptions, CancellationToken cancellationToken = default)
+    {
+        string uploadPath = Path.Combine(config.SubPath ?? string.Empty, fileUpload.UploadPath);
+        BlobClient newBlob = storageClient.GetBlobClient(uploadPath);
+        Stream fileStream = await fileUpload.GetUploadFileStream();
+        return await newBlob.UploadAsync(fileStream, uploadOptions, cancellationToken);
     }
 
     private record GroupedStorageItem<TUploadFile>(string ContentType, TUploadFile[] Items) where TUploadFile : IUploadFile;

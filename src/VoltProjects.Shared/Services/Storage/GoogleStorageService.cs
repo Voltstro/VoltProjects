@@ -23,22 +23,11 @@ internal sealed class GoogleStorageService : IStorageService
 
     public async Task UploadBulkFileAsync<TUploadFile>(TUploadFile[] filesToUpload, CancellationToken cancellationToken = default) where TUploadFile : IUploadFile
     {
-        Queue<Task<Object>> tasks = new();
+        Queue<Task> tasks = new();
         
         foreach (TUploadFile storageItem in filesToUpload)
         {
-            Stream fileStream = await storageItem.GetUploadFileStream();
-            string uploadPath = Path.Combine(config.SubPath!, storageItem.UploadPath);
-
-            Object storageObject = new()
-            {
-                Bucket = config.ContainerName,
-                Name = uploadPath,
-                CacheControl = $"public,max-age={config.CacheTime}",
-                ContentType = storageItem.ContentType
-            };
-            
-            tasks.Enqueue(storageClient.UploadObjectAsync(storageObject, fileStream, cancellationToken: cancellationToken));
+            tasks.Enqueue(UploadFileAsync(storageItem, cancellationToken));
         }
         
         await Task.WhenAll(tasks);
@@ -56,7 +45,7 @@ internal sealed class GoogleStorageService : IStorageService
             CacheControl = $"public,max-age={config.CacheTime}",
             ContentType = fileUpload.ContentType
         };
-
+        
         await storageClient.UploadObjectAsync(storageObject, fileStream, cancellationToken: cancellationToken);
     }
 
