@@ -1,5 +1,5 @@
 ﻿# Build Stage
-FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
 WORKDIR /src
 
 # Restore Projects
@@ -26,20 +26,24 @@ RUN VoltProjects.Integration.MkDocs/venv/bin/python -m pip install mkdocs VoltPr
 
 # Final Stage
 # We using SDK to run the app, as .NET doc projects need it
-FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS final
-WORKDIR /app
-RUN apk add --no-cache python3 py3-pip
+FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS final
+WORKDIR /home/app/VoltProjects.Builder/
 
 # Install DocFx
-RUN dotnet tool update -g docfx --version "2.78.3"
+RUN dotnet tool update docfx --version "2.78.3" --tool-path /opt/docfx/
 
 # Install MKDocs
-COPY VoltProjects.Integration.MkDocs/ /src/VoltProjects.Integration.MkDocs/
-RUN python -m pip install mkdocs /src/VoltProjects.Integration.MkDocs/ --break-system-packages
+COPY VoltProjects.Integration.MkDocs/ /home/app/src/VoltProjects.Integration.MkDocs/
+RUN apk add --no-cache python3 py3-pip && \
+    python -m pip install mkdocs /home/app/src/VoltProjects.Integration.MkDocs/ --break-system-packages
 
 # Copy VoltProjects.Builder app
-COPY --from=build /app/publish .
+COPY --from=build /app/publish/ /home/app/VoltProjects.Builder/
+
+# Builder needs perms to its own folder
+RUN chown $APP_UID -R /home/app/VoltProjects.Builder/
 
 ENV DOTNET_ENVIRONMENT=Production
-ENV PATH="/root/.dotnet/tools/:$PATH"
+ENV PATH="/opt/docfx/:$PATH"
 ENTRYPOINT ["dotnet", "VoltProjects.Builder.dll"]
+USER app

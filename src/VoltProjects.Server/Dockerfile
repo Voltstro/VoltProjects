@@ -20,7 +20,7 @@ RUN pnpm run icons
 RUN pnpm run build:dist
 
 # Build Server Stage
-FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS build-app
+FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build-app
 WORKDIR /src
 
 # Restore Projects
@@ -38,7 +38,8 @@ COPY --from=build-client /src/dist /src/VoltProjects.Server/wwwroot/
 RUN dotnet publish "VoltProjects.Server/VoltProjects.Server.csproj" -c Release -o /app/publish /p:UseAppHost=false --no-restore
 
 # Final Stage
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS final
+WORKDIR /home/app/VoltProjects.Server/
 
 # Setup ICU
 ENV \
@@ -48,7 +49,6 @@ ENV \
 
 RUN apk add --no-cache icu-data-full icu-libs
 
-WORKDIR /app
-EXPOSE 80
-COPY --from=build-app /app/publish .
+COPY --from=build-app /app/publish/ /home/app/VoltProjects.Server/
 ENTRYPOINT ["dotnet", "VoltProjects.Server.dll"]
+USER app
