@@ -47,6 +47,8 @@ public sealed class SvgExternalObjectHandler : GenericExternalObject
         ObjectStream = new MemoryStream();
         xmlDocument.Save(ObjectStream);
         
+        ObjectStream.Position = 0;
+        
         return await base.GetUploadFileStream();
     }
 }
