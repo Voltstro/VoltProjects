@@ -24,6 +24,7 @@ public class AdminAuthController : Controller
     [HttpGet]
     [Route("profile")]
     [Authorize]
+    [ResponseCache(Location = ResponseCacheLocation.Client, Duration = 86400)]
     public IActionResult UserProfile()
     {
         string? picture = User.FindFirstValue("picture");
