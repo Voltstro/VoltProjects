@@ -30,7 +30,10 @@
                         <td>@buildEvent.Project.Project.Name</td>
                         <td>@buildEvent.Project.VersionTag</td>
                         <td>
-                            <partial name="Shared/BoolIcon" model="@buildEvent.Successful"/>
+                            @if (@buildEvent.Successful != null)
+                            {
+                                <partial name="Shared/BoolIcon" model="@buildEvent.Successful"/>
+                            }
                         </td>
                         <td>@buildEvent.Message</td>
                         <td>@buildEvent.LastUpdateTime</td>

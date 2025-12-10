@@ -18,7 +18,7 @@ namespace VoltProjects.Shared.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("Npgsql:CollationDefinition:vp_collation_nondeterministic", "en-u-ks-primary,en-u-ks-primary,icu,False")
-                .HasAnnotation("ProductVersion", "9.0.4")
+                .HasAnnotation("ProductVersion", "10.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -240,7 +240,7 @@ namespace VoltProjects.Shared.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("project_version_id");
 
-                    b.Property<bool>("Successful")
+                    b.Property<bool?>("Successful")
                         .HasColumnType("boolean")
                         .HasColumnName("successful");
 

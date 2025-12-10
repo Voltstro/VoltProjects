@@ -30,7 +30,7 @@ public class ProjectBuildEvent
     /// <summary>
     ///     Was this build event a success?
     /// </summary>
-    public bool Successful { get; set; }
+    public bool? Successful { get; set; }
     
     /// <summary>
     ///     Any additional message to include

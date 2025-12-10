@@ -45,6 +45,11 @@ public sealed class BuildRunner : IDisposable
             DateTime nextExecuteTime;
             DateTime lastExecuteTime = buildSchedule.LastExecuteTime ?? DateTime.UtcNow;
 
+            using IDisposable? scope = logger.BeginScope(new Dictionary<string, object>{
+                ["ProjectName"] = buildSchedule.ProjectVersion.Project.Name,
+                ["ProjectVersion"] = buildSchedule.ProjectVersion.VersionTag
+            });
+            
             try
             {
                 CronExpression expression = CronExpression.Parse(buildSchedule.Cron, CronFormat.IncludeSeconds);
@@ -134,7 +139,7 @@ public sealed class BuildRunner : IDisposable
                         BuilderVer = BuildService.BuildVer,
                         Message = "Running Build...",
                         GitHash = projectCommitHash,
-                        Successful = false
+                        Successful = null
                     };
                     dbContext.ProjectBuildEvents.Add(buildEvent);
                     await dbContext.SaveChangesAsync(cancellationToken);
@@ -163,6 +168,12 @@ public sealed class BuildRunner : IDisposable
                     catch (Exception)
                     {
                         transaction.RollbackToSavepoint(transactionName);
+                        
+                        //Set build event to failed
+                        buildEvent.Successful = false;
+                        buildEvent.Message = "Failed Building Project";
+                        await dbContext.SaveChangesAsync(cancellationToken);
+                        
                         throw;
                     }
                     finally

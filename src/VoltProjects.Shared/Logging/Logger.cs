@@ -11,7 +11,7 @@ public sealed class Logger : IDisposable
 {
     internal Logger(IConfiguration configuration)
     {
-        const string logFormat = "{Timestamp:dd-MM hh:mm:ss tt} [{Level:u3}] [T: {ThreadId}] [{SourceContext}] {Message:lj}{NewLine}{Exception}";
+        const string logFormat = "{Timestamp:dd-MM hh:mm:ss tt} [{Level:u3}] [T: {ThreadId}] [{SourceContext}] [{Properties:j}] {Message:lj}{NewLine}{Exception}";
         Log.Logger = new LoggerConfiguration()
             .Enrich.FromLogContext()
             .Enrich.WithThreadId()
