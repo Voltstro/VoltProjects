@@ -8,18 +8,13 @@
 
 <form class="container layout layout-article" method="get" id="search-form" novalidate>
     <nav class="layout-toc">
-        <div class="sticky-top navbar-expand-lg">
-            <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#toc-pannel" aria-controls="toc-pannel" aria-expanded="false" type="button">
-                Filters
-            </button>
-            <div class="collapse navbar-collapse" id="toc-pannel">
-                <h5>Filters</h5>
-                <div class="mt-2">
-                    <label asp-for="Project" class="form-label">Project</label>
-                    <select id="Project" name="project" class="form-select" asp-for="Project" asp-items="@(new SelectList(Model.Projects.SelectMany(x => x.ProjectVersions).Select(x => new { Id = $"{x.ProjectId}|{x.Id}", Name = $"{x.Project.Name} - {x.VersionTag}" }), "Id", "Name"))">
-                        <option value="">Please Select an Option</option>
-                    </select>
-                </div>
+        <div>
+            <h5>Filters</h5>
+            <div class="mt-2">
+                <label asp-for="Project" class="form-label">Project</label>
+                <select id="Project" name="project" class="form-select" asp-for="Project" asp-items="@(new SelectList(Model.Projects.SelectMany(x => x.ProjectVersions).Select(x => new { Id = $"{x.ProjectId}|{x.Id}", Name = $"{x.Project.Name} - {x.VersionTag}" }), "Id", "Name"))">
+                    <option value="">Please Select an Option</option>
+                </select>
             </div>
         </div>
     </nav>

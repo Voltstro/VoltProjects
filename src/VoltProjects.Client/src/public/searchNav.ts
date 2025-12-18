@@ -1,5 +1,5 @@
-import { Popover } from 'bootstrap';
-import { debounce } from '../shared/utility';
+import { Modal } from 'bootstrap';
+import searchModal from './components/searchModal';
 
 export function initSearchNav(): void {
     //Attempt to get search nav
@@ -12,38 +12,23 @@ export function initSearchNav(): void {
 
     const project = `${projectId}|${projectVersionId}`;
 
-    //Create Bootstrap popover
-    const popover = new Popover(searchNavElement, {
-        template: '<div class="popover popover-search" role="tooltip">' +
-        '<div class="popover-arrow"></div>' +
-        '<div class="popover-body" id="popover-body"></div>' +
-        '</div>',
-        placement: 'bottom',
-        trigger: 'focus',
-        content: 'Start typing to search...',
-        html: true,
-        sanitize: false
-    });
+    const modalElement = searchModal(project);
+    const modal = new Modal(modalElement);
 
-    //Do query on input
-    searchNavElement.oninput = debounce(async () => {
-        const queryParams = new URLSearchParams(
-            { 
-                query: searchNavElement.value,
-                size: '5',
-                project: project
-            }
-        );
+    function showSearchModal(event: Event, onInput: boolean): void {
+        const target = event.target as HTMLInputElement;
+        event.preventDefault();
+        modal.show();
 
-        //Do request
-        const response = await fetch('/search/?' + queryParams, {
-            method: 'POST'
-        });
+        const searchQuery = document.getElementById('searchQuery') as HTMLInputElement;
+        searchQuery.focus();
 
-        //Set popover content to response payload
-        const responsePayload = await response.text();
-        popover.setContent({
-            '.popover-body': responsePayload
-        });
-    });
+        if (onInput) {
+            searchQuery.value = target.value;
+            target.value = '';
+        }
+    }
+
+    searchNavElement.oninput = (event) => showSearchModal(event, true);
+    searchNavElement.onclick = (event) => showSearchModal(event, false);
 }
