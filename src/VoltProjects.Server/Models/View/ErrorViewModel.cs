@@ -8,7 +8,7 @@ namespace VoltProjects.Server.Models.View;
 /// </summary>
 public class ErrorViewModel
 {
-    public HttpStatusCode? ErrorCode { get; init; }
+    public HttpStatusCode ErrorCode { get; init; }
     
     public string ErrorMessage { get; init; }
     

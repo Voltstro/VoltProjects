@@ -35,7 +35,12 @@ public class ErrorController : Controller
     [Route("/eroor/{code:int}")]
     public async Task<IActionResult> Eroor(CancellationToken cancellationToken, int code)
     {
-        HttpStatusCode statusCode = (HttpStatusCode)code;
+        HttpStatusCode statusCode = HttpStatusCode.BadRequest;
+        if (Enum.IsDefined(typeof(HttpStatusCode), code))
+        {
+            statusCode = (HttpStatusCode)code;
+        }
+        
         string errorMessage = "An unknown error has occured!";
         string errorMessageDetailed = "Sorry about that! Please try again later!";
 
@@ -53,8 +58,8 @@ public class ErrorController : Controller
             }
             
             //Get some details first
-            IStatusCodeReExecuteFeature statusCodeReExecuteFeature = HttpContext.Features.GetRequiredFeature<IStatusCodeReExecuteFeature>();
-            RouteValueDictionary? routeValues = statusCodeReExecuteFeature.RouteValues;
+            IStatusCodeReExecuteFeature? statusCodeReExecuteFeature = HttpContext.Features.Get<IStatusCodeReExecuteFeature>();
+            RouteValueDictionary? routeValues = statusCodeReExecuteFeature?.RouteValues;
             object? projectNameObj = null;
             if (routeValues != null 
                 && routeValues.TryGetValue("projectName", out projectNameObj) 
