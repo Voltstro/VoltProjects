@@ -72,6 +72,13 @@ public static class DbContextExtensions
 
         VoltProjectDbContext dbContext = services.GetRequiredService<VoltProjectDbContext>();
 
+        DoMigrations(logger, dbContext);
+
+        return host;
+    }
+
+    internal static void DoMigrations(ILogger logger, VoltProjectDbContext dbContext)
+    {
         logger.LogInformation("Checking database...");
 
         //Get connection and open it
@@ -102,8 +109,6 @@ public static class DbContextExtensions
                 }
             }
         }
-
-        return host;
     }
 
     /// <summary>

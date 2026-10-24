@@ -7,12 +7,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using Microsoft.Net.Http.Headers;
 using VoltProjects.Server.Models;
 using VoltProjects.Server.Models.View;
 using VoltProjects.Server.Services;
 using VoltProjects.Server.Shared;
-using VoltProjects.Server.Shared.Helpers;
 using VoltProjects.Shared.Models;
 using VoltProjects.Shared.Telemetry;
 
@@ -44,17 +42,17 @@ public class ProjectController : Controller
     /// <exception cref="FileNotFoundException"></exception>
     [HttpGet]
     [Route("/{projectName}/{version?}/{**fullPath}")]
-    public async Task<IActionResult> ProjectView(string projectName, string? version, string? fullPath, CancellationToken cancellationToken)
+    public async Task<IActionResult> ProjectView(string projectName, string? version, string? fullPath, CancellationToken cancellationToken = default)
     {
         using Activity projectActivity = Tracking.StartActivity(ActivityArea.Project, "main");
+        
+        //No version? Goto latest
+        if (string.IsNullOrWhiteSpace(version))
+            return await GetDefaultProjectRedirect(projectName, version, null, cancellationToken);
         
         //Default path (if none was provided)
         if (string.IsNullOrWhiteSpace(fullPath))
             fullPath = ".";
-        
-        //No version? Goto latest
-        if (string.IsNullOrWhiteSpace(version))
-            return await GetDefaultProjectRedirect(projectName, version, fullPath, cancellationToken);
 
         //Get project page
         ProjectPage? projectPage = await projectService.GetProjectPage(projectName, version, fullPath);
@@ -83,9 +81,9 @@ public class ProjectController : Controller
         ProjectVersion projectVersion = projectPage.ProjectVersion;
         Project project = projectVersion.Project;
         
-        string requestPath = Request.Path;
-        string baseProjectPath = $"/{Path.Combine(project.Name, projectVersion.VersionTag)}";
-
+        string baseProjectPath = $"/{Path.Combine(project.Name, projectVersion.VersionTag)}/";
+        string requestPath = Path.Combine(baseProjectPath, fullPath == "." ? "" : fullPath);
+        
         //Build project nav
         ProjectNavModel navModel;
         using (Tracking.StartActivity(ActivityArea.Project, "nav"))

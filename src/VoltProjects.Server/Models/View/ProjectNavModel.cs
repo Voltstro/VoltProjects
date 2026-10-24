@@ -11,7 +11,7 @@ public sealed class ProjectNavModel
 {
     public ProjectNavModel(ProjectVersion projectVersion, string[] projectVersions, IReadOnlyList<MenuItem> menuItems)
     {
-        string baseProjectPath = $"/{Path.Combine(projectVersion.Project.Name, projectVersion.VersionTag)}";
+        string baseProjectPath = $"/{Path.Combine(projectVersion.Project.Name, projectVersion.VersionTag)}/";
         
         ProjectId = projectVersion.ProjectId;
         ProjectVersionId = projectVersion.Id;

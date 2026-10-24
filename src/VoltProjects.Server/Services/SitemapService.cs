@@ -19,8 +19,8 @@ namespace VoltProjects.Server.Services;
 /// </summary>
 public sealed class SitemapService
 {
-    private static readonly XNamespace SitemapNamespace = "http://www.sitemaps.org/schemas/sitemap/0.9";
-    private static readonly string[] BaseSitePaths = ["/", "/about/"];
+    internal static readonly string[] BaseSitePaths = ["/", "/about/"];
+    internal static readonly XNamespace SitemapNamespace = "http://www.sitemaps.org/schemas/sitemap/0.9";
     
     private readonly VoltProjectDbContext dbContext;
     private readonly IMemoryCache memoryCache;

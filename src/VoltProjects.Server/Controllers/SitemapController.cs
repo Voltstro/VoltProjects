@@ -23,7 +23,7 @@ public class SitemapController : Controller
     
     [HttpGet]
     [Route("/sitemap_index.xml")]
-    public async Task<IActionResult> GetIndexSitemap(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetIndexSitemap(CancellationToken cancellationToken = default)
     {
         string siteIndexSitemap = await sitemapService.GetSiteIndexSitemap();
         return new ContentResult
@@ -36,7 +36,7 @@ public class SitemapController : Controller
     
     [HttpGet]
     [Route("/sitemap.xml")]
-    public async Task<IActionResult> GetBaseSitemap(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetBaseSitemap(CancellationToken cancellationToken = default)
     {
         string siteSitemap = await sitemapService.GetSiteSitemap();
         return new ContentResult
@@ -49,7 +49,7 @@ public class SitemapController : Controller
 
     [HttpGet]
     [Route("/{name}/{version}/sitemap.xml")]
-    public async Task<IActionResult> GetProjectSitemap(string name, string version, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetProjectSitemap(string name, string version, CancellationToken cancellationToken = default)
     {
         string? sitemapDocument = await sitemapService.GetProjectSitemap(name, version);
         if(sitemapDocument == null)

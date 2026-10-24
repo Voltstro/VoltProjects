@@ -28,7 +28,7 @@ public class MainController : Controller
 
     [HttpGet]
     [Route("/")]
-    public async Task<IActionResult> Index(CancellationToken cancellationToken)
+    public async Task<IActionResult> Index(CancellationToken cancellationToken = default)
     {
         Project[] projects = await projectService.GetProjects();
         
